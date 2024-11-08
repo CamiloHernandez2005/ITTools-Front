@@ -29,6 +29,11 @@ const model = ref([
         to: '/home'
     },
     {
+        label: 'Home',
+        icon: 'pi pi-fw pi-home',
+        to: '/homeusers'
+    },
+    {
         label: 'Tools',
         icon: 'pi pi-fw pi-cog',
         items: [
@@ -38,6 +43,7 @@ const model = ref([
             { label: 'Services', icon: 'pi pi-fw pi-cog', to: '/uikit/Services' }
         ]
     },
+   
     {
         label: 'Servers',
         icon: 'pi pi-fw pi-server',
@@ -46,16 +52,18 @@ const model = ref([
             { label: 'Agents', icon: 'pi pi-fw pi-cloud', to: '/uikit/Agents' }
         ]
     },
-    {
+    
+{
         label: 'Logs',
         icon: 'pi pi-fw pi-folder', // Icono actualizado para Logs
         items: [
-            { label: 'Find Log Transactions', icon: 'pi pi-fw pi-search', to: '/uikit/FindLogTran' },
-            { label: 'Log Transfer', icon: 'pi pi-fw pi-share-alt', to: '/uikit/LogTran' },
             { label: 'Find in a log file', icon: 'pi pi-fw pi-search-plus', to: '/uikit/FindLog' },
+            { label: 'Multi find logs', icon: 'pi pi-fw pi-search', to: '/uikit/FindLogTran' },
+            { label: 'Logs', icon: 'pi pi-fw pi-share-alt', to: '/uikit/LogTran' },
             { label: 'Archive logs', icon: 'pi pi-fw pi-clock', to: '/uikit/ArchiveLog' }
         ]
     },
+
     {
         label: 'DataBase',
         icon: ' pi pi-database',
@@ -78,6 +86,11 @@ const model = ref([
 
         ]
 
+    },
+    {
+        label: 'Support',
+        icon: 'pi pi-fw pi-user', 
+        to: '/uikit/Support'
     },
 ]);
 </script>

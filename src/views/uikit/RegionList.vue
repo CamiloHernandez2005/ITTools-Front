@@ -297,7 +297,7 @@ export default {
                         </Column>
                         <Column field="description" header="Description" :showFilterMatchModes="false" sortable>
                             <template #body="{ data }">
-                                {{ data.nameRegion }}
+                                {{ data.description}}
                             </template>
                             <template #filter="{ filterModel }">
                                 <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />

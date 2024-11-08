@@ -19,7 +19,13 @@ const routes = [
                 name: 'dashboard',
                 component: () => import('@/views/Dashboard.vue'),
                 meta: { requiresAuth: true }
+            },{
+                path: '/homeusers',
+                name: 'dashboardusers',
+                component: () => import('@/views/DashboardUser.vue'),
+                meta: { requiresAuth: true }
             },
+           
             {
                 path: '/uikit/Users',
                 name: 'formlayout',
@@ -44,12 +50,7 @@ const routes = [
                 component: () => import('@/views/uikit/Agents.vue'),
                 meta: { requiresAuth: true }
             },
-            {
-                path: '/uikit/Services',
-                name: 'Services',
-                component: () => import('@/views/uikit/Services.vue'),
-                meta: { requiresAuth: true }
-            },
+           
             {
                 path: '/uikit/Roles',
                 name: 'Roles',
@@ -113,6 +114,12 @@ const routes = [
                 path: '/uikit/AuditDatabase',
                 name: 'AuditDatabase',
                 component: () => import('@/views/uikit/AuditDatabase.vue'),
+                meta: { requiresAuth: true }
+            },
+            {
+                path: '/uikit/support',
+                name: 'Support',
+                component: () => import('@/views/uikit/Support.vue'),
                 meta: { requiresAuth: true }
             },
         ]
