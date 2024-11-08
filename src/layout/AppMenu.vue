@@ -14,24 +14,19 @@
 
 
 <script setup>
+import { useLayout } from '@/layout/composables/layout';
 import { ref } from 'vue';
 import AppMenuItem from './AppMenuItem.vue';
-import { useLayout } from '@/layout/composables/layout';
 
-const { onMenuToggle} = useLayout();
+const { onMenuToggle } = useLayout();
 
 
 const model = ref([
-    
+
     {
         label: 'Home',
         icon: 'pi pi-fw pi-home',
         to: '/home'
-    },
-    {
-        label: 'Home',
-        icon: 'pi pi-fw pi-home',
-        to: '/homeusers'
     },
     {
         label: 'Tools',
@@ -40,13 +35,14 @@ const model = ref([
             { label: 'Users', icon: 'pi pi-fw pi-users', to: '/uikit/Users' },
             { label: 'Roles', icon: 'pi pi-fw pi-shield', to: '/uikit/Roles' },
             { label: 'Regions', icon: 'pi pi-fw pi-globe', to: '/uikit/RegionList' },
+            { label: 'Services', icon: 'pi pi-fw pi-cog', to: '/uikit/Services' }
         ]
     },
     {
         label: 'Servers',
         icon: 'pi pi-fw pi-server',
         items: [
-            { label: 'Servers DB', icon: 'pi pi-fw pi-database', to: '/uikit/ServersDB' },
+            { label: 'ServersDB', icon: 'pi pi-fw pi-database', to: '/uikit/ServersDB' },
             { label: 'Agents', icon: 'pi pi-fw pi-cloud', to: '/uikit/Agents' }
         ]
     },
@@ -54,34 +50,34 @@ const model = ref([
         label: 'Logs',
         icon: 'pi pi-fw pi-folder', // Icono actualizado para Logs
         items: [
+            { label: 'Find Log Transactions', icon: 'pi pi-fw pi-search', to: '/uikit/FindLogTran' },
+            { label: 'Log Transfer', icon: 'pi pi-fw pi-share-alt', to: '/uikit/LogTran' },
             { label: 'Find in a log file', icon: 'pi pi-fw pi-search-plus', to: '/uikit/FindLog' },
-            { label: 'Multi find logs', icon: 'pi pi-fw pi-search', to: '/uikit/FindLogTran' },
-            { label: 'Logs', icon: 'pi pi-fw pi-share-alt', to: '/uikit/LogTran' },
             { label: 'Archive logs', icon: 'pi pi-fw pi-clock', to: '/uikit/ArchiveLog' }
         ]
     },
     {
         label: 'DataBase',
-        icon: ' pi pi-database', 
+        icon: ' pi pi-database',
         items: [
             { label: 'Jobs', icon: 'pi pi-fw pi-briefcase', to: '/uikit/Jobs' },
-            { label: 'Running queries', icon: 'pi pi-fw  pi-spinner', to: '/uikit/Running' },
-            { label: 'Recycling', icon: 'pi pi-fw pi-refresh', to: '/uikit/Jobs' },
+            { label: 'Running Queries', icon: 'pi pi-fw  pi-spinner', to: '/uikit/Running' },
+            { label: 'Recycling', icon: 'pi pi-fw pi-refresh', to: '/uikit/Recycling' },
             { label: 'Propierties', icon: 'pi pi-fw pi-cog', to: '/uikit/Propierties' }
+        ]// Icono actualizado para Audit
+
+    },
+
+    {
+        label: 'Audit',
+        icon: 'pi pi-fw pi-chart-line',
+        // Icono actualizado para Audit
+        items: [
+            { label: 'Audit', icon: 'pi pi-fw pi-chart-line', to: '/uikit/Audit' },
+            { label: 'Audit Database', icon: 'pi pi-database', to: '/uikit/AuditDatabase' },
+
         ]
-      
-    },
 
-    {
-        label: 'Audits',
-        icon: 'pi pi-fw pi-chart-line', 
-        to: '/uikit/Audit'
-    },
-
-    {
-        label: 'Support',
-        icon: 'pi pi-fw pi-user', 
-        to: '/uikit/Support'
     },
 ]);
 </script>

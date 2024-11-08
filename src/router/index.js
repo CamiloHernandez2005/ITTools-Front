@@ -21,12 +21,6 @@ const routes = [
                 meta: { requiresAuth: true }
             },
             {
-                path: '/homeusers',
-                name: 'dashboardusers',
-                component: () => import('@/views/DashboardUser.vue'),
-                meta: { requiresAuth: true }
-            },
-            {
                 path: '/uikit/Users',
                 name: 'formlayout',
                 component: () => import('@/views/uikit/Users.vue'),
@@ -50,7 +44,12 @@ const routes = [
                 component: () => import('@/views/uikit/Agents.vue'),
                 meta: { requiresAuth: true }
             },
-
+            {
+                path: '/uikit/Services',
+                name: 'Services',
+                component: () => import('@/views/uikit/Services.vue'),
+                meta: { requiresAuth: true }
+            },
             {
                 path: '/uikit/Roles',
                 name: 'Roles',
@@ -105,9 +104,15 @@ const routes = [
                 meta: { requiresAuth: true }
             },
             {
-                path: '/uikit/support',
-                name: 'Support',
-                component: () => import('@/views/uikit/Support.vue'),
+                path: '/uikit/Recycling',
+                name: 'Recycling',
+                component: () => import('@/views/uikit/RecyclingPins.vue'),
+                meta: { requiresAuth: true }
+            },
+            {
+                path: '/uikit/AuditDatabase',
+                name: 'AuditDatabase',
+                component: () => import('@/views/uikit/AuditDatabase.vue'),
                 meta: { requiresAuth: true }
             },
         ]
