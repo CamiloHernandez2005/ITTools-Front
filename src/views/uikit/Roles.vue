@@ -260,8 +260,8 @@ export default {
                             </div>
                         </template>
 
-                        <template #empty> No users found. </template>
-                        <template #loading> Loading users data. Please wait. </template>
+                        <template #empty> No roles found. </template>
+                        <template #loading> Loading roles data. Please wait. </template>
 
                         <Column field="authority" header="Name" :showFilterMatchModes="false" sortable>
                             <template #body="{ data }">

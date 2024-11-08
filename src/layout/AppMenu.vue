@@ -40,7 +40,6 @@ const model = ref([
             { label: 'Users', icon: 'pi pi-fw pi-users', to: '/uikit/Users' },
             { label: 'Roles', icon: 'pi pi-fw pi-shield', to: '/uikit/Roles' },
             { label: 'Regions', icon: 'pi pi-fw pi-globe', to: '/uikit/RegionList' },
-            { label: 'Services', icon: 'pi pi-fw pi-cog', to: '/uikit/Services' }
         ]
     },
    

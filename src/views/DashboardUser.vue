@@ -25,14 +25,15 @@ export default {
             snake: [{ x: 10, y: 10 }],
             food: { x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20) },
             direction: { x: 0, y: 1 },
-            nextDirection: { x: 0, y: 1 }, // Nueva propiedad para la siguiente dirección
+            nextDirection: { x: 0, y: 1 },
             score: 0,
             highScore: localStorage.getItem('highScore') || 0,
             isGameOver: false,
             intervalId: null,
-            isBlinking: false
+            isBlinking: false,
+            snakeColor: 'green', // Color inicial de la serpiente
+            gameSpeed: 500 // Velocidad inicial de actualización en ms
         });
-
         // Función para activar el parpadeo en rojo al perder
         function triggerBlink() {
             snakeGame.isBlinking = true;
@@ -56,10 +57,29 @@ export default {
             snakeGame.food = { x: Math.floor(Math.random() * snakeGame.boardSize), y: Math.floor(Math.random() * snakeGame.boardSize) };
             snakeGame.score = 0;
             snakeGame.isGameOver = false;
+            snakeGame.gameSpeed = 500; // Restablecer la velocidad inicial
             spawnFood();
 
             if (snakeGame.intervalId) clearInterval(snakeGame.intervalId);
-            snakeGame.intervalId = setInterval(snakeGameLoop, 200);
+            snakeGame.intervalId = setInterval(snakeGameLoop, snakeGame.gameSpeed);
+        }
+
+        function updateGameSpeed() {
+            let speed = 500; // Velocidad inicial en ms
+            if (snakeGame.score >= 30)
+                speed = 150; // Velocidad a partir de 30 puntos
+            else if (snakeGame.score >= 20)
+                speed = 200; // Velocidad a partir de 20 puntos
+            else if (snakeGame.score >= 10)
+                speed = 300; // Velocidad a partir de 10 puntos
+            else if (snakeGame.score >= 5) speed = 400; // Velocidad a partir de 5 puntos
+
+            // Si la velocidad cambió, reiniciamos el intervalo
+            if (speed !== snakeGame.gameSpeed) {
+                snakeGame.gameSpeed = speed;
+                clearInterval(snakeGame.intervalId);
+                snakeGame.intervalId = setInterval(snakeGameLoop, snakeGame.gameSpeed);
+            }
         }
 
         // Función para generar la fruta en una posición aleatoria
@@ -82,7 +102,18 @@ export default {
                 return;
             }
 
-            // Actualizar la dirección solo al inicio de cada ciclo
+            // Cambiar el color de la serpiente en función del puntaje
+            if (snakeGame.score >= 30) {
+                snakeGame.snakeColor = 'purple';
+            } else if (snakeGame.score >= 20) {
+                snakeGame.snakeColor = 'blue';
+            } else if (snakeGame.score >= 10) {
+                snakeGame.snakeColor = 'orange';
+            } else {
+                snakeGame.snakeColor = 'green';
+            }
+
+            // Actualizar la dirección
             snakeGame.direction = snakeGame.nextDirection;
 
             const head = {
@@ -103,6 +134,7 @@ export default {
             if (head.x === snakeGame.food.x && head.y === snakeGame.food.y) {
                 snakeGame.score++;
                 spawnFood();
+                updateGameSpeed(); // Actualizar la velocidad después de ganar un punto
             } else {
                 snakeGame.snake.pop();
             }
@@ -110,25 +142,72 @@ export default {
 
         // Cambiar la dirección de la serpiente
         function changeDirection(newDirection) {
-            // Prevenir que la serpiente se mueva en dirección opuesta
             if ((newDirection.x !== -snakeGame.direction.x || newDirection.y !== -snakeGame.direction.y) && (newDirection.x !== snakeGame.direction.x || newDirection.y !== snakeGame.direction.y)) {
-                snakeGame.nextDirection = newDirection; // Cambiar solo nextDirection
+                snakeGame.nextDirection = newDirection;
             }
         }
 
-        // Dibujar la serpiente y la fruta en el canvas
+        // Función para dibujar la serpiente y la manzana en el canvas
+        // Función para dibujar la serpiente y la manzana en el canvas
         function drawSnakeAndFood(context) {
-            context.clearRect(0, 0, 300, 300);
+            context.clearRect(0, 0, 300, 300); // Limpiar el canvas antes de cada renderizado
 
-            // Dibujar el cuerpo de la serpiente
-            context.fillStyle = snakeGame.isBlinking ? 'red' : 'green';
+            // Dibujar la manzana con forma redondeada y con tallo
+            const appleX = snakeGame.food.x * 20 + 10; // Centro del círculo
+            const appleY = snakeGame.food.y * 20 + 10;
+            context.fillStyle = 'red';
+
+            // Dibuja el círculo para la manzana
+            context.beginPath();
+            context.arc(appleX, appleY, 8, 0, Math.PI * 2); // Radio de 8
+            context.fill();
+
+            // Dibujar el tallo de la manzana
+            context.strokeStyle = 'brown';
+            context.lineWidth = 2;
+            context.beginPath();
+            context.moveTo(appleX, appleY - 8);
+            context.lineTo(appleX, appleY - 12);
+            context.stroke();
+
+            // Dibujar una pequeña hoja junto al tallo
+            context.fillStyle = 'green';
+            context.beginPath();
+            context.arc(appleX + 3, appleY - 12, 2, 0, Math.PI * 2);
+            context.fill();
+
+            // Definir colores de la serpiente según el puntaje
+            let snakeColor = 'green';
+            let snakeBorderColor = 'darkgreen';
+            if (snakeGame.score >= 30) {
+                snakeColor = 'purple';
+                snakeBorderColor = 'darkpurple';
+            } else if (snakeGame.score >= 20) {
+                snakeColor = 'blue';
+                snakeBorderColor = 'darkblue';
+            } else if (snakeGame.score >= 10) {
+                snakeColor = 'orange';
+                snakeBorderColor = 'darkorange';
+            }
+
+            // Dibujar el cuerpo de la serpiente, parpadeando si es game over
+            const fillColor = snakeGame.isBlinking ? 'red' : snakeColor;
+            const borderColor = snakeGame.isBlinking ? 'darkred' : snakeBorderColor;
             snakeGame.snake.forEach((segment) => {
-                context.fillRect(segment.x * 20, segment.y * 20, 20, 20);
+                context.fillStyle = fillColor;
+                context.strokeStyle = borderColor;
+                context.lineWidth = 2;
+
+                // Dibujar cada segmento con bordes redondeados
+                context.beginPath();
+                context.roundRect(segment.x * 20 + 2, segment.y * 20 + 2, 16, 16, 5); // Bordes redondeados
+                context.fill();
+                context.stroke();
             });
 
             // Dibujar los ojos en la cabeza de la serpiente
             const head = snakeGame.snake[0];
-            context.fillStyle = 'white';
+            context.fillStyle = 'white'; // Color de los ojos
 
             let eye1X, eye1Y, eye2X, eye2Y;
 
@@ -155,14 +234,28 @@ export default {
                 eye2Y = head.y * 20 + 5;
             }
 
+            // Dibujar los ojos
             context.beginPath();
-            context.arc(eye1X, eye1Y, 2, 0, Math.PI * 2);
-            context.arc(eye2X, eye2Y, 2, 0, Math.PI * 2);
+            context.arc(eye1X, eye1Y, 2, 0, Math.PI * 2); // Ojo izquierdo
+            context.arc(eye2X, eye2Y, 2, 0, Math.PI * 2); // Ojo derecho
             context.fill();
-
-            context.fillStyle = 'red';
-            context.fillRect(snakeGame.food.x * 20, snakeGame.food.y * 20, 20, 20);
         }
+
+        // Extensión para dibujar rectángulos con bordes redondeados en Canvas
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
+            this.beginPath();
+            this.moveTo(x + radius, y);
+            this.lineTo(x + width - radius, y);
+            this.quadraticCurveTo(x + width, y, x + width, y + radius);
+            this.lineTo(x + width, y + height - radius);
+            this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            this.lineTo(x + radius, y + height);
+            this.quadraticCurveTo(x, y + height, x, y + height - radius);
+            this.lineTo(x, y + radius);
+            this.quadraticCurveTo(x, y, x + radius, y);
+            this.closePath();
+            return this;
+        };
 
         // Manejar eventos de teclado para cambiar la dirección
         window.addEventListener('keydown', (event) => {

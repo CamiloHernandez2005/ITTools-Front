@@ -365,8 +365,8 @@ export default {
                             </div>
                         </template>
 
-                        <template #empty> No users found. </template>
-                        <template #loading> Loading users data. Please wait. </template>
+                        <template #empty> No agents found. </template>
+                        <template #loading> Loading agents data. Please wait. </template>
 
                         <Column field="agentName" header="Server name" :showFilterMatchModes="false" sortable>
                             <template #body="{ data }">

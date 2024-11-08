@@ -284,8 +284,8 @@ export default {
                             </div>
                         </template>
 
-                        <template #empty> No users found. </template>
-                        <template #loading> Loading users data. Please wait. </template>
+                        <template #empty> No regions found. </template>
+                        <template #loading> Loading regions data. Please wait. </template>
 
                         <Column field="nameRegion" header="Name" :showFilterMatchModes="false" sortable>
                             <template #body="{ data }">
