@@ -1,6 +1,7 @@
 <script>
 import { regionService } from '@/services/RegionService';
 import { serverService } from '@/services/ServerDBService';
+import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
 import Button from 'primevue/button';
@@ -10,6 +11,7 @@ import Dialog from 'primevue/dialog';
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import FloatLabel from 'primevue/floatlabel';
+import Breadcrumb from 'primevue/breadcrumb';
 
 export default {
     components: {
@@ -19,7 +21,8 @@ export default {
         DataTable,
         Column,
         Dialog,
-        FloatLabel
+        FloatLabel,
+        Breadcrumb
     },
     setup() {
         const toast = useToast();
@@ -43,16 +46,16 @@ export default {
     data() {
         return {
             server: {
-                serverName: '',
-                description: '',
-                ipServer: '',
-                portServer: '',
-                instance: '',
-                serverDB: '',
-                userLogin: '',
-                password: '',
-                repeatPassword: '',
-                recyclingDB: '',
+                serverName: null,
+                description: null,
+                ipServer: null,
+                portServer: null,
+                instance: null,
+                serverDB: null,
+                userLogin: null,
+                password: null,
+                repeatPassword: null,
+                recyclingDB: null,
                 regionId: null
             },
             regions: [],
@@ -65,7 +68,14 @@ export default {
             isShowDialogVisible: false,
             displayDeleteConfirmation: false,
             selectedServer: null,
-            globalFilter: '',
+            filters: {
+                global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                serverName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                description: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                ipServer: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                serverDB: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                region: { value: null, matchMode: FilterMatchMode.CONTAINS }
+            },
             editServerData: {
                 idServer: null,
                 serverName: '',
@@ -82,7 +92,24 @@ export default {
             },
             showCreateModal: false,
             serverToDelete: null,
-            filterActiveOnly: true
+            filterActiveOnly: true,
+
+              // Definición del breadcrumb
+              home: {
+                label: 'Home', icon: 'pi pi-home', url: '/' 
+            },
+            items: [
+            {
+                    label: 'Servers',
+                    icon: 'pi pi-fw pi-server',
+                    route: { name: 'ServersDB' }
+                },
+                {
+                    icon: 'pi pi-fw pi-database',
+                    label: 'Servers DB',
+                    route: { name: 'ServersDB' }
+                }
+            ]
         };
     },
     async created() {
@@ -180,6 +207,20 @@ export default {
                 this.showError('Failed to change status');
             }
         },
+        clearFilter() {
+            // Limpiar el filtro global
+            this.filters.global.value = null;
+
+            // Limpiar los filtros de columnas
+            for (const key in this.filters) {
+                if (this.filters[key]) {
+                    this.filters[key].value = null; // Resetea el valor de cada filtro
+                }
+            }
+
+            // Refresca la lista de usuarios
+            this.filterUsers();
+        },
         async handleClose() {
             this.showCreateModal = false;
             this.isEditDialogVisible = false;
@@ -248,10 +289,12 @@ export default {
         },
         filterServers() {
             this.filteredServers = this.servers.filter((server) => {
-                const filter = this.globalFilter.toLowerCase();
+                const filter = this.filters.global.value?.toLowerCase() || '';
                 const isActive = this.filterActiveOnly ? server.status === 1 : true;
 
-                return isActive && Object.values(server).some((value) => (value ? value.toString().toLowerCase().includes(filter) : false));
+                return isActive && Object.values(server).some((value) =>
+                    value ? value.toString().toLowerCase().includes(filter) : false
+                );
             });
         },
         toggleFilter() {
@@ -260,8 +303,11 @@ export default {
         }
     },
     watch: {
-        globalFilter() {
-            this.filterServers();
+        filters: {
+            deep: true,
+            handler() {
+                this.filterServers();
+            }
         }
     }
 };
@@ -270,26 +316,73 @@ export default {
 <template>
     <div class="flex flex-col h-screen p-4">
         <div class="flex-2">
-            <div class="card p-4 flex flex-col gap-4 h-full">
-                <div class="font-semibold text-xl">Servers</div>
-                <div class="flex justify-between items-center mb-2">
-                    <div class="flex gap-2">
-                        <Button label="Create User" icon="pi pi-plus" id="create-button" @click="openCreateModal" />
-                        <Button label="Filter All" icon="pi pi-filter" id="close-button" @click="toggleFilter"  />
-                    </div>
-                    <InputText v-model="globalFilter" placeholder="Global search..." class="p-inputtext p-component" />
+            <div class="card p-6 flex flex-col  h-full shadow-custom border">
+                <!-- Agrupar los dos elementos: titulo y breadcrumb -->
+                <div class="header-container">
+                    <div class="title font-semibold text-xl">Servers DB</div>
+                    <Breadcrumb :home="home" :model="items" />
                 </div>
-                <!-- Contenedor de búsqueda -->
+
 
                 <div class="overflow-x-auto">
-                    <DataTable :value="filteredServers" class="p-datatable-sm" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 20]" :totalRecords="servers.length" sortMode="multiple">
-                        <Column field="serverName" header="Server Name" sortable />
-                        <Column field="description" header="Description" sortable />
-                        <Column field="ipServer" header="IP Address" sortable />
-                        <Column field="serverDB" header="Server DB" sortable />
-                        <Column field="region" header="Region" sortable>
+                    <DataTable :value="filteredServers" class="p-datatable-sm" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 20]" :totalRecords="servers.length" dataKey="id"
+                        :rowHover="true"
+                        v-model:filters="filters"
+                        filterDisplay="menu"
+                        :globalFilterFields="['serverName', 'description', 'ipServer', 'serverDB', 'region']" >
+                        
+                        <template #header>
+                            <div class="flex justify-between">
+                                <div class="flex gap-2">
+                                    <Button label="Create server DB" icon="pi pi-plus" id="create-button" @click="openCreateModal" />
+                                    <Button label="Filter all" icon="pi pi-filter" id="close-button" @click="toggleFilter"  />
+                                </div>
+                                <div class="flex gap-2">   <InputText v-model="filters.global.value" placeholder="Global search" /> <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" /></div>
+                            </div>
+                        </template>
+
+                        <template #empty> No users found. </template>
+                        <template #loading> Loading users data. Please wait. </template>
+
+                        <Column field="serverName" header="Server name" :showFilterMatchModes="false" sortable >
+                            <template #body="{ data }">
+                                {{ data.serverName }}
+                            </template>
+                            <template #filter="{ filterModel }">
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+                            </template>
+                        </Column>
+
+                        <Column field="description" header="Description" :showFilterMatchModes="false" sortable>
+                            <template #body="{ data }">
+                                {{ data.description }}
+                            </template>
+                            <template #filter="{ filterModel }">
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by ip" />
+                            </template>
+                        </Column>
+                        <Column field="ipServer" header="IP address" :showFilterMatchModes="false" sortable >
+                            <template #body="{ data }">
+                                {{ data.ipServer }}
+                            </template>
+                            <template #filter="{ filterModel }">
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by path" />
+                            </template>
+                        </Column>
+                        <Column field="serverDB" header="Server DB" :showFilterMatchModes="false" sortable >
+                        <template #body="{ data }">
+                                {{ data.serverDB }}
+                            </template>
+                            <template #filter="{ filterModel }">
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by ip path archive" />
+                            </template>
+                        </Column>
+                        <Column field="region" header="Region" :showFilterMatchModes="false" sortable>
                             <template #body="{ data }">
                                 <span>{{ getRegionName(data.regionId) }}</span>
+                            </template>
+                            <template #filter="{ filterModel }">
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by region" />
                             </template>
                         </Column>
                         <Column field="status" header="Status" sortable>
@@ -317,39 +410,39 @@ export default {
         <!-- Sección de creación de servidor -->
         <div>
             <!-- Modal -->
-            <Dialog header="Create Server" v-model:visible="showCreateModal" modal @hide="closeCreateModal" style="width: 70vw; max-width: auto; height: auto; max-height: auto" class="custom-dialog">
+            <Dialog header="Create server" v-model:visible="showCreateModal" modal @hide="closeCreateModal" style="width: 70vw; max-width: auto; height: auto; max-height: auto" class="custom-dialog">
                 <form @submit.prevent="createServer">
                     <!-- Contenedor principal en grid -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <!-- Fila superior con tres columnas -->
                         <div class="field-group p-4 border border-gray-300 rounded-md lg:col-span-1">
-                            <div class="font-semibold text-lg mb-2">Network Details</div>
+                            <div class="font-semibold text-lg mb-2">Network details</div>
                             <div class="flex flex-wrap gap-8">
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
-                                    <label for="ipServer">IP Server</label>
-                                    <InputText id="ipServer" v-model="server.ipServer" class="p-inputtext-sm input-with-line" placeholder="Enter IP Server" required />
+                                    <label for="ipServer">IP server</label>
+                                    <InputText id="ipServer" v-model="server.ipServer" class="p-inputtext-sm input-with-line" placeholder="Enter ip server" required />
                                 </div>
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
-                                    <label for="portServer">Port Server</label>
-                                    <InputText id="portServer" v-model="server.portServer" class="p-inputtext-sm input-with-line" placeholder="Enter Port Server" />
+                                    <label for="portServer">Port server</label>
+                                    <InputText id="portServer" v-model="server.portServer" class="p-inputtext-sm input-with-line" placeholder="Enter port server" />
                                 </div>
                             </div>
                         </div>
 
                         <div class="field-group p-4 border border-gray-300 rounded-md lg:col-span-1">
-                            <div class="font-semibold text-lg mb-2">Server Information</div>
+                            <div class="font-semibold text-lg mb-2">Server information</div>
                             <div class="flex flex-wrap gap-4">
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
-                                    <label for="serverName">Server Name</label>
-                                    <InputText id="serverName" v-model="server.serverName" class="p-inputtext-sm input-with-line" placeholder="Enter Server Name" required />
+                                    <label for="serverName">Server name</label>
+                                    <InputText id="serverName" v-model="server.serverName" class="p-inputtext-sm input-with-line" placeholder="Enter server name" required />
                                 </div>
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
                                     <label for="description">Description</label>
-                                    <InputText id="description" v-model="server.description" class="p-inputtext-sm input-with-line" placeholder="Enter Description" />
+                                    <InputText id="description" v-model="server.description" class="p-inputtext-sm input-with-line" placeholder="Enter description" />
                                 </div>
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
                                     <label for="serverDB">Server DB</label>
-                                    <InputText id="serverDB" v-model="server.serverDB" class="p-inputtext-sm input-with-line" placeholder="Enter Server DB" />
+                                    <InputText id="serverDB" v-model="server.serverDB" class="p-inputtext-sm input-with-line" placeholder="Enter server DB" />
                                 </div>
                             </div>
                         </div>
@@ -358,7 +451,7 @@ export default {
                             <div class="font-semibold text-lg mb-2">Additional Information</div>
                             <div class="flex flex-wrap gap-4">
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
-                                    <label for="dbFR">recyclingDB</label>
+                                    <label for="dbFR">recyclingDB: </label>
                                     <InputText id="dbFR" v-model="server.recyclingDB" class="p-inputtext-sm input-with-line" placeholder="Enter DB FR" />
                                 </div>
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
@@ -367,17 +460,17 @@ export default {
                                 </div>
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
                                     <label for="instance">Instance</label>
-                                    <InputText id="instance" v-model="server.instance" class="p-inputtext-sm input-with-line" placeholder="Enter Instance" />
+                                    <InputText id="instance" v-model="server.instance" class="p-inputtext-sm input-with-line" placeholder="Enter instance" />
                                 </div>
                             </div>
                         </div>
 
                         <!-- Fila inferior -->
                         <div class="field-group p-4 border border-gray-300 rounded-md lg:col-span-2">
-                            <div class="font-semibold text-lg mb-2">Access Details</div>
+                            <div class="font-semibold text-lg mb-2">Access details</div>
                             <div class="flex flex-wrap gap-4">
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
-                                    <label for="userLogin">User Login</label>
+                                    <label for="userLogin">User login</label>
                                     <InputText id="userLogin" v-model="server.userLogin" class="p-inputtext-sm input-with-line" placeholder="Enter your username" />
                                 </div>
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
@@ -385,7 +478,7 @@ export default {
                                     <InputText id="password" type="password" v-model="server.password" class="p-inputtext-sm input-with-line" placeholder="Enter your password" required />
                                 </div>
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
-                                    <label for="repeatPassword">Repeat Password</label>
+                                    <label for="repeatPassword">Repeat password</label>
                                     <InputText id="repeatPassword" type="password" v-model="server.repeatPassword" class="p-inputtext-sm input-with-line" placeholder="Repeat your password" required />
                                 </div>
                             </div>
@@ -401,53 +494,101 @@ export default {
             </Dialog>
         </div>
 
-        <!-- Diálogo de edición -->
-        <Dialog v-model:visible="isEditDialogVisible" header="Edit Server" modal :style="{ 'max-width': '30vw', width: '30vw' }">
+        <Dialog  v-model:visible="isEditDialogVisible" header="Edit server" modal @hide="closeCreateModal" style="width: 70vw; max-width: auto; height: auto; max-height: auto" class="custom-dialog">
             <form @submit.prevent="updateServer">
-                <div class="flex gap-4">
-                    <div class="flex flex-col w-1/2 gap-4">
-                        <label for="editServerName">Server Name</label>
-                        <InputText id="editServerName" type="text" v-model="editServerData.serverName" class="p-inputtext-sm input-with-line" placeholder="Enter server name" required />
-                        <label for="editDescription">Description</label>
-                        <InputText id="editDescription" type="text" v-model="editServerData.description" class="p-inputtext-sm input-with-line" placeholder="Enter description" />
-                        <label for="editIpServer">IP Server</label>
-                        <InputText id="editIpServer" type="text" v-model="editServerData.ipServer" class="p-inputtext-sm input-with-line" placeholder="Enter IP address" required />
-                        <label for="editPortServer">Port Server</label>
-                        <InputText id="editPortServer" type="text" v-model="editServerData.portServer" class="p-inputtext-sm input-with-line" placeholder="Enter port number" />
-                        <label for="editInstance">Instance</label>
-                        <InputText id="editInstance" type="text" v-model="editServerData.instance" class="p-inputtext-sm input-with-line" placeholder="Enter instance" />
+                    <!-- Contenedor principal en grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Fila superior con tres columnas -->
+                        <div class="field-group p-4 border border-gray-300 rounded-md lg:col-span-1">
+                            <div class="font-semibold text-lg mb-2">Network details</div>
+                            <div class="flex flex-wrap gap-8">
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="ipServer">IP server</label>
+                                    <InputText id="ipServer" v-model="editServerData.ipServer" class="p-inputtext-sm input-with-line" placeholder="Enter ip server" required />
+                                </div>
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="portServer">Port server</label>
+                                    <InputText id="portServer" v-model="editServerData.portServer" class="p-inputtext-sm input-with-line" placeholder="Enter port server" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-group p-4 border border-gray-300 rounded-md lg:col-span-1">
+                            <div class="font-semibold text-lg mb-2">Server information</div>
+                            <div class="flex flex-wrap gap-4">
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="serverName">Server name</label>
+                                    <InputText id="serverName" v-model="editServerData.serverName" class="p-inputtext-sm input-with-line" placeholder="Enter server name" required />
+                                </div>
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="description">Description</label>
+                                    <InputText id="description" v-model="editServerData.description" class="p-inputtext-sm input-with-line" placeholder="Enter description" />
+                                </div>
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="serverDB">Server DB</label>
+                                    <InputText id="serverDB" v-model="editServerData.serverDB" class="p-inputtext-sm input-with-line" placeholder="Enter server DB" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-group p-4 border border-gray-300 rounded-md lg:col-span-1 lg:row-span-2">
+                            <div class="font-semibold text-lg mb-2">Additional Information</div>
+                            <div class="flex flex-wrap gap-4">
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="dbFR">recyclingDB</label>
+                                    <InputText id="dbFR" v-model="editServerData.recyclingDB" class="p-inputtext-sm input-with-line" placeholder="Enter DB FR" />
+                                </div>
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="regionDropdown">Region</label>
+                                    <Dropdown id="regionDropdown" v-model="editServerData.regionId" :options="regions" optionLabel="nameRegion" optionValue="idRegion" filter filterPlaceholder="Search..." class="custom-dropdown p-dropdown-sm" />
+                                </div>
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="instance">Instance</label>
+                                    <InputText id="instance" v-model="editServerData.instance" class="p-inputtext-sm input-with-line" placeholder="Enter instance" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fila inferior -->
+                        <div class="field-group p-4 border border-gray-300 rounded-md lg:col-span-2">
+                            <div class="font-semibold text-lg mb-2">Access details</div>
+                            <div class="flex flex-wrap gap-4">
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="userLogin">User login</label>
+                                    <InputText id="userLogin" v-model="editServerData.userLogin" class="p-inputtext-sm input-with-line" placeholder="Enter your username" />
+                                </div>
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="password">Password</label>
+                                    <InputText id="password" type="password" v-model="editServerData.password" class="p-inputtext-sm input-with-line" placeholder="Enter your password" required />
+                                </div>
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="repeatPassword">Repeat password</label>
+                                    <InputText id="repeatPassword" type="password" v-model="editServerData.repeatPassword" class="p-inputtext-sm input-with-line" placeholder="Repeat your password" required />
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex flex-col w-1/2 gap-4">
-                        <label for="editServerDB">Server DB</label>
-                        <InputText id="editServerDB" type="text" v-model="editServerData.serverDB" class="p-inputtext-sm input-with-line" placeholder="Enter database" />
-                        <label for="editUserLogin">User Login</label>
-                        <InputText id="editUserLogin" type="text" v-model="editServerData.userLogin" class="p-inputtext-sm input-with-line" placeholder="Enter user login" />
-                        <label for="editPassword">Password</label>
-                        <InputText id="editPassword" type="password" v-model="editServerData.password" class="p-inputtext-sm input-with-line" placeholder="Enter password" required />
-                        <label for="editDbFR">recyclingDB</label>
-                        <InputText id="editDbFR" type="text" v-model="editServerData.recyclingDB" class="p-inputtext-sm input-with-line" placeholder="Enter DB FR" />
-                        <label for="editRegionId">Region</label>
-                        <Dropdown id="editRegionId" v-model="editServerData.regionId" :options="regions" optionValue="idRegion" optionLabel="nameRegion" filter filterPlaceholder="Search..." class="custom-dropdown p-dropdown-sm" />
-                    </div>
-                </div>
-                <!-- Contenedor para alinear el botón al final -->
-                <div class="flex justify-end mt-4">
+
+                    <!-- Contenedor para alinear el botón al final -->
+                    <div class="flex justify-end mt-4">
                     <Button id="close-button" label="Close" @click="handleClose" style="margin-right: 8px" />
-                    <Button id="create-button" type="submit" label="Save" />
+                    <Button id="create-button" type="submit" label="Create" />
                 </div>
-            </form>
-        </Dialog>
+                </form>
+            </Dialog>
+   
+
 
         <!-- Diálogo de detalles de región -->
-        <Dialog v-model:visible="isShowDialogVisible" header="Server Details" modal :style="{ 'max-width': '25vw', width: '25vw' }">
+        <Dialog v-model:visible="isShowDialogVisible" header="Server details" modal :style="{ 'max-width': '25vw', width: '25vw' }">
             <div v-if="detailServerData" class="flex flex-col gap-4">
-                <p><strong>Server Name:</strong> {{ detailServerData.serverName }}</p>
+                <p><strong>Server name:</strong> {{ detailServerData.serverName }}</p>
                 <p><strong>Description:</strong> {{ detailServerData.description }}</p>
-                <p><strong>IP Server:</strong> {{ detailServerData.ipServer }}</p>
-                <p><strong>Port Server:</strong> {{ detailServerData.portServer }}</p>
+                <p><strong>IP server:</strong> {{ detailServerData.ipServer }}</p>
+                <p><strong>Port server:</strong> {{ detailServerData.portServer }}</p>
                 <p><strong>Instance:</strong> {{ detailServerData.instance }}</p>
-                <p><strong>Database Server:</strong> {{ detailServerData.serverDB }}</p>
-                <p><strong>User Login:</strong> {{ detailServerData.userLogin }}</p>
+                <p><strong>Database server:</strong> {{ detailServerData.serverDB }}</p>
+                <p><strong>User login:</strong> {{ detailServerData.userLogin }}</p>
                 <p><strong>recyclingDB:</strong> {{ detailServerData.recyclingDB }}</p>
                 <p><strong>Region:</strong> {{ getRegionName(detailServerData.regionId) }}</p>
                 <p>
@@ -468,7 +609,7 @@ export default {
         </Dialog>
 
         <!-- Diálogo de confirmación borrar -->
-        <Dialog v-model:visible="displayDeleteConfirmation" header="Delete Confirmation" modal class="max-w-sm">
+        <Dialog v-model:visible="displayDeleteConfirmation" header="Delete confirmation" modal class="max-w-sm">
             <p>Are you sure you want to delete this server?</p>
             <template #footer>
                 <div class="flex justify-end gap-2">
@@ -552,5 +693,17 @@ export default {
   background: white;
   color: #64c4ac;
   border-color: #64c4ac;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: -1rem;
+}
+
+.shadow-custom {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px; /* Opcional: redondear bordes */
 }
 </style>
