@@ -100,9 +100,9 @@ export default {
 </script>
 
 <template>
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col min-h-screen">
         <!-- Div para seleccionar la región -->
-        <div class="w-full card p-4 flex flex-col gap-4 mb-6">
+        <div class="w-full card p-4 flex flex-col gap-4 mb-6 shadow-custom border">
             <div class="font-semibold text-xl mb-4">Select Region</div>
                 <label for="region" class="block text-sm font-medium mb-2">Region</label>
                 <Dropdown 
@@ -138,7 +138,7 @@ export default {
 
 
         <!-- Div para mostrar trabajos en ejecución -->
-        <div class="w-full card p-4 flex flex-col gap-4 mb-6">
+        <div class="w-full card p-4 flex flex-col gap-4 mb-6 shadow-custom border">
             <h2 class="font-semibold text-lg mb-2">Running Jobs</h2>
             <DataTable :value="runningJobs" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage" :rowsPerPageOptions="[5, 10, 20]" :totalRecords="runningJobs.length">
                 <Column field="jobName" header="Job Name" sortable />
@@ -150,7 +150,7 @@ export default {
         </div>
 
         <!-- Div para mostrar trabajos programados -->
-        <div class="w-full card p-4 flex flex-col gap-4">
+        <div class="w-full card p-4 flex flex-col gap-4 shadow-custom border">
             <h2 class="font-semibold text-lg mb-2">Scheduled Jobs</h2>
             <DataTable :value="scheduledJobs" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage" :rowsPerPageOptions="[5, 10, 20]" :totalRecords="scheduledJobs.length">
                 <Column field="jobName" header="Job Name" sortable />
