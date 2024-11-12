@@ -147,10 +147,10 @@ export default {
 </script>
 
 <template>  
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col min-h-screen">
         <div class="flex justify-between space-x-6 mb-6">
             <!-- Panel de selección de región -->
-            <div class="w-1/2 card p-4 flex-1 h-80 overflow-auto">
+            <div class="w-1/2 card p-4 flex-1 h-80 overflow-auto shadow-custom border">
                 <div class="font-semibold text-xl mb-4">Select Region</div>
                 <label for="region" class="block text-sm font-medium mb-2">Region</label>
                 <Dropdown 
@@ -187,7 +187,7 @@ export default {
             </div>
 
             <!-- Panel de selección de base de datos -->
-            <div class="w-1/2 card p-4 flex-1 h-80 ">
+            <div class="w-1/2 card p-4 flex-1 h-80  shadow-custom border">
                 <h2 class="font-semibold text-lg mb-4">Select Database</h2>
                 <br>
                 <div class="flex flex-col gap-2 ">
@@ -220,7 +220,7 @@ export default {
         </div>
 
         <!-- Tabla de propiedades -->
-        <div class="w-full card p-4 flex flex-col gap-4">
+        <div class="w-full card p-4 flex flex-col gap-4 shadow-custom border">
             <h2 class="font-semibold text-lg mb-2">Properties</h2>
             <DataTable 
                 :value="properties" 

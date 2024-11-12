@@ -525,9 +525,9 @@ export default {
 };
 </script>
 <template>
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col min-h-screen">
 
-        <div class="w-full card p-1 mb-4">
+        <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
                 <div class="title font-semibold text-xl ml-4">Recycling Pins Or Quarantine Pins</div>
                 <div class="breadcrumb-section mr-2">
@@ -537,7 +537,7 @@ export default {
         </div>
 
         <!-- Div para seleccionar la región -->
-        <div class="w-full card p-4 flex flex-col gap-4 mb-6">
+        <div class="w-full card p-4 flex flex-col gap-4 mb-6 shadow-custom border">
             <div class="font-semibold text-xl mb-4">Select Region</div>
             <label for="region" class="block text-sm font-medium mb-2">Region</label>
             <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id"
@@ -684,7 +684,7 @@ export default {
 
 
         <!-- Tabla de pines reciclados (actualizados) -->
-        <div class="card p-4 mt-4">
+        <div class="card p-4 mt-4 shadow-custom border">
             <h3 class="text-lg font-bold mb-4">Recycled Or Quarantine Pins</h3>
             <DataTable :value="updatedPins" class="p-datatable-sm" :paginator="true" rows="10"
                 :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple">
@@ -694,8 +694,9 @@ export default {
         </div>
 
         <!-- Tabla de pines fallidos (no actualizados) -->
-        <div class="card p-4 mt-4">
-            <h3>FAiled Pins</h3>
+        <div class="card p-4 mt-4  h-full shadow-custom border">
+            <h3 class="text-lg font-bold mb-4"> 
+                Pins Failed</h3>
             <DataTable :value="nonUpdatedPins" class="p-datatable-sm" :paginator="true" rows="10"
                 :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple">
                 <Column field="pinId" header="Pin ID" sortable />
@@ -781,5 +782,9 @@ export default {
 
 .text-red {
     color: red !important;
+}
+.shadow-custom {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px; /* Opcional: redondear bordes */
 }
 </style>

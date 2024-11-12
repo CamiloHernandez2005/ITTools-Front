@@ -70,7 +70,7 @@ export default {
 </script>
 
 <template>
-  <div class="flex flex-col h-screen p-4">
+  <div class="flex flex-col min-h-screen">
     <!-- Contenedor de la DataTable -->
     <div class="flex-2">
       <div class="card p-4 flex flex-col gap-4 h-full">

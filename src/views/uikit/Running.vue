@@ -154,9 +154,9 @@ export default {
 </script>
 
 <template>
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col min-h-screen">
         <!-- Selección de la región -->
-        <div class="card p-6 flex flex-col gap-2 ">
+        <div class="card p-6 flex flex-col gap-2  shadow-custom border">
             <!-- Agrupar los dos elementos: titulo y breadcrumb -->
             <div class="header-container">
                 <div class="title font-semibold text-xl">Running Queries</div>
@@ -187,7 +187,7 @@ export default {
             style="width: 20%; margin-bottom: 1%; " class="boton1" />
 
         <!-- Lista de procesos en ejecución -->
-        <div class="w-full card p-4 flex flex-col gap-4">
+        <div class="w-full card p-4 flex flex-col gap-4 shadow-custom border">
             <h2 class="font-semibold text-lg mb-2">Running Processes</h2>
             <DataTable :value="runningProcesses" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage"
                 :rowsPerPageOptions="[5, 10, 20]">
