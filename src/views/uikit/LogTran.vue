@@ -39,6 +39,11 @@ export default {
         const selectedLogs = ref([]); // Cambia a un array para seleccionar múltiples logs
         const errorMessage = ref('');
         const isLoading = ref(false); // Variable para el estado de carga
+        const showAdditionalMessage = ref(false);
+        const showAdditionalMessage2 = ref(false);
+        const showAdditionalMessage3 = ref(false);
+        const showAdditionalMessage4 = ref(false);
+        const showAdditionalMessage5 = ref(false);
 
         const showSuccess = (message) => {
             toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
@@ -97,6 +102,35 @@ export default {
     if (selectedLogs.value.length > 0) {
         // Verificar si hay logs seleccionados
         isLoading.value = true; // Abrir el modal de carga
+        showAdditionalMessage.value = false;
+                showAdditionalMessage2.value = false;
+                showAdditionalMessage3.value = false;
+                showAdditionalMessage4.value = false;
+                showAdditionalMessage5.value = false;
+
+                const additionalMessageTimeout = setTimeout(() => {
+                    showAdditionalMessage.value = true;
+                }, 10000);
+
+                const additionalMessageTimeout2 = setTimeout(() => {
+                    showAdditionalMessage.value = false;
+                    showAdditionalMessage2.value = true;
+                }, 20000);
+
+                const additionalMessageTimeout3 = setTimeout(() => {
+                    showAdditionalMessage2.value = false;
+                    showAdditionalMessage3.value = true;
+                }, 30000);
+
+                const additionalMessageTimeout4 = setTimeout(() => {
+                    showAdditionalMessage3.value = false;
+                    showAdditionalMessage4.value = true;
+                }, 40000);
+
+                const additionalMessageTimeout5 = setTimeout(() => {
+                    showAdditionalMessage4.value = false;
+                    showAdditionalMessage5.value = true;
+                }, 50000);
         try {
             // Encontrar la IP del agente seleccionado
             const agent = agents.value.find(a => a.idAgent === selectedAgent.value);
@@ -113,6 +147,16 @@ export default {
             showError('Error downloading log file: ' + error.message);
         } finally {
             isLoading.value = false; // Cerrar el modal de carga
+            clearTimeout(additionalMessageTimeout);
+                    showAdditionalMessage.value = false;
+                    clearTimeout(additionalMessageTimeout2);
+                    showAdditionalMessage2.value = false;
+                    clearTimeout(additionalMessageTimeout3);
+                    showAdditionalMessage3.value = false;
+                    clearTimeout(additionalMessageTimeout4);
+                    showAdditionalMessage4.value = false;
+                    clearTimeout(additionalMessageTimeout5);
+                    showAdditionalMessage5.value = false;
         }
     } else {
         showError('Please select at least one log to download.');
@@ -148,7 +192,12 @@ export default {
             downloadSelectedLogs,
             errorMessage,
             isLoading,
-            breadcrumbItems
+            breadcrumbItems,
+            showAdditionalMessage,
+            showAdditionalMessage2,
+            showAdditionalMessage3,
+            showAdditionalMessage4,
+            showAdditionalMessage5,
         };
     }
 };
@@ -253,6 +302,12 @@ export default {
             <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
                 <p class="mt-4">Downloading logs...</p>
+                <!-- Mensaje adicional que aparece después de 5 segundos -->
+                <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
+                <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
+                <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
+                <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
+                <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
             </div>
         </Dialog>
 

@@ -32,7 +32,7 @@ export default {
             intervalId: null,
             isBlinking: false,
             snakeColor: 'green', // Color inicial de la serpiente
-            gameSpeed: 500 // Velocidad inicial de actualización en ms
+            gameSpeed: 400 // Velocidad inicial de actualización en ms
         });
         // Función para activar el parpadeo en rojo al perder
         function triggerBlink() {
@@ -57,7 +57,7 @@ export default {
             snakeGame.food = { x: Math.floor(Math.random() * snakeGame.boardSize), y: Math.floor(Math.random() * snakeGame.boardSize) };
             snakeGame.score = 0;
             snakeGame.isGameOver = false;
-            snakeGame.gameSpeed = 500; // Restablecer la velocidad inicial
+            snakeGame.gameSpeed = 400; // Restablecer la velocidad inicial
             spawnFood();
 
             if (snakeGame.intervalId) clearInterval(snakeGame.intervalId);
@@ -65,14 +65,14 @@ export default {
         }
 
         function updateGameSpeed() {
-            let speed = 500; // Velocidad inicial en ms
+            let speed = 400; // Velocidad inicial en ms
             if (snakeGame.score >= 30)
                 speed = 150; // Velocidad a partir de 30 puntos
             else if (snakeGame.score >= 20)
                 speed = 200; // Velocidad a partir de 20 puntos
             else if (snakeGame.score >= 10)
                 speed = 300; // Velocidad a partir de 10 puntos
-            else if (snakeGame.score >= 5) speed = 400; // Velocidad a partir de 5 puntos
+            else if (snakeGame.score >= 5) speed = 350; // Velocidad a partir de 5 puntos
 
             // Si la velocidad cambió, reiniciamos el intervalo
             if (speed !== snakeGame.gameSpeed) {
@@ -101,7 +101,6 @@ export default {
                 clearInterval(snakeGame.intervalId);
                 return;
             }
-
             // Cambiar el color de la serpiente en función del puntaje
             if (snakeGame.score >= 30) {
                 snakeGame.snakeColor = 'purple';
@@ -109,6 +108,8 @@ export default {
                 snakeGame.snakeColor = 'blue';
             } else if (snakeGame.score >= 10) {
                 snakeGame.snakeColor = 'orange';
+            } else if (snakeGame.score >= 5) {
+                snakeGame.snakeColor = 'gray';
             } else {
                 snakeGame.snakeColor = 'green';
             }
@@ -188,6 +189,9 @@ export default {
             } else if (snakeGame.score >= 10) {
                 snakeColor = 'orange';
                 snakeBorderColor = 'darkorange';
+            } else if (snakeGame.score >= 5) {
+                snakeColor = 'gray';
+                snakeBorderColor = 'darkgray';
             }
 
             // Dibujar el cuerpo de la serpiente, parpadeando si es game over
@@ -563,7 +567,7 @@ export default {
         <div class="col-span-12 lg:col-span-5">
             <div class="card p-4 shadow-custom border h-full">
                 <div class="font-semibold text-xl mb-2">Activity</div>
-                <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="6" :rowsPerPageOptions="[6, 10, 20]" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :emptyMessage="'No requests found'">
+                <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="6"  :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :emptyMessage="'No requests found'">
                     <Column field="userAction" header="Action" />
                     <Column field="dateTime" header="Date & time">
                         <template #body="slotProps">

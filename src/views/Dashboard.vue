@@ -198,8 +198,8 @@ function processAuditData() {
         // Ordenar el mapa por el número de auditorías
         const sortedUsers = Object.entries(userAuditCountMap).sort((a, b) => b[1] - a[1]);
 
-        // Almacenar el top 10 en la variable `topUsers`
-        topUsers.value = sortedUsers.slice(0, 10);
+        // Almacenar el top 5 en la variable `topUsers`
+        topUsers.value = sortedUsers.slice(0, 5);
     });
 
     // Assign processed data to chart
