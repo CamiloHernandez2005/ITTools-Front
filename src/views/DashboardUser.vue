@@ -5,6 +5,30 @@ import { serverService } from '@/services/AgentService';
 import { regionService } from '@/services/RegionService';
 import dayjs from 'dayjs';
 import image from '@/assets/welcome.jpg';
+import image1 from '@/assets/img/img1.jpg';
+import image2 from '@/assets/img/img2.jpg';
+import image3 from '@/assets/img/img3.jpg';
+import image4 from '@/assets/img/img4.jpg';
+import image5 from '@/assets/img/img5.jpg';
+import image6 from '@/assets/img/img6.jpg';
+import image7 from '@/assets/img/img7.jpg';
+import image8 from '@/assets/img/img8.jpg';
+import image9 from '@/assets/img/img9.jpg';
+import image10 from '@/assets/img/img10.jpg';
+import image11 from '@/assets/img/img11.jpg';
+import image12 from '@/assets/img/img12.jpg';
+import image13 from '@/assets/img/img13.jpg';
+import image14 from '@/assets/img/img14.jpg';
+import image15 from '@/assets/img/img15.jpg';
+import image16 from '@/assets/img/img16.jpg';
+import image17 from '@/assets/img/img17.jpg';
+import image18 from '@/assets/img/img18.jpg';
+import image19 from '@/assets/img/img19.jpg';
+import image20 from '@/assets/img/img20.jpg';
+import image21 from '@/assets/img/img21.jpg';
+import image22 from '@/assets/img/img22.jpg';
+import image23 from '@/assets/img/img23.jpg';
+import image24 from '@/assets/img/img24.jpg';
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 
 // Registro de componentes necesarios para Chart.js
@@ -19,6 +43,7 @@ export default {
         const chartDataRegions = ref(null);
         const twitterProfile = ref(null); // Variable para almacenar información del perfil de Twitter
         const username = '@ELTIEMPO';
+        const currentImage = ref('');
         const snakeGame = reactive({
             boardSize: 15,
             board: [],
@@ -34,6 +59,13 @@ export default {
             snakeColor: 'green', // Color inicial de la serpiente
             gameSpeed: 400 // Velocidad inicial de actualización en ms
         });
+
+        function setRandomImage (){
+      const images = [image, image1, image2,image3,image4,image5,image6, image7, image8,image9,image10,image11, image12,image13,image14,image15,image16,image17,image18,image19,image20,image21,image22,image23,image24];
+      const randomIndex = Math.floor(Math.random() * images.length);
+      currentImage.value = images[randomIndex];
+    };
+        
         // Función para activar el parpadeo en rojo al perder
         function triggerBlink() {
             snakeGame.isBlinking = true;
@@ -148,7 +180,6 @@ export default {
             }
         }
 
-        // Función para dibujar la serpiente y la manzana en el canvas
         // Función para dibujar la serpiente y la manzana en el canvas
         function drawSnakeAndFood(context) {
             context.clearRect(0, 0, 300, 300); // Limpiar el canvas antes de cada renderizado
@@ -279,15 +310,6 @@ export default {
                 changeDirection({ x: 1, y: 0 });
             }
         });
-
-        const fetchTwitterProfile = async (username) => {
-            try {
-                const response = await fetch(`/api/twitter/profile?username=${username}`);
-                twitterProfile.value = await response.json();
-            } catch (error) {
-                console.error('Error fetching Twitter profile:', error);
-            }
-        };
 
         const fetchRegionAndAgentData = async () => {
             try {
@@ -430,25 +452,13 @@ export default {
             const context = canvas.getContext('2d');
             await fetchRegionAndAgentData();
             await fetchAuditData();
-            await fetchTwitterProfile(username);
             initializeBoard();
             startSnakeGame();
+            setRandomImage();
 
             setInterval(() => {
                 drawSnakeAndFood(context);
             });
-
-            // Cargar el script de Twitter para activar el widget
-            const script = document.createElement('script');
-            script.src = 'https://platform.twitter.com/widgets.js';
-            script.async = true;
-            script.onload = () => {
-                // Solo recargar el widget si no se ha hecho aún
-                if (window.twttr && twttr.widgets && typeof twttr.widgets.load === 'function') {
-                    twttr.widgets.load();
-                }
-            };
-            document.body.appendChild(script);
         });
 
         const formatDateTime = (value) => {
@@ -461,13 +471,16 @@ export default {
             formatDateTime,
             userEmail,
             image,
+            image1,
+            image2,
             chartDataRegions,
             chartOptionsAudits,
             twitterProfile,
             snakeGame,
             startSnakeGame,
             changeDirection,
-            username
+            username,
+            currentImage
         };
     },
     data() {
@@ -550,78 +563,83 @@ export default {
     }
 };
 </script>
-
 <template>
     <div class="grid grid-cols-12 gap-8">
-        <!-- Mensaje de bienvenida -->
-        <div class="col-span-12 lg:col-span-3">
-            <div class="card shadow-custom border h-full flex flex-col justify-center items-center">
-                <div class="font-semibold text-xl mb-2 text-center">Welcome to ITTools {{ userEmail }}</div>
-                <div class="flex items-center justify-center">
-                    <img :src="image" alt="image" width="280px" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Tabla de actividad -->
-        <div class="col-span-12 lg:col-span-5">
-            <div class="card p-4 shadow-custom border h-full">
-                <div class="font-semibold text-xl mb-2">Activity</div>
-                <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="6"  :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :emptyMessage="'No requests found'">
-                    <Column field="userAction" header="Action" />
-                    <Column field="dateTime" header="Date & time">
-                        <template #body="slotProps">
-                            {{ formatDateTime(slotProps.data.dateTime) }}
-                        </template>
-                    </Column>
-                </DataTable>
-            </div>
-        </div>
-
-        <div class="col-span-12 md:col-span-4 items-center">
-            <div class="card shadow-custom border h-full flex flex-col justify-center items-center">
-                <a class="twitter-timeline" :href="`https://twitter.com/${username}`" width="100%" height="300">Tweets by {{ username }}</a>
-            </div>
-        </div>
-
-        <div class="col-span-12 md:col-span-5 items-center">
-            <div class="card shadow-custom border">
-                <div class="font-semibold text-xl mb-4">Regions Usage</div>
-                <!-- Gráfico de pastel -->
-                <Chart type="doughnut" :data="chartDataRegions" :options="chartOptionsAudits" class="h-96" />
-            </div>
-        </div>
-
-        <div class="col-span-12 lg:col-span-4">
-            <div class="card p-4 shadow-custom border">
-                <h2 class="text-center mb-2">Snake Game</h2>
-                <div class="flex justify-between ml-28 mr-28">
-                    <p><strong>Score:</strong> {{ snakeGame.score }}</p>
-                    <p><strong>High Score:</strong> {{ snakeGame.highScore }}</p>
-                </div>
-                <canvas id="snakeCanvas" width="300" height="300" class="border mx-auto"></canvas>
-                <button @click="startSnakeGame" class="mt-4 p-button w-full">Reiniciar Snake</button>
-            </div>
-        </div>
-
-        <div class="col-span-12 lg:col-span-3">
-            <div class="card p-4 shadow-custom border h-full flex flex-col justify-center items-center">
-                <h2 class="text-center mb-5">Tic-Tac-Toe</h2>
-                <div class="tic-tac-toe-board mb-4">
-                    <div v-for="(cell, index) in board" :key="index" class="tic-tac-toe-cell border">
-                        <Button @click="makeMove(index)" :disabled="cell !== '' || winner" class="tic-tac-toe-button p-component p-button-outlined">
-                            {{ cell }}
-                        </Button>
+        <!-- Fila superior con la bienvenida y la tabla de actividad -->
+        <div class="col-span-12 lg:col-span-8">
+            <div class="card shadow-custom border flex flex-col justify-center items-center">
+                <div class="flex flex-col lg:flex-row gap-4 justify-center items-center w-full">
+                    <!-- Primera tabla de actividad (más pequeña) -->
+                    <div class="w-full lg:w-1/3 flex flex-col items-center">
+                        <div class="font-semibold text-xl mb-2 text-center">Welcome to ITTools {{ userEmail }}</div>
+                        <img :src="currentImage" alt="Random Welcome Image">
                     </div>
-                    <br />
+
+                    <!-- Segunda tabla de actividad (más grande) -->
+                    <div class="w-full lg:w-2/3 flex flex-col items-center">
+                        <div class="font-semibold text-xl mb-2 text-center">Your activity</div>
+                        <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto" :paginator="true" :rows="7" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :emptyMessage="'No requests found'">
+                            <Column field="userAction" header="Action" />
+                            <Column field="dateTime" header="Date & time">
+                                <template #body="slotProps">
+                                    {{ formatDateTime(slotProps.data.dateTime) }}
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </div>
                 </div>
-                <p v-if="winner" class="winner-message text-center font-bold text-xl mt-2">{{ winner }} ha ganado!</p>
-                <p v-else-if="isDraw" class="draw-message text-center font-bold text-xl mt-2">¡Es un empate!</p>
-                <Button @click="resetTicTacToe" class="reset-button p-button p-component p-button-danger mt-4 w-full"> Reiniciar Tic-Tac-Toe </Button>
+            </div>
+            <div class="col-span-12 lg:col-span-4 flex gap-8">
+                <!-- Gráfico 1: Regions Usage -->
+                <div class="w-full lg:w-1/2">
+                    <div class="card shadow-custom border">
+                        <div class="font-semibold text-xl mb-4">Regions Usage</div>
+                        <Chart type="doughnut" :data="chartDataRegions" :options="chartOptionsAudits" class="h-96" />
+                    </div>
+                </div>
+
+                <!-- Gráfico 2: Regions Usage -->
+                <div class="w-full lg:w-1/2">
+                    <div class="card shadow-custom border h-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila derecha con el Playground -->
+        <div class="col-span-12 lg:col-span-4">
+            <div class="card p-4 shadow-custom border h-full flex flex-col justify-center items-center">
+                <h2 class="text-center font-semibold text-xl">Playground</h2>
+
+                <!-- Contenedor de Tic-Tac-Toe -->
+                <div class="w-full p-4 h-full flex flex-col justify-center items-center">
+                    <h2 class="text-center mb-4">Tic-Tac-Toe</h2>
+                    <div class="tic-tac-toe-board mb-4">
+                        <div v-for="(cell, index) in board" :key="index" class="tic-tac-toe-cell border">
+                            <Button @click="makeMove(index)" :disabled="cell !== '' || winner" class="tic-tac-toe-button p-component p-button-outlined">
+                                {{ cell }}
+                            </Button>
+                        </div>
+                    </div>
+                    <p v-if="winner" class="winner-message text-center font-bold text-xl mt-2">{{ winner }} ha ganado!</p>
+                    <p v-else-if="isDraw" class="draw-message text-center font-bold text-xl mt-2">¡Es un empate!</p>
+                    <Button @click="resetTicTacToe" class="reset-button p-button p-component p-button mt-4 w-full"> Reiniciar Tic-Tac-Toe </Button>
+                </div>
+
+                <!-- Contenedor de Snake Game -->
+                <div class="w-full p-4 h-full flex flex-col justify-center items-center">
+                    <h2 class="text-center mb-2">Snake Game</h2>
+                    <div class="flex justify-between w-full mb-2">
+                        <p><strong>Score:</strong> {{ snakeGame.score }}</p>
+                        <p><strong>High Score:</strong> {{ snakeGame.highScore }}</p>
+                    </div>
+                    <canvas id="snakeCanvas" width="300" height="300" class="border mx-auto snake"></canvas>
+                    <Button @click="startSnakeGame" class="mt-4 p-button w-full">Reiniciar Snake</Button>
+                </div>
             </div>
         </div>
     </div>
 </template>
+
 <style scoped>
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -632,13 +650,13 @@ export default {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    max-width: 200px;
+    max-width: 400px;
     margin: 0 auto;
 }
 
 .tic-tac-toe-button {
-    width: 60px;
-    height: 60px;
+    width: 75px;
+    height: 75px;
     font-size: 24px;
     border: 2px solid #333;
     cursor: pointer;
@@ -647,5 +665,10 @@ export default {
 
 .tic-tac-toe-button:hover {
     background-color: rgba(0, 0, 0, 0.1); /* Fondo en hover */
+}
+
+.snake {
+    border: 2px solid #333;
+    transition: background-color 0.3s;
 }
 </style>
