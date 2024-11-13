@@ -220,7 +220,7 @@ export default {
             style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
             <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
-                <p class="mt-4">Loading...</p>
+                <p class="mt-4">Searching for data...</p>
             </div>
         </Dialog>
     </div>

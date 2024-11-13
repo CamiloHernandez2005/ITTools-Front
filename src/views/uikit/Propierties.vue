@@ -275,7 +275,7 @@ export default {
         >
             <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
-                <p class="mt-4">Fetching data...</p>
+                <p class="mt-4">Searching for data...</p>
             </div>
         </Dialog>
     </div>
