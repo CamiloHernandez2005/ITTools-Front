@@ -122,6 +122,12 @@ const routes = [
                 component: () => import('@/views/uikit/Support.vue'),
                 meta: { requiresAuth: true }
             },
+            {
+                path: '/uikit/shipping',
+                name: 'shipping',
+                component: () => import('@/views/uikit/shipping.vue'),
+                meta: { requiresAuth: true }
+            }
         ]
     },
 ];

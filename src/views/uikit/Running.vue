@@ -262,4 +262,9 @@ export default {
     color: #64c4ac;
     border-color: #64c4ac;
 }
+.shadow-custom {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
+}
 </style>

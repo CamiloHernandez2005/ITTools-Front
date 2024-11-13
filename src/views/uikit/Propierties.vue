@@ -9,6 +9,7 @@ import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
 import { ref, watch, onMounted } from 'vue';
+import Breadcrumb from 'primevue/breadcrumb';
 
 export default {
     components: {
@@ -19,7 +20,8 @@ export default {
         Card,
         Button,
         Dialog,
-        ProgressSpinner
+        ProgressSpinner,
+        Breadcrumb
     },
     setup() {
         const regions = ref([]);
@@ -32,6 +34,12 @@ export default {
         const selectedServerDB = ref(null);
         const selectedDatabase = ref(null);
         const rowsPerPage = ref(5);
+        
+        const breadcrumbItems = ref([
+            { label: 'Home', icon: 'pi pi-home', url: '/' },
+            { label: 'Database', icon: 'pi pi-database' },
+            { label: 'Propierties', icon: 'pi pi-cog', route: { name: 'Propierties' } }
+        ]); 
 
         // Función para mostrar el modal de carga
         const showLoading = () => {
@@ -141,6 +149,7 @@ export default {
             isLoading, // Estado de carga
             loadDatabases,
             loadProperties,
+            breadcrumbItems
         };
     },
 };
@@ -148,6 +157,16 @@ export default {
 
 <template>  
     <div class="flex flex-col min-h-screen">
+
+        <div class="w-full card p-1 mb-4 shadow-custom border">
+            <div class="header-container">
+                <div class="title font-semibold text-xl ml-4">Propierties in the database </div>
+                <div class="breadcrumb-section mr-2">
+                    <Breadcrumb :model="breadcrumbItems" class="breadcrumb-item" />
+                </div>
+            </div>
+        </div>
+
         <div class="flex justify-between space-x-6 mb-6">
             <!-- Panel de selección de región -->
             <div class="w-1/2 card p-4 flex-1 h-80 overflow-auto shadow-custom border">
@@ -279,5 +298,15 @@ export default {
     background: white;
     color: #64c4ac;
     border-color: #64c4ac;
+}
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.shadow-custom {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
 }
 </style>

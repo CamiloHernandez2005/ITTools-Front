@@ -6,6 +6,8 @@ import DataTable from 'primevue/datatable';
 import Dialog from 'primevue/dialog';
 import Dropdown from 'primevue/dropdown';
 import RadioButton from 'primevue/radiobutton';
+import Breadcrumb from 'primevue/breadcrumb';
+import ProgressSpinner from 'primevue/progressspinner';
 import { onMounted, ref, watch } from 'vue';
 
 export default {
@@ -16,6 +18,8 @@ export default {
         Dialog,
         DataTable,
         Column,
+        Breadcrumb, 
+        ProgressSpinner,
     },
     setup() {
         const regions = ref([]);
@@ -27,6 +31,29 @@ export default {
         const scheduledJobs = ref([]); // Para almacenar los trabajos programados
         const modalVisible = ref(false); // Controlar la visibilidad del modal
         const selectedJob = ref({}); // Para almacenar el trabajo seleccionado
+
+
+        const breadcrumbItems = ref([
+            { label: 'Home', icon: 'pi pi-home', url: '/' },
+            { label: 'Database', icon: 'pi pi-database' },
+            { label: 'Jobs', icon: 'pi pi-briefcase', route: { name: 'Jobs' } }
+        ]);
+
+         // Loading state for the spinner dialog
+         const isLoading = ref(false);
+
+
+         
+        // Función para mostrar el modal de carga
+        const showLoading = () => {
+            isLoading.value = true;
+        };
+
+        // Función para ocultar el modal de carga
+        const hideLoading = () => {
+            isLoading.value = false;
+        };
+
 
         async function loadRegions() {
             try {
@@ -49,6 +76,8 @@ export default {
         async function loadJobs() {
             if (selectedServerDB.value) {
                 try {
+                    
+                    showLoading();
                     // Obtener trabajos en ejecución
                     const runningResponse = await axios.get(`/api/jobs/runningJobs/${selectedServerDB.value}`);
                     runningJobs.value = runningResponse.data;
@@ -59,6 +88,9 @@ export default {
                 } catch (error) {
                     console.error('Error fetching jobs:', error.message);
                 }
+                finally {
+                hideLoading();
+            }
             }
         }
 
@@ -94,6 +126,10 @@ export default {
             modalVisible,
             selectedJob,
             openModal,
+            breadcrumbItems,
+            showLoading,
+            hideLoading,
+            isLoading
         };
     }
 };
@@ -103,8 +139,16 @@ export default {
     <div class="flex flex-col min-h-screen">
         <!-- Div para seleccionar la región -->
         <div class="w-full card p-4 flex flex-col gap-4 mb-6 shadow-custom border">
-            <div class="font-semibold text-xl mb-4">Select Region</div>
-                <label for="region" class="block text-sm font-medium mb-2">Region</label>
+            <div class="w-full card p-1 mb-4">
+            <div class="header-container">
+                <div class="title font-semibold text-xl ml-4">Jobs </div>
+                <div class="breadcrumb-section mr-2">
+                    <Breadcrumb :model="breadcrumbItems" class="breadcrumb-item" />
+                </div>
+            </div>
+        </div>
+           
+                <label for="region" class="block text-sm font-medium mb-2">  Region</label>
                 <Dropdown 
                     id="region" 
                     v-model="selectedRegion" 
@@ -162,6 +206,8 @@ export default {
             <div v-if="scheduledJobs.length === 0" class="text-center mt-4 text-gray-500">No scheduled jobs available.</div>
         </div>
 
+   <Button label="Refresh" id="Boton1" icon="pi pi-sync" 
+   @click="loadJobs"  :disabled="!selectedServerDB" />
         <!-- Modal para mostrar detalles adicionales -->
         <Dialog v-model:visible.sync="modalVisible">
             <template #header>{{ selectedJob.jobName }}</template>
@@ -175,6 +221,14 @@ export default {
             </template>
         </Dialog>
 
+        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false"
+            style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
+            <div class="flex flex-col items-center justify-center">
+                <ProgressSpinner />
+                <p class="mt-4">Searching for data...</p>
+            </div>
+        </Dialog>
+
     </div>
 </template>
 
@@ -184,4 +238,31 @@ export default {
 .radio-margin {
     margin-left: 1rem; /* Ajusta el margen según sea necesario */
 }
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#Boton1 {
+    
+    width: 15em;
+    background: #64c4ac;
+    color: white;
+    border-color: #64c4ac;
+    margin-right: 1em;
+}
+
+#Boton1:hover {
+    background: white;
+    color: #64c4ac;
+    border-color: #64c4ac;
+}
+.shadow-custom {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
+}
+
+
 </style>

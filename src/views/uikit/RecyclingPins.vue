@@ -65,7 +65,7 @@ export default {
         const isLoading = ref(false);
 
         const showSuccess = (detail) => {
-            toast.add({ severity: 'success', summary: 'Success', detail, life: 3000 });
+            toast.add({ severity: 'success', summary: 'Success', detail, life: 6000 });
         };
 
         const showError = (detail) => {
@@ -84,7 +84,11 @@ export default {
 
         const confirmUpload = (type) => {
             uploadType.value = type; // Guarda el tipo de carga
-            confirmationMessage.value = `Are you sure you want to proceed with ${type === 'recycled' || type === 'selRecycled' ? 'recycled' : 'quarantine'} pins?`;
+            confirmationMessage.value = `Are you sure you want to proceed with  ${type === 'recycled' || type === 'selRecycled'
+                    ? '<span class="recycled"> RECYCLED </span>'
+                    : '<span class="quarantine"> QUARANTINE </span>'
+                }  pins?`;
+
             confirmVisible.value = true; // Muestra el modal de confirmación
         };
 
@@ -148,7 +152,7 @@ export default {
                 } else {
                     // Si no hay errores, puedes manejar los pines reciclados como desees
                     console.log('Pines reciclados:', recycledPins);
-                    showSuccess('Pines reciclados correctamente.'); // Mensaje de éxito, opcional
+                    showSuccess('Pins recycled correctly.'); // Mensaje de éxito, opcional
                 }
             } catch (error) {
                 // Manejo de errores de red u otros errores
@@ -288,6 +292,9 @@ export default {
             }
         }
 
+
+
+
         function handleFileUpload(event) {
             const selectedFile = event.target.files[0];
             const validExtensions = ['.xlsx', '.dat', '.txt'];
@@ -303,18 +310,20 @@ export default {
             }
         }
 
+
+
         //Metodo para reciclar pines por archivo
         async function uploadFile() {
             if (!file.value || !ticketNumber.value || !authorizedBy.value || !selectedServerDB.value) {
-                showError('Please complete all fields.');
+                showError("Please complete all fields.");
                 return;
             }
 
             const formData = new FormData();
-            formData.append('file', file.value);
-            formData.append('serverId', selectedServerDB.value);
-            formData.append('Authorization', authorizedBy.value);
-            formData.append('ticket', ticketNumber.value);
+            formData.append("file", file.value);
+            formData.append("serverId", selectedServerDB.value);
+            formData.append("Authorization", authorizedBy.value);
+            formData.append("ticket", ticketNumber.value);
 
             // Mostrar el diálogo de carga
             showLoading();
@@ -322,17 +331,20 @@ export default {
             try {
                 const response = await axios.post('/api/pins/upload', formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
+                        'Content-Type': 'multipart/form-data',
+                    },
                 });
 
                 if (response.data.recycledPins && response.data.failedPins && response.data.errorMessages) {
-                    // Mapea los PINs reciclados
-                    updatedPins.value = response.data.recycledPins.map((pin) => ({ pinId: pin, status: 'Pin recycled successfully' }));
+                    // Calcula la cantidad de pines reciclados
+                    const recycledPinsCount = response.data.recycledPins.length;
+
+                    // Muestra una alerta con la cantidad de pines actualizados
+                    showSuccess(`Total of recycled pins : ${recycledPinsCount}`);
 
                     // Mapea los PINs fallidos y sus errores correspondientes
                     nonUpdatedPins.value = response.data.failedPins.map((pinId, index) => ({
-                        pinId: pinId.trim(), // Elimina espacios en blanco si es necesario
+                        pinId: pinId.trim(),  // Elimina espacios en blanco si es necesario
                         status: 'Failed',
                         errors: response.data.errorMessages[index] || 'Error desconocido'
                     }));
@@ -342,25 +354,30 @@ export default {
 
                 // Cierra el modal
                 modalVisible.value = false;
+
             } catch (error) {
                 showError('Error uploading file: ' + error.message);
             } finally {
-                hideLoading(); // Ocultar el diálogo de carga
+                hideLoading();  // Ocultar el diálogo de carga
             }
         }
+
+
+
+      
 
         //Metdodo para poner pines en  quarentena
         async function uploadFileQuarantine() {
             if (!file.value || !ticketNumber.value || !authorizedBy.value || !selectedServerDB.value) {
-                showError('Please complete all fields.');
+                showError("Please complete all fields.");
                 return;
             }
 
             const formData = new FormData();
-            formData.append('file', file.value);
-            formData.append('serverId', selectedServerDB.value);
-            formData.append('Authorization', authorizedBy.value);
-            formData.append('ticket', ticketNumber.value);
+            formData.append("file", file.value);
+            formData.append("serverId", selectedServerDB.value);
+            formData.append("Authorization", authorizedBy.value);
+            formData.append("ticket", ticketNumber.value);
 
             // Mostrar el diálogo de carga
             showLoading();
@@ -368,31 +385,29 @@ export default {
             try {
                 const response = await axios.post('/api/quarantine/upload', formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
+                        'Content-Type': 'multipart/form-data',
+                    },
                 });
 
+                // Adaptar los datos a un formato adecuado para las tablas
                 if (response.data.quarantinePins && response.data.failedPins && response.data.errorMessages) {
-                    // Combinar los datos de pines reciclados y fallidos en una sola lista
-                    allPins.value = [
-                        ...response.data.quarantinePins.map((pin) => ({
-                            pinId: pin,
-                            status: 'Pin moved to quarantine successfully',
-                            isFailed: false
-                        })),
-                        ...response.data.failedPins.map((pinId, index) => ({
-                            pinId: pinId.trim(),
-                            status: 'Failed',
-                            errors: response.data.errorMessages[index] || 'Unknown error',
-                            isFailed: true
-                        }))
-                    ];
+                    // Mapea los PINs reciclados
+                    const quarantinePinsCount = response.data.quarantinePins.length;
+                     showSuccess('Total of pins placed in quarantine '+ quarantinePinsCount);
+
+                    // Mapea los PINs fallidos y sus errores correspondientes
+                    nonUpdatedPins.value = response.data.failedPins.map((pinId, index) => ({
+                        pinId: pinId.trim(),  // Elimina espacios en blanco si es necesario
+                        status: 'Failed',
+                        errors: response.data.errorMessages[index] || 'Error desconocido'
+                    }));
                 } else {
-                    showError("Response does not contain 'quarantinePins' or 'failedPins'");
+                    showError("Response does not contain 'recycledPins' or 'failedPins'");
                 }
 
                 // Cierra el modal
                 modalVisible.value = false;
+
             } catch (error) {
                 showError('Error uploading file: ' + error.message);
             } finally {
@@ -504,7 +519,9 @@ export default {
                     <!-- Dropdown de región ocupando el 50% -->
                     <div class="flex flex-col w-1/2">
                         <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search region" />
+                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                            option-value="id" placeholder="Select region" class="w-full" filter
+                            filterPlaceholder="Search region" />
                     </div>
 
                     <!-- ServersDB ocupando el 50% restante a la derecha -->
@@ -521,30 +538,29 @@ export default {
                                     <span class="text-sm">{{ server.description }}</span>
                                 </div>
                             </div>
-                            <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for the selected region</div>
+                            <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for
+                                the selected region</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Botones alineados abajo a la derecha -->
                 <div class="flex justify-end mt-10">
-                    <Button label="Upload file" icon="pi pi-cloud-upload" id="Boton1" @click="openUploadModal" styleClass="p-button-sm mr-2" />
-                    <Button label="Selected pins" icon="pi pi-check" id="Boton2" @click="showRecycleModal" styleClass="p-button-sm" />
+                    <Button label="Upload file" icon="pi pi-cloud-upload" id="Boton1" @click="openUploadModal"
+                        styleClass="p-button-sm mr-2" />
+                    <Button label="Selected pins" icon="pi pi-check" id="Boton2" @click="showRecycleModal"
+                        styleClass="p-button-sm" />
                 </div>
             </div>
 
             <!-- Tabla de pines fallidos (no actualizados) -->
             <div class="card p-4 shadow-custom border w-1/2 h-full">
-                <h3 class="text-lg font-bold mb-4">Pins Status</h3>
-                <DataTable :value="allPins" class="p-datatable-sm" :paginator="true" rows="10" :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple">
-                    <template #empty> No pins found. </template>
-                    <template #loading> Loading pins. Please wait. </template>
-
-                    <!-- Columna de PIN ID -->
+                <h3 class="text-lg font-bold mb-4">
+                    Pins Failed</h3>
+                <DataTable :value="nonUpdatedPins" class="p-datatable-sm" :paginator="true" rows="10"
+                    :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple">
                     <Column field="pinId" header="Pin ID" sortable />
-
-                    <!-- Columna de estado -->
-                    <Column header="Status" sortable>
+                    <Column header="Status">
                         <template #body="slotProps">
                             <span :class="{ 'text-red': slotProps.data.status === 'Failed' }">
                                 {{ slotProps.data.status }}
@@ -552,25 +568,28 @@ export default {
                         </template>
                     </Column>
 
-                    <!-- Columna de detalles, visible solo para pines fallidos -->
+                    <!-- Columna que contiene el botón para ver detalles -->
                     <Column header="Details">
                         <template #body="slotProps">
-                            <div v-if="slotProps.data.isFailed">
-                                <Button label="Details" icon="pi pi-eye" @click="showErrorDetails(slotProps.data)" />
-                            </div>
+
+                            <Button icon="pi pi-eye" class="p-button-rounded p-button-success p-button-text"
+                                @click="showErrorDetails(slotProps.data)" />
                         </template>
                     </Column>
                 </DataTable>
             </div>
         </div>
 
-        <Dialog v-model:visible="modalVisibleError" header="Detalles del Error">
+
+
+        <Dialog v-model:visible="modalVisibleError" modal header="Error details">
             <p>{{ selectedError }}</p>
         </Dialog>
 
-    
+
         <!-- Loading Modal -->
-        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
+        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false"
+            style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
             <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
                 <p class="mt-4">Searching for data...</p>
@@ -584,11 +603,13 @@ export default {
                     <div class="flex flex-wrap gap-4">
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="ticketNumber" class="block">Ticket:</label>
-                            <InputText id="ticketNumber" v-model="ticketNumber" class="input-with-line" placeholder="Ticket Number" required />
+                            <InputText id="ticketNumber" v-model="ticketNumber" class="input-with-line"
+                                placeholder="Ticket Number" required />
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="authorizedBy" class="block">Authorized By:</label>
-                            <InputText id="authorizedBy" v-model="authorizedBy" class="input-with-line" placeholder="Authorized By" required />
+                            <InputText id="authorizedBy" v-model="authorizedBy" class="input-with-line"
+                                placeholder="Authorized By" required />
                         </div>
                     </div>
                     <div class="flex flex-col grow basis-0 gap-2">
@@ -599,7 +620,8 @@ export default {
 
                 <div class="flex items-center mt-6">
                     <i class="pi pi-info-circle mr-2 mt-1"></i>
-                    <span> The file must contain the following columns in the following order SKU, PIN and CONTROL NO. </span>
+                    <span> The file must contain the following columns in the following order SKU, PIN and CONTROL NO.
+                    </span>
                 </div>
                 <div class="flex items-center mt-1">
                     <i class="pi pi-info-circle mr-2 mt-1"></i>
@@ -607,8 +629,10 @@ export default {
                 </div>
 
                 <div class="flex justify-end mt-6">
-                    <Button label="Recycled pins" id="Boton1" icon="pi pi-sync" type="button" @click.prevent="confirmUpload('recycled')" />
-                    <Button label="Quarantine Pins" id="Boton2" icon="pi pi-exclamation-triangle" type="button" @click.prevent="confirmUpload('quarantine')" />
+                    <Button label="Recycled pins" id="Boton1" icon="pi pi-sync" type="button"
+                        @click.prevent="confirmUpload('recycled')" />
+                    <Button label="Quarantine Pins" id="Boton2" icon="pi pi-exclamation-triangle" type="button"
+                        @click.prevent="confirmUpload('quarantine')" />
                 </div>
             </form>
         </Dialog>
@@ -616,19 +640,23 @@ export default {
         <!-- Modal de Confirmación -->
         <Dialog v-model:visible="confirmVisible" header="Confirmation" modal>
             <div class="text-center">
-                <p>{{ confirmationMessage }}</p>
+                <div v-html="confirmationMessage"></div>
+
             </div>
 
             <!-- Botones alineados a la derecha con espacio entre ellos -->
             <template #footer>
                 <div class="flex justify-end gap-2">
-                    <Button label="Cancel" icon="pi pi-times" @click.prevent="confirmVisible = false" class="p-button-text p-button-secondary" />
-                    <Button label="Yes" icon="pi pi-check" @click.prevent="executeUpload" class="p-button-text p-button-danger" />
+                    <Button label="Cancel" icon="pi pi-times" @click.prevent="confirmVisible = false"
+                        class="p-button-text p-button-secondary" />
+                    <Button label="Yes" icon="pi pi-check" @click.prevent="executeUpload"
+                        class="p-button-text p-button-danger" />
                 </div>
             </template>
         </Dialog>
 
-        <Dialog v-model:visible="isRecycleModalVisible" modal :showHeader="true" header="Recycled or quarantine pins" style="width: 800px">
+        <Dialog v-model:visible="isRecycleModalVisible" modal :showHeader="true" header="Recycled or quarantine pins"
+            style="width: 800px">
             <div class="mb-6">
                 <label for="pin" class="block font-semibold mb-2 ml-2">PIN</label>
                 <div class="flex items-start gap-4">
@@ -644,11 +672,13 @@ export default {
                 </div>
                 <div>
                     <label for="approvedBy" class="block font-semibold mb-2 ml-2">Approved By</label>
-                    <InputText id="approvedBy" v-model="approvedBy" placeholder="Approved By" class="w-full input-with-line" />
+                    <InputText id="approvedBy" v-model="approvedBy" placeholder="Approved By"
+                        class="w-full input-with-line" />
                 </div>
             </div>
 
-            <DataTable :value="consultedPins" v-model:selection="selectedPinsForRecycle" selectionMode="multiple" @selection-change="onSelectionChange">
+            <DataTable :value="consultedPins" v-model:selection="selectedPinsForRecycle" selectionMode="multiple"
+                @selection-change="onSelectionChange">
                 <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
                 <Column field="productId" header="ProductId/SKU"></Column>
                 <Column field="pin" header="Pin"></Column>
@@ -661,8 +691,10 @@ export default {
                 <Button label="Excel" icon="pi pi-download" @click="downloadExcel" class="p-button-outlined" />
 
                 <div class="flex gap-2">
-                    <Button label="Recycled pins" id="Boton1" icon="pi pi-sync" type="button" @click.prevent="confirmUpload('selRecycled')" />
-                    <Button label="Quarantine pins" id="Boton2" icon="pi pi-exclamation-triangle" type="button" @click.prevent="confirmUpload('selQuarantine')" />
+                    <Button label="Recycled pins" id="Boton1" icon="pi pi-sync" type="button"
+                        @click.prevent="confirmUpload('selRecycled')" />
+                    <Button label="Quarantine pins" id="Boton2" icon="pi pi-exclamation-triangle" type="button"
+                        @click.prevent="confirmUpload('selQuarantine')" />
                 </div>
             </div>
         </Dialog>
@@ -718,8 +750,22 @@ export default {
 .text-red {
     color: red !important;
 }
+
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Opcional: redondear bordes */
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
+}
+
+.recycled {
+    color: black;
+    /* Cambia el color según tu preferencia */
+    font-weight: bold;
+}
+
+.quarantine {
+    color: black;
+    /* Cambia el color según tu preferencia */
+    font-weight: bold;
 }
 </style>
