@@ -11,7 +11,9 @@ import Dialog from 'primevue/dialog';
 import RadioButton from 'primevue/radiobutton'; // Asegúrate de importar RadioButton
 import { regionService } from '@/services/RegionService';
 import { serverService } from '@/services/AgentService';
-import { useToast } from 'primevue/usetoast'; // Importar useToast para las notificaciones
+import { useToast } from 'primevue/usetoast'; // Importar useToast para las notificacionesmport SnakeGame from '@/components/SnakeGame.vue';
+import SnakeGame from '@/views/uikit/snakeGame.vue';
+
 
 export default {
     components: {
@@ -22,7 +24,8 @@ export default {
         ProgressSpinner,
         Dialog,
         InputText,
-        RadioButton // Agregar el componente RadioButton
+        RadioButton, // Agregar el componente RadioButton
+        SnakeGame
     },
     setup() {
         const toast = useToast(); // Inicializar el sistema de toast
@@ -51,6 +54,7 @@ export default {
         const showResultsModal = ref(false); // Modal visibility
         const searchResults = ref([]); // Store search results
         const visibleLogs = ref([]);
+       
 
         const showSuccess = (message) => {
             toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
@@ -90,11 +94,14 @@ export default {
             if (searchResults.value.length > 0) {
                 // Verificar si hay resultados de búsqueda
                 isDowload.value = true;
+                
                 showAdditionalMessage.value = false;
                 showAdditionalMessage2.value = false;
                 showAdditionalMessage3.value = false;
                 showAdditionalMessage4.value = false;
                 showAdditionalMessage5.value = false;
+
+              
 
                 const additionalMessageTimeout = setTimeout(() => {
                     showAdditionalMessage.value = true;
@@ -137,6 +144,7 @@ export default {
                     showError('Error downloading log file: ' + error.message);
                 } finally {
                     isDowload.value = false;
+                   
                     clearTimeout(additionalMessageTimeout);
                     showAdditionalMessage.value = false;
                     clearTimeout(additionalMessageTimeout2);
@@ -161,6 +169,7 @@ export default {
             showAdditionalMessage3.value = false;
             showAdditionalMessage4.value = false;
             showAdditionalMessage5.value = false;
+            
 
             const additionalMessageTimeout = setTimeout(() => {
                 showAdditionalMessage.value = true;
@@ -354,7 +363,8 @@ export default {
             visibleLogs,
             toggleLogVisibility,
             isLogVisible,
-            downloadSingleLog
+            downloadSingleLog,
+           
         };
     }
 };
@@ -403,6 +413,8 @@ export default {
                     </div>
                 </div>
             </div>
+           
+          
 
             <!-- Second Half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
@@ -483,11 +495,15 @@ export default {
                 </div>
             </div>
 
+            
+
             <div v-else>
                 <p>No results found.</p>
             </div>
         </Dialog>
 
+        <!-- Modal que contiene el juego -->
+          
         <!-- Modal de carga -->
         <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
             <div class="flex flex-col items-center justify-center">
@@ -496,19 +512,33 @@ export default {
             </div>
         </Dialog>
 
-        <!-- Modal de carga -->
-        <Dialog v-model:visible="isDowload" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
-            <div class="flex flex-col items-center justify-center">
+        <!-- Modal que contiene el juego -->
+
+
+ <!-- Modal de carga -->
+ <Dialog v-model:visible="isDowload" header="Dowloading..." modal :dismissableMask="false" :closable="false"  :style="{ 'max-width': '80vw', width: '40vw' }"  >
+        
+        <div class="flex w-full h-full justify-center items-center">
+            
+            <!-- Sección izquierda para el juego Snake -->
+            <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
+                <SnakeGame />
+            </div>
+
+            <!-- Sección derecha para el Progress Spinner y mensajes -->
+            <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
                 <ProgressSpinner />
                 <p class="mt-4">Downloading logs...</p>
-                <!-- Mensaje adicional que aparece después de 5 segundos -->
+
+                <!-- Mensajes adicionales que aparecen en intervalos -->
                 <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
                 <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
                 <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
                 <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
                 <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
             </div>
-        </Dialog>
+        </div>
+    </Dialog>
 
         <div v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</div>
         <div v-else class="mt-4 ml-4">
