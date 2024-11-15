@@ -4,27 +4,21 @@ import { ref, computed } from 'vue';
 import { authService } from '@/services/AuthService';
 import { useRouter } from 'vue-router';
 import { GoogleLogin } from 'vue3-google-login';
-import { useLayout } from '@/layout/composables/layout'; // Importa useLayout
-import logo from '@/assets/emida-logo-square.png'; // Logo para modo claro
-import logo2 from '@/assets/emida-logo-white.png'; // Logo para modo oscuro
+import { useLayout } from '@/layout/composables/layout';
+import logo from '@/assets/emida-logo-square.png';
+import logo2 from '@/assets/emida-logo-white.png';
 
 const email = ref('');
 const password = ref('');
 const router = useRouter();
 
-// Obtén isDarkTheme desde useLayout
-const { isDarkTheme } = useLayout(); // Asegúrate de que useLayout esté correctamente definido
+const { isDarkTheme } = useLayout();
 
-// Computed para determinar qué logo usar según el tema
 const currentLogo = computed(() => (isDarkTheme.value ? logo2 : logo));
-
-// Computed para determinar el tamaño del logo según el tema
-const logoSize = computed(() => (isDarkTheme.value ? '120px' : '140px')); // Ajusta los tamaños según tus preferencias
-
-// Computed para ajustar los márgenes según el tamaño del logo
+const logoSize = computed(() => (isDarkTheme.value ? '120px' : '140px'));
 const logoMargins = computed(() => ({
-  marginTop: isDarkTheme.value ? '-1rem' : '-5rem', // Ajusta según sea necesario
-  marginBottom: isDarkTheme.value ? '2rem' : '-2rem' // Ajusta según sea necesario
+  marginTop: isDarkTheme.value ? '-1rem' : '-5rem',
+  marginBottom: isDarkTheme.value ? '2rem' : '-2rem'
 }));
 
 const handleLogin = async () => {
@@ -41,9 +35,29 @@ const handleLogin = async () => {
   }
 };
 
+// Función para decodificar JWT
+const decodeJWT = (token) => {
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+  return JSON.parse(jsonPayload);
+};
+
 const callback = async (response) => {
   try {
     const googleToken = response.credential;
+    console.log(googleToken);
+
+    // Decodifica el token de Google
+    const decodedData = decodeJWT(googleToken);
+    const { email, name } = decodedData;
+
+    // Guarda el email y el nombre en el localStorage
+    localStorage.setItem('userEmail', email);
+    localStorage.setItem('userName', name);
+
     const { token } = await authService.loginWithGoogle(googleToken);
     if (token) {
       router.push('/home');
@@ -56,6 +70,7 @@ const callback = async (response) => {
   }
 };
 </script>
+
 
 <template>
   <FloatingConfigurator />
@@ -110,11 +125,7 @@ const callback = async (response) => {
 
           <!-- Sección para inicio de sesión con Google -->
           <div class="flex flex-col items-center">
-            <GoogleLogin
-              :callback="callback"
-              auto-login
-              class="mt-4"
-            />
+          <GoogleLogin :callback="callback" prompt auto-login/>
           </div>
         </div>
       </div>

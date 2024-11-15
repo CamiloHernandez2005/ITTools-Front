@@ -436,7 +436,8 @@ function getStatusIcon(statusCode) {
                         <div class="text-surface-900 font-medium text-xl">{{ status200 }}</div>
                         <div class="text-gray-600">Updated: {{ lastUpdated200 }}</div>
                     </div>
-                    <div class="flex items-center justify-center bg-green-400 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                    <div class="flex items-center justify-center bg-green-400 rounded-border"
+                        style="width: 2.5rem; height: 2.5rem">
                         <i class="pi pi-check text-white !text-xl"></i>
                     </div>
                 </div>
@@ -452,7 +453,8 @@ function getStatusIcon(statusCode) {
                         <div class="text-surface-900 font-medium text-xl">{{ status404 }}</div>
                         <div class="text-gray-600">Updated: {{ lastUpdated404 }}</div>
                     </div>
-                    <div class="flex items-center justify-center bg-blue-400 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                    <div class="flex items-center justify-center bg-blue-400 rounded-border"
+                        style="width: 2.5rem; height: 2.5rem">
                         <i class="pi pi-exclamation-triangle text-white !text-xl"></i>
                     </div>
                 </div>
@@ -468,7 +470,8 @@ function getStatusIcon(statusCode) {
                         <div class="text-surface-900 font-medium text-xl">{{ status400 }}</div>
                         <div class="text-gray-600">Updated: {{ lastUpdated400 }}</div>
                     </div>
-                    <div class="flex items-center justify-center bg-orange-400 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                    <div class="flex items-center justify-center bg-orange-400 rounded-border"
+                        style="width: 2.5rem; height: 2.5rem">
                         <i class="pi pi-times text-white !text-xl"></i>
                     </div>
                 </div>
@@ -484,7 +487,8 @@ function getStatusIcon(statusCode) {
                         <div class="text-surface-900 font-medium text-xl">{{ status500 }}</div>
                         <div class="text-gray-600">Updated: {{ lastUpdated500 }}</div>
                     </div>
-                    <div class="flex items-center justify-center bg-red-400 rounded-border" style="width: 2.5rem; height: 2.5rem">
+                    <div class="flex items-center justify-center bg-red-400 rounded-border"
+                        style="width: 2.5rem; height: 2.5rem">
                         <i class="pi pi-server text-white !text-xl"></i>
                     </div>
                 </div>
@@ -494,7 +498,9 @@ function getStatusIcon(statusCode) {
         <!-- Tabla con las solicitudes -->
         <div class="col-span-12 xl:col-span-6">
             <div class="card flex flex-col shadow-custom border">
+                <div class="font-semibold text-xl mb-4">System information</div>
                 <div class="flex flex-wrap items-start justify-between">
+                    
                     <div class="flex items-center mr-8 mb-2">
                         <i class="pi pi-server mr-2 mt-1"></i>
                         <strong>System:</strong>
@@ -503,7 +509,8 @@ function getStatusIcon(statusCode) {
                     <div class="flex items-center mr-8 mb-2">
                         <i class="pi pi-database mr-2 mt-1"></i>
                         <strong>DB:</strong>
-                        <span class="ml-1">{{ healthInfo.components?.db?.details?.database }} - {{ healthInfo.components?.db?.status }}</span>
+                        <span class="ml-1">{{ healthInfo.components?.db?.details?.database }} - {{
+                            healthInfo.components?.db?.status }}</span>
                     </div>
                 </div>
 
@@ -528,21 +535,10 @@ function getStatusIcon(statusCode) {
             </div>
             <div class="card shadow-custom border">
                 <div class="font-semibold text-xl mb-4">Http response</div>
-                <DataTable
-                    :value="filteredRequests()"
-                    class="p-datatable-sm"
-                    :paginator="true"
-                    :rows="10"
-                    :rowsPerPageOptions="[5, 10, 20]"
-                    :totalRecords="filteredRequests().length"
-                    :sortField="'timestamp'"
-                    :sortOrder="-1"
-                    :emptyMessage="'No requests found'"
-                    dataKey="id"
-                    :rowHover="true"
-                    v-model:filters="filters"
-                    filterDisplay="menu"
-                >
+                <DataTable :value="filteredRequests()" class="p-datatable-sm" :paginator="true" :rows="8"
+                    :rowsPerPageOptions="[8, 10, 20]" :totalRecords="filteredRequests().length" :sortField="'timestamp'"
+                    :sortOrder="-1" :emptyMessage="'No requests found'" dataKey="id" :rowHover="true"
+                    v-model:filters="filters" filterDisplay="menu">
                     <Column field="requestUri" header="Request URL" :showFilterMatchModes="false" :sortable="true">
                         <template #body="{ data }">
                             {{ data.requestUri }}
@@ -590,7 +586,9 @@ function getStatusIcon(statusCode) {
         <div class="col-span-12 xl:col-span-6">
             <div class="card shadow-custom border">
                 <div class="font-semibold text-xl mb-2">Activity</div>
-                <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]" :totalRecords="audits.length" :sortField="'dateTime'" :sortOrder="-1" :emptyMessage="'No requests found'">
+                <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="5"
+                    :rowsPerPageOptions="[5, 10, 20]" :totalRecords="audits.length" :sortField="'dateTime'"
+                    :sortOrder="-1" :emptyMessage="'No requests found'" :rowHover="true">
                     <Column field="userAction" header="Action" />
                     <Column field="dateTime" header="Date & time">
                         <template #body="slotProps">
@@ -617,17 +615,19 @@ function getStatusIcon(statusCode) {
         </div>
 
         <!-- Gráfica de regiones más utilizadas -->
-        <div class="col-span-12 xl:col-span-6">
-            <div class="card shadow-custom border">
+        <div class="col-span-12 xl:col-span-6 h-full">
+            <div class="card shadow-custom border ">
                 <div class="font-semibold text-xl mb-2">Regions Usage</div>
                 <!-- Gráfico de pastel -->
                 <Chart type="doughnut" :data="chartDataRegions" :options="chartOptionsAudits" class="h-96" />
             </div>
         </div>
-        <div class="col-span-12 lg:col-span-6 ">
-            <div class="card p-4 shadow-custom border">
-                <!-- Widget de Twitter -->
-                <a class="twitter-timeline" :href="`https://twitter.com/${username}`" width="800" height="395">Tweets by {{ username }}</a>
+        <div class="col-span-12 lg:col-span-6">
+            <div class="card shadow-custom border h-full">
+                <div class="font-semibold text-xl mb-4">Calendar</div>
+                <iframe
+                    src="https://calendar.google.com/calendar/embed?src=ahernandezp%40emida.com&ctz=America%2FBogota"
+                    style="border: 0" width="100%" height="90%" frameborder="0" scrolling="no"></iframe>
             </div>
         </div>
     </div>
@@ -636,6 +636,7 @@ function getStatusIcon(statusCode) {
 <style scoped>
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Opcional: redondear bordes */
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
 }
 </style>

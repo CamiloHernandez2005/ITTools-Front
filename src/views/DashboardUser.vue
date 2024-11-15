@@ -38,6 +38,7 @@ export default {
     setup() {
         const audits = ref([]);
         const userEmail = ref(localStorage.getItem('userEmail') || '');
+        const userName = ref(localStorage.getItem('userName') || '');
         const regions = ref([]);
         const agents = ref([]);
         const chartDataRegions = ref(null);
@@ -470,6 +471,7 @@ export default {
             filteredAudits,
             formatDateTime,
             userEmail,
+            userName,
             image,
             image1,
             image2,
@@ -571,14 +573,15 @@ export default {
                 <div class="flex flex-col lg:flex-row gap-4 justify-center items-center w-full">
                     <!-- Primera tabla de actividad (más pequeña) -->
                     <div class="w-full lg:w-1/3 flex flex-col items-center">
-                        <div class="font-semibold text-xl mb-2 text-center">Welcome to ITTools {{ userEmail }}</div>
-                        <img :src="currentImage" alt="Random Welcome Image">
+                        <div class="font-semibold text-xl mb-2 text-center">Welcomee!</div>
+                        <div class="font-semibold text-xl mb-2 text-center">{{ userName}}</div>
+                        <img :src="currentImage" class="imgmeme" alt="Random Welcome Image">
                     </div>
 
                     <!-- Segunda tabla de actividad (más grande) -->
-                    <div class="w-full lg:w-2/3 flex flex-col items-center">
-                        <div class="font-semibold text-xl mb-2 text-center">Your activity</div>
-                        <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto" :paginator="true" :rows="7" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :emptyMessage="'No requests found'">
+                    <div class="w-full lg:w-2/3 flex flex-col">
+                        <div class="font-semibold text-xl mb-2">Your activity</div>
+                        <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto" :paginator="true" :rows="6" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :emptyMessage="'No requests found'" :rowHover="true">
                             <Column field="userAction" header="Action" />
                             <Column field="dateTime" header="Date & time">
                                 <template #body="slotProps">
@@ -598,9 +601,11 @@ export default {
                     </div>
                 </div>
 
-                <!-- Gráfico 2: Regions Usage -->
                 <div class="w-full lg:w-1/2">
-                    <div class="card shadow-custom border h-full"></div>
+                    <div class="card shadow-custom border h-full">
+                        <div class="font-semibold text-xl mb-4">Calendar</div>
+                        <iframe src="https://calendar.google.com/calendar/embed?src=ahernandezp%40emida.com&ctz=America%2FBogota" style="border: 0" width="100%" height="90%" frameborder="0" scrolling="no"></iframe>
+                    </div>
                 </div>
             </div>
         </div>
@@ -622,7 +627,7 @@ export default {
                     </div>
                     <p v-if="winner" class="winner-message text-center font-bold text-xl mt-2">{{ winner }} ha ganado!</p>
                     <p v-else-if="isDraw" class="draw-message text-center font-bold text-xl mt-2">¡Es un empate!</p>
-                    <Button @click="resetTicTacToe" class="reset-button p-button p-component p-button mt-4 w-full"> Reiniciar Tic-Tac-Toe </Button>
+                    <Button @click="resetTicTacToe" class="p-button mt-4 w-full" id="create-button"> Reiniciar Tic-Tac-Toe </Button>
                 </div>
 
                 <!-- Contenedor de Snake Game -->
@@ -633,7 +638,7 @@ export default {
                         <p><strong>High Score:</strong> {{ snakeGame.highScore }}</p>
                     </div>
                     <canvas id="snakeCanvas" width="300" height="300" class="border mx-auto snake"></canvas>
-                    <Button @click="startSnakeGame" class="mt-4 p-button w-full">Reiniciar Snake</Button>
+                    <Button @click="startSnakeGame" class="mt-4 p-button w-full " id="create-button">Reiniciar Snake</Button>
                 </div>
             </div>
         </div>
@@ -655,8 +660,8 @@ export default {
 }
 
 .tic-tac-toe-button {
-    width: 75px;
-    height: 75px;
+    width: 60px;
+    height: 60px;
     font-size: 24px;
     border: 2px solid #333;
     cursor: pointer;
@@ -671,4 +676,22 @@ export default {
     border: 2px solid #333;
     transition: background-color 0.3s;
 }
+
+.imgmeme{
+    width: 15rem;
+}
+
+
+#create-button {
+    background: #64c4ac;
+    color: white;
+    border-color: #64c4ac;
+}
+
+#create-button:hover {
+    background: white;
+    color: #64c4ac;
+    border-color: #64c4ac;
+}
+
 </style>

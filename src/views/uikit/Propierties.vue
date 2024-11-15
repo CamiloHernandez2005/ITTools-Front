@@ -34,12 +34,12 @@ export default {
         const selectedServerDB = ref(null);
         const selectedDatabase = ref(null);
         const rowsPerPage = ref(5);
-        
+
         const breadcrumbItems = ref([
             { label: 'Home', icon: 'pi pi-home', url: '/' },
             { label: 'Database', icon: 'pi pi-database' },
             { label: 'Propierties', icon: 'pi pi-cog', route: { name: 'Propierties' } }
-        ]); 
+        ]);
 
         // Función para mostrar el modal de carga
         const showLoading = () => {
@@ -155,8 +155,8 @@ export default {
 };
 </script>
 
-<template>  
-    <div class="flex flex-col min-h-screen">
+<template>
+    <div class="flex flex-col h-screen p-4">
 
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
@@ -167,112 +167,79 @@ export default {
             </div>
         </div>
 
-        <div class="flex justify-between space-x-6 mb-6">
+        <div class="flex justify-between space-x-4 mb-4">
             <!-- Panel de selección de región -->
-            <div class="w-1/2 card p-4 flex-1 h-80 overflow-auto shadow-custom border">
-                <div class="font-semibold text-xl mb-4">Select Region</div>
-                <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                <Dropdown 
-                    id="region" 
-                    v-model="selectedRegion" 
-                    :options="regions" 
-                    option-label="name" 
-                    option-value="id"
-                    placeholder="Select Region" 
-                    class="w-full h-10" 
-                    filter 
-                    filterPlaceholder="Search Region" 
-                    style="width: 70%;" 
-                />
-                <h2 class="font-semibold text-lg mb-2 mt-10">Available Servers</h2>
-                <div class="flex flex-col gap-2">
-                    <div v-for="server in filteredServers" :key="server.idServer" class="flex items-center ">
-                        <RadioButton 
-                            v-model="selectedServerDB" 
-                            :value="server.idServer" 
-                            name="server"
-                            @change="loadDatabases" 
-                        />
-                        <span class="text-sm ml-2">{{ server.serverName }}</span>
-                        <span class="text-sm ml-2">||</span>
-                        <span class="text-sm ml-2">{{ server.ipServer }}</span>
-                        <span class="text-sm ml-2">||</span>
-                        <span class="text-sm ml-2">{{ server.description }}</span>
-                    </div>
-                    <div v-if="filteredServers.length === 0" class="text-sm text-gray-500 mt-2">
-                        No servers found for the selected region
-                    </div>
+            <div class="w-1/2 card p-4 h-full overflow-auto shadow-custom border">
+    <div class="font-semibold text-xl">Region details</div>
+    <div class="mt-2 ml-3 flex items-start gap-4">
+        
+        <!-- Región (a la izquierda) -->
+        <div class="w-1/2">
+            <label for="region" class="block text-sm font-medium mb-2">Region</label>
+            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id"
+                placeholder="Select region" class="w-full" filter filterPlaceholder="Search Region" style="width: 100%;" />
+        </div>
+
+        <!-- ServersDB (a la derecha) -->
+        <div class="w-1/2">
+            <label class="block text-sm font-medium mb-2">ServersDB</label>
+            <div class="flex flex-col gap-2">
+                <div v-for="server in filteredServers" :key="server.idServer" class="flex items-center">
+                    <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server"
+                        @change="loadDatabases" />
+                    <span class="text-sm ml-2">{{ server.serverName }}</span>
+                    <span class="text-sm ml-2">||</span>
+                    <span class="text-sm ml-2">{{ server.ipServer }}</span>
+                    <span class="text-sm ml-2">||</span>
+                    <span class="text-sm ml-2">{{ server.description }}</span>
                 </div>
-            </div>
-
-            <!-- Panel de selección de base de datos -->
-            <div class="w-1/2 card p-4 flex-1 h-80  shadow-custom border">
-                <h2 class="font-semibold text-lg mb-4">Select Database</h2>
-                <br>
-                <div class="flex flex-col gap-2 ">
-                    <Dropdown 
-                        v-model="selectedDatabase" 
-                        :options="databases" 
-                        optionLabel="name" 
-                        optionValue="name"
-                        placeholder="Select a Database" 
-                        class="w-3/4 h-10 mb-4" 
-                    />
-                    
-                    <div v-if="databases.length === 0" class="text-sm text-gray-500 mt-2">
-                        No databases found for the selected server.
-                    </div>
-                 
-                        <div class="flex justify-center mt-20">
-                            <Button 
-                            @click="loadProperties" 
-                            :disabled="!selectedDatabase" 
-                            label="View Properties"
-                            class="boton1" 
-                            style="width: 50%;" 
-
-                        />
-                       
-                    </div>
+                <div v-if="filteredServers.length === 0" class="text-sm text-gray-500 mt-2 ml-2">
+                    No servers found for the selected region
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+
+            <!-- Panel de selección de base de datos -->
+            <div class="w-1/2 card p-4 flex-1 h-full shadow-custom border">
+                <h2 class="font-semibold text-xl">Database</h2>
+                <br>
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-4">
+                        <Dropdown v-model="selectedDatabase" :options="databases" optionLabel="name" optionValue="name"
+                            placeholder="Select a database" class="w-3/4" style="width: 40%;" />
+                        <Button @click="loadProperties" id="boton1" label="View properties" />
+                    </div>
+                </div>
+            </div>
+
+        </div>
 
         <!-- Tabla de propiedades -->
-        <div class="w-full card p-4 flex flex-col gap-4 shadow-custom border">
-            <h2 class="font-semibold text-lg mb-2">Properties</h2>
-            <DataTable 
-                :value="properties" 
-                class="p-datatable-sm" 
-                :paginator="true" 
-                :rows="rowsPerPage"
-                :rowsPerPageOptions="[5, 10, 20]" 
-                :totalRecords="properties.length"
-            >
+        <div class="w-full card p-6 flex flex-col  shadow-custom border">
+            <h2 class="font-semibold text-xl mb-2">Properties</h2>
+            <DataTable :value="properties" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage"
+                :rowsPerPageOptions="[5, 10, 20]" :totalRecords="properties.length" :rowHover="true">
+                <template #empty> No properties found. </template>
+                <template #loading> Loading properties data. Please wait. </template>
                 <Column field="property_id" header="ID property" sortable />
                 <Column field="project" header="Project" sortable />
-                <Column field="property" header="Property Name" sortable />
+                <Column field="property" header="Property name" sortable />
                 <Column field="module" header="Module" sortable />
                 <Column field="value" header="Value" sortable />
                 <Column field="instance" header="Instance" sortable />
             </DataTable>
-            <div 
-                v-if="properties.length === 0 && selectedDatabase !== null && selectedServerDB !== null"
-                class="text-center mt-4 text-red-500"
-            >
+            <div v-if="properties.length === 0 && selectedDatabase !== null && selectedServerDB !== null"
+                class="text-center mt-4 text-red-500">
                 No properties found for the selected database.
             </div>
         </div>
 
         <!-- Loading Modal -->
-        <Dialog 
-            v-model:visible="isLoading" 
-            modal 
-            :dismissableMask="false" 
-            :showHeader="false" 
-            :closable="false"
-            style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center"
-        >
+        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false"
+            style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
             <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
                 <p class="mt-4">Searching for data...</p>
@@ -287,23 +254,26 @@ export default {
 .ml-2 {
     margin-left: 0.5rem;
 }
-.boton1 {
+
+#boton1 {
     background: #64c4ac;
     color: white;
     border-color: #64c4ac;
     margin-right: 1em;
 }
 
-.boton1:hover {
+#boton1:hover {
     background: white;
     color: #64c4ac;
     border-color: #64c4ac;
 }
+
 .header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
+
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;

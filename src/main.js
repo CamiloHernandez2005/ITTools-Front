@@ -9,15 +9,13 @@ import ToastService from 'primevue/toastservice';
 import 'primeicons/primeicons.css';
 
 
-const CLIENT_ID = "528525140546-f9e18nk6r6ea83opiufvr9qk7dp1t6pm.apps.googleusercontent.com";
-
 import '@/assets/styles.scss';
 import '@/assets/tailwind.css';
 
 const app = createApp(App);
 
 app.use(vue3GoogleLogin, {
-    clientId: CLIENT_ID,
+    clientId: '45560386020-p8mrmnc39q2v6v6e55ddmmb8gmffvmih.apps.googleusercontent.com'
 });
 
 app.use(router);

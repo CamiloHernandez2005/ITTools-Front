@@ -25,7 +25,7 @@ export default {
             home: {
                 icon: 'pi pi-home',
                 label: 'Home',
-                route: { name: 'dashboard' }
+                url: '/'
             },
             items: [
                 {
@@ -154,66 +154,80 @@ export default {
 </script>
 
 <template>
-    <div class="flex flex-col min-h-screen">
+    <div class="flex flex-col h-screen p-4">
         <!-- Selección de la región -->
-        <div class="card p-6 flex flex-col gap-2  shadow-custom border">
-            <!-- Agrupar los dos elementos: titulo y breadcrumb -->
+        <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
-                <div class="title font-semibold text-xl">Running Queries</div>
-                <Breadcrumb :home="home" :model="items" />
-            </div>
-            <div class="font-semibold text-xl mb-4">Select Region</div>
-            <label for="region" class="block text-sm font-medium mb-2">Region</label>
-            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id"
-                placeholder="Select Region" class="w-full" filter filterPlaceholder="Search Region"
-                style="width: 30%;" />
-            <h2 class="font-semibold text-lg mb-2">Available Servers</h2>
-            <div class="flex flex-col gap-2">
-                <div v-for="server in filteredDB" :key="server.idServer" class="flex items-center">
-                    <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server" />
-                    <span class="text-sm">{{ server.serverName }}</span>
-                    <span class="text-sm">||</span>
-                    <span class="text-sm">{{ server.ipServer }}</span>
-                    <span class="text-sm">||</span>
-                    <span class="text-sm">{{ server.description }}</span>
+                <div class="title font-semibold text-xl ml-4">Running </div>
+                <div class="breadcrumb-section mr-2">
+                    <Breadcrumb :home="home" :model="items" class="breadcrumb-item" />
                 </div>
-                <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 mt-2">No servers found for the selected
-                    region</div>
+            </div>
+
+         
+            <div class="mb-6 ml-6 flex items-start gap-4">
+                <!-- Sección de Región -->
+                <div class="w-1/6">
+                    <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                    <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                        option-value="id" placeholder="Select Region" class="w-full mb-4" filter
+                        filterPlaceholder="Search Region"  />
+                </div>
+
+                <!-- Sección de ServersDB (alineada a la derecha de Region) -->
+                <div class="flex-grow">
+                    <label class="block text-sm font-medium mb-2">ServersDB</label>
+                    <div class="flex flex-col gap-2">
+                        <div v-for="server in filteredDB" :key="server.idServer" class="flex items-center">
+                            <div class="flex items-center gap-2 radio-margin">
+                                <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server" />
+                                <span class="text-sm">{{ server.serverName }}</span>
+                                <span class="text-sm">||</span>
+                                <span class="text-sm">{{ server.ipServer }}</span>
+                                <span class="text-sm">||</span>
+                                <span class="text-sm">{{ server.description }}</span>
+                            </div>
+                        </div>
+                        <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for the
+                            selected region</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Botón para cargar procesos -->
-        <Button label="Load Processes" icon="pi pi-refresh" @click="loadProcesses" :disabled="!selectedServerDB"
-            style="width: 20%; margin-bottom: 1%; " class="boton1" />
+
 
         <!-- Lista de procesos en ejecución -->
         <div class="w-full card p-4 flex flex-col gap-4 shadow-custom border">
-            <h2 class="font-semibold text-lg mb-2">Running Processes</h2>
-            <DataTable :value="runningProcesses" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage"
-                :rowsPerPageOptions="[5, 10, 20]">
+            <h2 class="font-semibold text-xl mb-2">Running Processes</h2>
+            <DataTable :value="runningProcesses" class="p-datatable-sm" :paginator="true" :rows="5"
+                :rowsPerPageOptions="[5, 10, 20]" :rowHover="true">
+                <template #empty> No running process found. </template>
+                <template #loading> Loading running process data. Please wait. </template>
                 <Column header="Select">
                     <template #body="{ data }">
                         <RadioButton v-model="selectedProcessSPID" :value="data.spid" name="process" />
                     </template>
                 </Column>
-                <Column field="databaseName" header="Database Name" />
+                <Column field="databaseName" header="Database name" />
                 <Column field="timeSec" header="Time (Sec)" />
                 <Column field="username" header="Username" />
                 <Column field="hostname" header="Hostname" />
-                <Column field="sqlBatchText" header="SQL Batch Text" />
+                <Column field="sqlBatchText" header="SQL batch text" />
                 <Column field="spid" header="SPID" />
                 <Column field="status" header="Status" />
                 <Column field="command" header="Command" />
                 <Column field="proceso" header="Process" />
             </DataTable>
-            <div v-if="runningProcesses.length === 0 && selectedServerDB !== null"
-                class="text-center mt-4 text-gray-500">No running
-                processes available.</div>
+            
 
-            <!-- Botón para matar proceso -->
-            <Button label="Kill Process" icon="pi pi-times" @click.prevent="killProcess(selectedProcessSPID)"
-                :disabled="!selectedProcessSPID" style="width: 20%;"  class="boton2"/>
+            <div class="flex justify-end gap-2">
+                <!-- Botón para cargar procesos -->
+                <Button label="Load Processes" icon="pi pi-refresh" @click="loadProcesses" id="boton1"/>
+                <Button label="Kill Process" icon="pi pi-times" @click.prevent="killProcess(selectedProcessSPID)"  id="boton2" />
+            </div>
         </div>
+
 
         <!-- Loading Modal -->
         <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false"
@@ -236,32 +250,32 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: -1rem;
 }
-.boton2 {
+
+#boton2 {
     background: #614d56;
     color: white;
     border-color: #614d56;
 }
 
-.boton2:hover {
-    background: white;
+#boton2:hover {
+  background: white;
     color: #614d56;
     border-color: #614d56;
 }
 
-.boton1 {
+#boton1 {
     background: #64c4ac;
     color: white;
     border-color: #64c4ac;
-    margin-right: 1em;
 }
 
-.boton1:hover {
+#boton1:hover {
     background: white;
     color: #64c4ac;
     border-color: #64c4ac;
 }
+
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;

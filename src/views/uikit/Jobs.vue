@@ -18,7 +18,7 @@ export default {
         Dialog,
         DataTable,
         Column,
-        Breadcrumb, 
+        Breadcrumb,
         ProgressSpinner,
     },
     setup() {
@@ -39,11 +39,11 @@ export default {
             { label: 'Jobs', icon: 'pi pi-briefcase', route: { name: 'Jobs' } }
         ]);
 
-         // Loading state for the spinner dialog
-         const isLoading = ref(false);
+        // Loading state for the spinner dialog
+        const isLoading = ref(false);
 
 
-         
+
         // Función para mostrar el modal de carga
         const showLoading = () => {
             isLoading.value = true;
@@ -76,7 +76,7 @@ export default {
         async function loadJobs() {
             if (selectedServerDB.value) {
                 try {
-                    
+
                     showLoading();
                     // Obtener trabajos en ejecución
                     const runningResponse = await axios.get(`/api/jobs/runningJobs/${selectedServerDB.value}`);
@@ -89,8 +89,8 @@ export default {
                     console.error('Error fetching jobs:', error.message);
                 }
                 finally {
-                hideLoading();
-            }
+                    hideLoading();
+                }
             }
         }
 
@@ -136,33 +136,28 @@ export default {
 </script>
 
 <template>
-    <div class="flex flex-col min-h-screen">
-        <!-- Div para seleccionar la región -->
-        <div class="w-full card p-4 flex flex-col gap-4 mb-6 shadow-custom border">
-            <div class="w-full card p-1 mb-4">
+    <div class="flex flex-col h-screen p-4">
+
+        <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
                 <div class="title font-semibold text-xl ml-4">Jobs </div>
                 <div class="breadcrumb-section mr-2">
                     <Breadcrumb :model="breadcrumbItems" class="breadcrumb-item" />
                 </div>
             </div>
-        </div>
-           
-                <label for="region" class="block text-sm font-medium mb-2">  Region</label>
-                <Dropdown 
-                    id="region" 
-                    v-model="selectedRegion" 
-                    :options="regions" 
-                    option-label="name" 
-                    option-value="id" 
-                    placeholder="Select Region" 
-                    class="w-full" 
-                    filter 
-                    filterPlaceholder="Search Region" 
-                    style="width: 30%;"
-                />
-                <div class="mb-6">
-                    <label class="block text-sm font-medium mb-3">ServersDB</label>
+
+            <div class="mb-6 ml-6 flex items-start gap-4">
+                <!-- Sección de Región -->
+                <div class="w-1/6">
+                    <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                    <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                        option-value="id" placeholder="Select Region" class="w-full mb-4" filter
+                        filterPlaceholder="Search Region"  />
+                </div>
+
+                <!-- Sección de ServersDB (alineada a la derecha de Region) -->
+                <div class="flex-grow">
+                    <label class="block text-sm font-medium mb-2">ServersDB</label>
                     <div class="flex flex-col gap-2">
                         <div v-for="server in filteredDB" :key="server.idServer" class="flex items-center">
                             <div class="flex items-center gap-2 radio-margin">
@@ -174,48 +169,53 @@ export default {
                                 <span class="text-sm">{{ server.description }}</span>
                             </div>
                         </div>
-                        <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 mt-2">No servers found for the selected region</div>
+                        <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for the
+                            selected region</div>
                     </div>
                 </div>
             </div>
 
-
-
-        <!-- Div para mostrar trabajos en ejecución -->
-        <div class="w-full card p-4 flex flex-col gap-4 mb-6 shadow-custom border">
-            <h2 class="font-semibold text-lg mb-2">Running Jobs</h2>
-            <DataTable :value="runningJobs" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage" :rowsPerPageOptions="[5, 10, 20]" :totalRecords="runningJobs.length">
-                <Column field="jobName" header="Job Name" sortable />
-                <Column field="startDate" header="Start Date" sortable />
-                <Column field="stopDate" header="Stop Date" sortable />
-                <Column field="executionTime" header="Execution Time (min)" sortable />
-            </DataTable>
-            <div v-if="runningJobs.length === 0" class="text-center mt-4 text-gray-500">No running jobs available.</div>
         </div>
 
-        <!-- Div para mostrar trabajos programados -->
-        <div class="w-full card p-4 flex flex-col gap-4 shadow-custom border">
-            <h2 class="font-semibold text-lg mb-2">Scheduled Jobs</h2>
-            <DataTable :value="scheduledJobs" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage" :rowsPerPageOptions="[5, 10, 20]" :totalRecords="scheduledJobs.length">
-                <Column field="jobName" header="Job Name" sortable />
-                <Column field="scheduledDate" header="Scheduled Date" sortable />
-                <Column field="startDate" header="Start Date" sortable />
-                <Column field="stopDate" header="Stop Date" sortable />
-                <Column field="executionTime" header="Execution Time (min)" sortable />
-            </DataTable>
-            <div v-if="scheduledJobs.length === 0" class="text-center mt-4 text-gray-500">No scheduled jobs available.</div>
+
+
+        <div class="flex gap-6 mb-4">
+            <!-- Div para mostrar trabajos en ejecución -->
+            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-2 h-full shadow-custom border">
+                <h2 class="font-semibold text-lg ">Running jobs</h2>
+                <DataTable :value="runningJobs" class="p-datatable-sm" :paginator="true" :rows="5"
+                    :rowsPerPageOptions="[5, 10, 20]" :totalRecords="runningJobs.length" :rowHover="true">
+                    <template #empty> No running jobs found. </template>
+                    <template #loading> Loading running jobs data. Please wait. </template>
+                    <Column field="jobName" header="Job name" sortable />
+                    <Column field="startDate" header="Start date" sortable />
+                    <Column field="stopDate" header="Stop date" sortable />
+                    <Column field="executionTime" header="Execution time (min)" sortable />
+                </DataTable>
+
+            </div>
+
+            <!-- Div para mostrar trabajos programados -->
+            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-2 h-full shadow-custom border">
+                <h2 class="font-semibold text-lg ">Scheduled jobs</h2>
+                <DataTable :value="scheduledJobs" class="p-datatable-sm" :paginator="true" :rows="5"
+                    :rowsPerPageOptions="[5, 10, 20]" :totalRecords="scheduledJobs.length" :rowHover="true">
+                    <template #empty> No scheduled jobs found. </template>
+                    <template #loading> Loading scheduled jobs data. Please wait. </template>
+                    <Column field="jobName" header="Job name" sortable />
+                    <Column field="scheduledDate" header="Scheduled date" sortable />
+                    <Column field="startDate" header="Start date" sortable />
+                    <Column field="stopDate" header="Stop date" sortable />
+                    <Column field="executionTime" header="Execution time (min)" sortable />
+                </DataTable>
+
+            </div>
         </div>
 
-   <Button label="Refresh" id="Boton1" icon="pi pi-sync" 
-   @click="loadJobs"  :disabled="!selectedServerDB" />
+
+        <Button label="Refresh" id="Boton1" icon="pi pi-sync" @click="loadJobs" />
         <!-- Modal para mostrar detalles adicionales -->
         <Dialog v-model:visible.sync="modalVisible">
-            <template #header>{{ selectedJob.jobName }}</template>
-
-            <!-- Contenido del modal -->
-            <!-- Aquí puedes agregar más detalles según sea necesario -->
-
-            <!-- Botón para cerrar el modal -->
             <template #footer>
                 <Button label="Close" @click.prevent="modalVisible = false" />
             </template>
@@ -236,8 +236,10 @@ export default {
 
 <style scoped>
 .radio-margin {
-    margin-left: 1rem; /* Ajusta el margen según sea necesario */
+    margin-left: 1rem;
+    /* Ajusta el margen según sea necesario */
 }
+
 .header-container {
     display: flex;
     justify-content: space-between;
@@ -245,7 +247,6 @@ export default {
 }
 
 #Boton1 {
-    
     width: 15em;
     background: #64c4ac;
     color: white;
@@ -258,11 +259,9 @@ export default {
     color: #64c4ac;
     border-color: #64c4ac;
 }
+
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
-    /* Opcional: redondear bordes */
 }
-
-
 </style>

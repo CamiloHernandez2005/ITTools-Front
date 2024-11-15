@@ -513,7 +513,7 @@ export default {
         <div class="w-full flex gap-4">
             <!-- Div para seleccionar región y servidor -->
             <div class="card p-4 shadow-custom border flex-1 flex flex-col">
-                <div class="font-semibold text-xl mb-4">Select region</div>
+                <div class="font-semibold text-xl mb-4">Region details</div>
 
                 <div class="flex gap-4 h-full">
                     <!-- Dropdown de región ocupando el 50% -->
@@ -555,10 +555,13 @@ export default {
 
             <!-- Tabla de pines fallidos (no actualizados) -->
             <div class="card p-4 shadow-custom border w-1/2 h-full">
-                <h3 class="text-lg font-bold mb-4">
-                    Pins Failed</h3>
+                <div class="font-semibold text-xl mb-4">Failed pins</div>
                 <DataTable :value="nonUpdatedPins" class="p-datatable-sm" :paginator="true" rows="10"
-                    :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple">
+                    :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple" :rowHover="true">
+
+                    <template #empty> No failed pins found. </template>
+                    <template #loading> Loading failed pins data. Please wait. </template>
+
                     <Column field="pinId" header="Pin ID" sortable />
                     <Column header="Status">
                         <template #body="slotProps">
