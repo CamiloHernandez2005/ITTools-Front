@@ -11,6 +11,8 @@ import { regionService } from '@/services/RegionService';
 import { serverService } from '@/services/AgentService';
 import Checkbox from 'primevue/checkbox'; // Asegúrate de importar Checkbox
 import { useToast } from 'primevue/usetoast'; // Importar useToast para las notificaciones
+import SnakeGame from '@/views/uikit/snakeGame.vue';
+
 
 export default {
     components: {
@@ -20,7 +22,9 @@ export default {
         Calendar,
         ProgressSpinner,
         Dialog,
-        Checkbox // Registra el componente Checkbox
+        Checkbox ,// Registra el componente Checkbox
+        SnakeGame
+
     },
     setup() {
         const toast = useToast(); // Inicializar el sistema de notificaciones toast
@@ -277,18 +281,30 @@ export default {
             </div>
         </div>
 
-        <!-- Modal de carga -->
-        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
-            <div class="flex flex-col items-center justify-center">
+              <!-- Modal de carga -->
+ <Dialog v-model:visible="isLoading" header="Dowloading..." modal :dismissableMask="false" :closable="false"  :style="{ 'max-width': '80vw', width: '40vw' }"  >
+        
+        <div class="flex w-full h-full justify-center items-center">
+            
+            <!-- Sección izquierda para el juego Snake -->
+            <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
+                <SnakeGame />
+            </div>
+
+            <!-- Sección derecha para el Progress Spinner y mensajes -->
+            <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
+                <ProgressSpinner />
                 <p class="mt-4">Downloading logs...</p>
-                <!-- Mensaje adicional que aparece después de 5 segundos -->
+
+                <!-- Mensajes adicionales que aparecen en intervalos -->
                 <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
                 <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
                 <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
                 <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
                 <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
             </div>
-        </Dialog>
+        </div>
+    </Dialog>
 
         <div v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</div>
         <div v-else class="mt-4 ml-4">
