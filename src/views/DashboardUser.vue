@@ -4,7 +4,6 @@ import { ref, onMounted, computed, reactive } from 'vue';
 import { serverService } from '@/services/AgentService';
 import { regionService } from '@/services/RegionService';
 import dayjs from 'dayjs';
-import image from '@/assets/welcome.jpg';
 import image1 from '@/assets/img/img1.jpg';
 import image2 from '@/assets/img/img2.jpg';
 import image3 from '@/assets/img/img3.jpg';
@@ -44,6 +43,7 @@ export default {
         const chartDataRegions = ref(null);
         const twitterProfile = ref(null); // Variable para almacenar información del perfil de Twitter
         const username = '@ELTIEMPO';
+        const calendarUrl = ref('');
         const currentImage = ref('');
         const snakeGame = reactive({
             boardSize: 15,
@@ -61,12 +61,19 @@ export default {
             gameSpeed: 400 // Velocidad inicial de actualización en ms
         });
 
-        function setRandomImage (){
-      const images = [image, image1, image2,image3,image4,image5,image6, image7, image8,image9,image10,image11, image12,image13,image14,image15,image16,image17,image18,image19,image20,image21,image22,image23,image24];
-      const randomIndex = Math.floor(Math.random() * images.length);
-      currentImage.value = images[randomIndex];
-    };
-        
+        function setRandomImage() {
+            const images = [image1, image2, image3, image4, image5, image6, image7, image8, image9, image10, image11, image12, image13, image14, image15, image16, image17, image18, image19, image20, image21, image22, image23, image24];
+            const randomIndex = Math.floor(Math.random() * images.length);
+            currentImage.value = images[randomIndex];
+        };
+
+        function setCalendarUrl() {
+            if (userEmail.value) {
+                calendarUrl.value = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(userEmail.value)}&ctz=America%2FBogota`;
+            }
+        };
+
+
         // Función para activar el parpadeo en rojo al perder
         function triggerBlink() {
             snakeGame.isBlinking = true;
@@ -456,6 +463,7 @@ export default {
             initializeBoard();
             startSnakeGame();
             setRandomImage();
+            setCalendarUrl();
 
             setInterval(() => {
                 drawSnakeAndFood(context);
@@ -472,9 +480,6 @@ export default {
             formatDateTime,
             userEmail,
             userName,
-            image,
-            image1,
-            image2,
             chartDataRegions,
             chartOptionsAudits,
             twitterProfile,
@@ -482,7 +487,8 @@ export default {
             startSnakeGame,
             changeDirection,
             username,
-            currentImage
+            currentImage,
+            calendarUrl
         };
     },
     data() {
@@ -574,21 +580,36 @@ export default {
                     <!-- Primera tabla de actividad (más pequeña) -->
                     <div class="w-full lg:w-1/3 flex flex-col items-center">
                         <div class="font-semibold text-xl mb-2 text-center">Welcomee!</div>
-                        <div class="font-semibold text-xl mb-2 text-center">{{ userName}}</div>
                         <img :src="currentImage" class="imgmeme" alt="Random Welcome Image">
                     </div>
 
                     <!-- Segunda tabla de actividad (más grande) -->
-                    <div class="w-full lg:w-2/3 flex flex-col">
+                    <div class="w-full lg:w-3/3 flex flex-col">
                         <div class="font-semibold text-xl mb-2">Your activity</div>
-                        <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto" :paginator="true" :rows="6" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :emptyMessage="'No requests found'" :rowHover="true">
-                            <Column field="userAction" header="Action" />
-                            <Column field="dateTime" header="Date & time">
+                        <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto" :paginator="true"
+                            :rows="3" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1"
+                            :rowHover="true">
+                            <template #empty> No user activity found. </template>
+                            <template #loading> Loading user activity. Please wait. </template>
+                            <Column field="userAction" header="Action" sortable />
+                            <Column field="dateTime" header="Date & time " sortable>
                                 <template #body="slotProps">
                                     {{ formatDateTime(slotProps.data.dateTime) }}
                                 </template>
                             </Column>
                         </DataTable>
+                    </div>
+
+
+                </div>
+
+            </div>
+            <div class="card shadow-custom border">
+                <div class="overflow-hidden">
+                    <div class="whitespace-nowrap animate-marquee font-bold">
+                        "Welcome {{ userName }}! Every quest is a step towards improvement. Make the most of your time
+                        here and
+                        achieve your goals."
                     </div>
                 </div>
             </div>
@@ -596,7 +617,7 @@ export default {
                 <!-- Gráfico 1: Regions Usage -->
                 <div class="w-full lg:w-1/2">
                     <div class="card shadow-custom border">
-                        <div class="font-semibold text-xl mb-4">Regions Usage</div>
+                        <div class="font-semibold text-xl mb-4">Regions usage</div>
                         <Chart type="doughnut" :data="chartDataRegions" :options="chartOptionsAudits" class="h-96" />
                     </div>
                 </div>
@@ -604,7 +625,11 @@ export default {
                 <div class="w-full lg:w-1/2">
                     <div class="card shadow-custom border h-full">
                         <div class="font-semibold text-xl mb-4">Calendar</div>
-                        <iframe src="https://calendar.google.com/calendar/embed?src=ahernandezp%40emida.com&ctz=America%2FBogota" style="border: 0" width="100%" height="90%" frameborder="0" scrolling="no"></iframe>
+                        <div v-if="calendarUrl">
+                            <iframe :src="calendarUrl" style="border: 0" width="100%" height="330px" frameborder="0"
+                                scrolling="no">
+                            </iframe>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -612,7 +637,7 @@ export default {
 
         <!-- Fila derecha con el Playground -->
         <div class="col-span-12 lg:col-span-4">
-            <div class="card p-4 shadow-custom border h-full flex flex-col justify-center items-center">
+            <div class="card  shadow-custom border h-full flex flex-col justify-center items-center">
                 <h2 class="text-center font-semibold text-xl">Playground</h2>
 
                 <!-- Contenedor de Tic-Tac-Toe -->
@@ -620,25 +645,30 @@ export default {
                     <h2 class="text-center mb-4">Tic-Tac-Toe</h2>
                     <div class="tic-tac-toe-board mb-4">
                         <div v-for="(cell, index) in board" :key="index" class="tic-tac-toe-cell border">
-                            <Button @click="makeMove(index)" :disabled="cell !== '' || winner" class="tic-tac-toe-button p-component p-button-outlined">
+                            <Button @click="makeMove(index)" :disabled="cell !== '' || winner"
+                                class="tic-tac-toe-button p-component p-button-outlined">
                                 {{ cell }}
                             </Button>
                         </div>
                     </div>
-                    <p v-if="winner" class="winner-message text-center font-bold text-xl mt-2">{{ winner }} ha ganado!</p>
+                    <p v-if="winner" class="winner-message text-center font-bold text-xl mt-2">{{ winner }} ha ganado!
+                    </p>
                     <p v-else-if="isDraw" class="draw-message text-center font-bold text-xl mt-2">¡Es un empate!</p>
-                    <Button @click="resetTicTacToe" class="p-button mt-4 w-full" id="create-button"> Reiniciar Tic-Tac-Toe </Button>
+                    <Button @click="resetTicTacToe" class="p-button mt-4 w-full" id="create-button"> Reiniciar
+                        Tic-Tac-Toe
+                    </Button>
                 </div>
 
                 <!-- Contenedor de Snake Game -->
                 <div class="w-full p-4 h-full flex flex-col justify-center items-center">
-                    <h2 class="text-center mb-2">Snake Game</h2>
+                    <h2 class="text-center mb-2">Snake game</h2>
                     <div class="flex justify-between w-full mb-2">
                         <p><strong>Score:</strong> {{ snakeGame.score }}</p>
-                        <p><strong>High Score:</strong> {{ snakeGame.highScore }}</p>
+                        <p><strong>High score:</strong> {{ snakeGame.highScore }}</p>
                     </div>
                     <canvas id="snakeCanvas" width="300" height="300" class="border mx-auto snake"></canvas>
-                    <Button @click="startSnakeGame" class="mt-4 p-button w-full " id="create-button">Reiniciar Snake</Button>
+                    <Button @click="startSnakeGame" class="mt-4 p-button w-full " id="create-button">Reiniciar
+                        snake</Button>
                 </div>
             </div>
         </div>
@@ -669,7 +699,8 @@ export default {
 }
 
 .tic-tac-toe-button:hover {
-    background-color: rgba(0, 0, 0, 0.1); /* Fondo en hover */
+    background-color: rgba(0, 0, 0, 0.1);
+    /* Fondo en hover */
 }
 
 .snake {
@@ -677,7 +708,7 @@ export default {
     transition: background-color 0.3s;
 }
 
-.imgmeme{
+.imgmeme {
     width: 15rem;
 }
 
@@ -694,4 +725,18 @@ export default {
     border-color: #64c4ac;
 }
 
+@keyframes marquee {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+
+.animate-marquee {
+    animation: marquee 20s linear infinite;
+}
 </style>

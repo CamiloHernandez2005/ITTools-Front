@@ -6,6 +6,7 @@ import dayjs from 'dayjs'; // Importa dayjs
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import { onMounted, onUnmounted, ref } from 'vue';
 
+
 // Registro de componentes necesarios para Chart.js
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
@@ -17,14 +18,13 @@ const lastUpdated200 = ref('');
 const lastUpdated400 = ref('');
 const lastUpdated404 = ref('');
 const lastUpdated500 = ref('');
+const userEmail = ref(localStorage.getItem('userEmail') || '');
 const requests = ref([]);
 const healthInfo = ref({});
 const uptime = ref(0);
 const audits = ref([]);
 const topUsers = ref([]);
 const filteredAudits = ref([]);
-const twitterProfile = ref(null); // Variable para almacenar información del perfil de Twitter
-const username = '@ELTIEMPO'; // Cambia a tu nombre de usuario de Twitter
 // Variables para los gráficos
 const regionCounts = ref({});
 const agentCounts = ref({});
@@ -32,6 +32,7 @@ const regions = ref([]);
 const agents = ref([]);
 const chartDataRegions = ref(null);
 const chartOptionsAudits = ref(null);
+const calendarUrl = ref('');
 const filters = ref({
     global: { value: null, matchMode: 'contains' },
     requestUri: { value: null, matchMode: 'contains' },
@@ -44,14 +45,13 @@ function formatDateTime(value) {
     return value ? dayjs(value).format('DD/MMM/YYYY HH:mm:ss') : '';
 }
 
-const fetchTwitterProfile = async (username) => {
-    try {
-        const response = await fetch(`/api/twitter/profile?username=${username}`);
-        twitterProfile.value = await response.json();
-    } catch (error) {
-        console.error('Error fetching Twitter profile:', error);
-    }
-};
+function setCalendarUrl() {
+            if (userEmail.value) {
+                calendarUrl.value = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(userEmail.value)}&ctz=America%2FBogota`;
+            }
+        };
+
+
 
 // Función para obtener regiones y agentes
 async function fetchRegionAndAgentData() {
@@ -95,20 +95,8 @@ onMounted(async () => {
     onUnmounted(() => clearInterval(interval));
 
     await fetchAuditData();
+    setCalendarUrl();
 
-    await fetchTwitterProfile(username);
-
-    // Cargar el script de Twitter para activar el widget
-    const script = document.createElement('script');
-    script.src = 'https://platform.twitter.com/widgets.js';
-    script.async = true;
-    script.onload = () => {
-        // Solo recargar el widget si no se ha hecho aún
-        if (window.twttr && twttr.widgets && typeof twttr.widgets.load === 'function') {
-            twttr.widgets.load();
-        }
-    };
-    document.body.appendChild(script);
 });
 
 // Función para analizar los mensajes de auditoría
@@ -235,7 +223,7 @@ function setAuditChartData(regionCountMap, regionAgentMap) {
             }
         ],
         // Add agent details to the `regionAgentMap` for tooltip access
-        agentDetails: regionAgentMap
+        agentDetails: regionAgentMap,
     };
 }
 
@@ -537,8 +525,10 @@ function getStatusIcon(statusCode) {
                 <div class="font-semibold text-xl mb-4">Http response</div>
                 <DataTable :value="filteredRequests()" class="p-datatable-sm" :paginator="true" :rows="8"
                     :rowsPerPageOptions="[8, 10, 20]" :totalRecords="filteredRequests().length" :sortField="'timestamp'"
-                    :sortOrder="-1" :emptyMessage="'No requests found'" dataKey="id" :rowHover="true"
+                    :sortOrder="-1" dataKey="id" :rowHover="true"
                     v-model:filters="filters" filterDisplay="menu">
+                    <template #empty> No http request found. </template>
+                    <template #loading> Loading http request. Please wait. </template>
                     <Column field="requestUri" header="Request URL" :showFilterMatchModes="false" :sortable="true">
                         <template #body="{ data }">
                             {{ data.requestUri }}
@@ -588,9 +578,11 @@ function getStatusIcon(statusCode) {
                 <div class="font-semibold text-xl mb-2">Activity</div>
                 <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="5"
                     :rowsPerPageOptions="[5, 10, 20]" :totalRecords="audits.length" :sortField="'dateTime'"
-                    :sortOrder="-1" :emptyMessage="'No requests found'" :rowHover="true">
-                    <Column field="userAction" header="Action" />
-                    <Column field="dateTime" header="Date & time">
+                    :sortOrder="-1"  :rowHover="true">
+                    <template #empty> No activity found. </template>
+                    <template #loading> Loading activity. Please wait. </template>
+                    <Column field="userAction" header="Action" sortable/>
+                    <Column field="dateTime" header="Date & time" sortable>
                         <template #body="slotProps">
                             {{ formatDateTime(slotProps.data.dateTime) }}
                         </template>
@@ -600,7 +592,7 @@ function getStatusIcon(statusCode) {
             <!-- Gráfica de agentes más utilizados -->
             <div class="col-span-6">
                 <div class="card shadow-custom border ">
-                    <div class="font-semibold text-xl mb-4">User Interact</div>
+                    <div class="font-semibold text-xl mb-4">User interact</div>
 
                     <ListItem v-for="(user, index) in topUsers" :key="user[0]" class="mb-4">
                         <div class="flex justify-between items-center mb-6">
@@ -617,7 +609,7 @@ function getStatusIcon(statusCode) {
         <!-- Gráfica de regiones más utilizadas -->
         <div class="col-span-12 xl:col-span-6 h-full">
             <div class="card shadow-custom border ">
-                <div class="font-semibold text-xl mb-2">Regions Usage</div>
+                <div class="font-semibold text-xl mb-2">Regions usage</div>
                 <!-- Gráfico de pastel -->
                 <Chart type="doughnut" :data="chartDataRegions" :options="chartOptionsAudits" class="h-96" />
             </div>
@@ -625,9 +617,11 @@ function getStatusIcon(statusCode) {
         <div class="col-span-12 lg:col-span-6">
             <div class="card shadow-custom border h-full">
                 <div class="font-semibold text-xl mb-4">Calendar</div>
-                <iframe
-                    src="https://calendar.google.com/calendar/embed?src=ahernandezp%40emida.com&ctz=America%2FBogota"
-                    style="border: 0" width="100%" height="90%" frameborder="0" scrolling="no"></iframe>
+                <div v-if="calendarUrl">
+                            <iframe :src="calendarUrl" style="border: 0" width="100%" height="330px" frameborder="0"
+                                scrolling="no">
+                            </iframe>
+                        </div>
             </div>
         </div>
     </div>

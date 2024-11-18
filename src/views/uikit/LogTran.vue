@@ -101,10 +101,10 @@ export default {
         }
 
         async function downloadSelectedLogs() {
-    if (selectedLogs.value.length > 0) {
-        // Verificar si hay logs seleccionados
-        isLoading.value = true; // Abrir el modal de carga
-        showAdditionalMessage.value = false;
+            if (selectedLogs.value.length > 0) {
+                // Verificar si hay logs seleccionados
+                isLoading.value = true; // Abrir el modal de carga
+                showAdditionalMessage.value = false;
                 showAdditionalMessage2.value = false;
                 showAdditionalMessage3.value = false;
                 showAdditionalMessage4.value = false;
@@ -133,23 +133,23 @@ export default {
                     showAdditionalMessage4.value = false;
                     showAdditionalMessage5.value = true;
                 }, 50000);
-        try {
-            // Encontrar la IP del agente seleccionado
-            const agent = agents.value.find(a => a.idAgent === selectedAgent.value);
-            const agentIp = agent?.ipagent || 'UnknownIP'; // Usar un valor por defecto si la IP no existe
-            
-            // Obtener el nombre de la región
-            const regionName = regions.value.find(region => region.id === selectedRegion.value)?.name || 'UnknownRegion'; // Obtener el nombre de la región
+                try {
+                    // Encontrar la IP del agente seleccionado
+                    const agent = agents.value.find(a => a.idAgent === selectedAgent.value);
+                    const agentIp = agent?.ipagent || 'UnknownIP'; // Usar un valor por defecto si la IP no existe
 
-            // Llamar al servicio pasándole la región y la IP como parámetros
-            await LogService.zipLogFile(selectedAgent.value, selectedLogs.value, regionName, agentIp);
-            
-            showSuccess('Logs downloaded successfully');
-        } catch (error) {
-            showError('Error downloading log file: ' + error.message);
-        } finally {
-            isLoading.value = false; // Cerrar el modal de carga
-            clearTimeout(additionalMessageTimeout);
+                    // Obtener el nombre de la región
+                    const regionName = regions.value.find(region => region.id === selectedRegion.value)?.name || 'UnknownRegion'; // Obtener el nombre de la región
+
+                    // Llamar al servicio pasándole la región y la IP como parámetros
+                    await LogService.zipLogFile(selectedAgent.value, selectedLogs.value, regionName, agentIp);
+
+                    showSuccess('Logs downloaded successfully');
+                } catch (error) {
+                    showError('Error downloading log file: ' + error.message);
+                } finally {
+                    isLoading.value = false; // Cerrar el modal de carga
+                    clearTimeout(additionalMessageTimeout);
                     showAdditionalMessage.value = false;
                     clearTimeout(additionalMessageTimeout2);
                     showAdditionalMessage2.value = false;
@@ -159,11 +159,11 @@ export default {
                     showAdditionalMessage4.value = false;
                     clearTimeout(additionalMessageTimeout5);
                     showAdditionalMessage5.value = false;
+                }
+            } else {
+                showError('Please select at least one log to download.');
+            }
         }
-    } else {
-        showError('Please select at least one log to download.');
-    }
-}
 
 
         onMounted(() => {
@@ -174,7 +174,7 @@ export default {
         watch(selectedAgent, () => {
             logs.value = []; // Limpiar los logs al cambiar el agente
             loadLogs(); // Cargar logs al seleccionar una fecha
-            selectedLogs.value =[]; // Limpiar la selección de logs
+            selectedLogs.value = []; // Limpiar la selección de logs
         });
         watch(date, () => {
             loadLogs(); // Cargar logs al seleccionar una fecha
@@ -206,7 +206,7 @@ export default {
 </script>
 
 <template>
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col grid p-4">
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
                 <div class="title font-semibold text-xl ml-4 ">Logs</div>
@@ -217,56 +217,41 @@ export default {
         </div>
         <div class="flex gap-6">
             <!-- Div for the first half -->
-            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-    <div class="mb-2">
-        <div class="font-semibold text-xl mb-4">Region details</div>
-        
-        <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
-        <div class="flex flex-col md:flex-row gap-4">
-            <div class="flex-1">
-                <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                <Dropdown 
-                    id="region" 
-                    v-model="selectedRegion" 
-                    :options="regions" 
-                    option-label="name" 
-                    option-value="id" 
-                    placeholder="Select region" 
-                    class="w-full" 
-                    filter 
-                    filterPlaceholder="Search region" 
-                />
-                
-                <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transaction date</label>
-                <Calendar 
-                    id="last-modified" 
-                    v-model="date" 
-                    class="w-full" 
-                    placeholder="Select date" 
-                />
-            </div>
+            <div class="w-full md:w-1/2 card p-4 flex flex-col h-full shadow-custom border">
+            
+                    <div class="font-semibold text-xl mb-4">Region details</div>
 
-            <div class="flex-1">
-                <label class="block text-sm font-medium mb-3">Agents</label>
-                <div class="flex flex-col gap-2 ml-4">
-                    <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
-                        <div class="flex items-center gap-2 radio-margin">
-                            <RadioButton 
-                                v-model="selectedAgent" 
-                                :value="agent.idAgent" 
-                                name="agent" 
-                            />
-                            <span class="text-sm">{{ agent.agentName }}</span>
-                            <span class="text-sm">||</span>
-                            <span class="text-sm">{{ agent.ipagent }}</span>
+                    <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                                option-value="id" placeholder="Select region" class="w-full" filter
+                                filterPlaceholder="Search region" />
+
+                            <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transaction
+                                date</label>
+                            <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
+                        </div>
+
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium mb-3">Agents</label>
+                            <div class="flex flex-col gap-2 ml-4">
+                                <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
+                                    <div class="flex items-center gap-2 radio-margin">
+                                        <RadioButton v-model="selectedAgent" :value="agent.idAgent" name="agent" />
+                                        <span class="text-sm">{{ agent.agentName }}</span>
+                                        <span class="text-sm">||</span>
+                                        <span class="text-sm">{{ agent.ipagent }}</span>
+                                    </div>
+                                </div>
+                                <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500 ">No agents found
+                                    for the selected region</div>
+                            </div>
                         </div>
                     </div>
-                    <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500 ">No agents found for the selected region</div>
-                </div>
+             
             </div>
-        </div>
-    </div>
-</div>
 
 
             <!-- Div for the second half -->
@@ -292,7 +277,8 @@ export default {
                         </tbody>
                     </table>
                     <div class="flex justify-end mt-4">
-                        <Button label="Download logs" icon="pi pi-download" id="create-button" @click="downloadSelectedLogs" />
+                        <Button label="Download logs" icon="pi pi-download" id="create-button"
+                            @click="downloadSelectedLogs" />
                     </div>
                 </div>
                 <div v-else class="text-sm text-gray-500 ml-2">No logs available.</div>
@@ -301,35 +287,42 @@ export default {
 
         <!-- Loading Modal -->
         <!-- Modal de carga -->
- <Dialog v-model:visible="isLoading" header="Dowloading..." modal :dismissableMask="false" :closable="false"  :style="{ 'max-width': '80vw', width: '40vw' }"  >
-        
-        <div class="flex w-full h-full justify-center items-center">
-            
-            <!-- Sección izquierda para el juego Snake -->
-            <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
-                <SnakeGame />
-            </div>
+        <Dialog v-model:visible="isLoading" header="Dowloading..." modal :dismissableMask="false" :closable="false"
+            :style="{ 'max-width': '80vw', width: '40vw' }">
 
-            <!-- Sección derecha para el Progress Spinner y mensajes -->
-            <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
-                <ProgressSpinner />
-                <p class="mt-4">Downloading logs...</p>
+            <div class="flex w-full h-full justify-center items-center">
 
-                <!-- Mensajes adicionales que aparecen en intervalos -->
-                <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
-                <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
-                <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
-                <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
-                <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
+                <!-- Sección izquierda para el juego Snake -->
+                <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
+                    <SnakeGame />
+                </div>
+
+                <!-- Sección derecha para el Progress Spinner y mensajes -->
+                <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
+                    <ProgressSpinner />
+                    <p class="mt-4">Downloading logs...</p>
+
+                    <!-- Mensajes adicionales que aparecen en intervalos -->
+                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your
+                        download is being processed...</p>
+                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some
+                        water, your body will thank you!</p>
+                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working
+                        on your file...</p>
+                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only
+                        take a moment longer.</p>
+                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you
+                        for your patience.</p>
+                </div>
             </div>
-        </div>
-    </Dialog>
+        </Dialog>
 
         <div v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</div>
         <div v-else class="mt-4 ml-4">
             <div class="flex items-center">
                 <i class="pi pi-info-circle mr-2"></i>
-                <span>If you don't find the log, remember that after 7 days, logs are moved to the archive module.</span>
+                <span>If you don't find the log, remember that after 7 days, logs are moved to the archive
+                    module.</span>
             </div>
         </div>
     </div>
@@ -347,6 +340,7 @@ export default {
     color: #64c4ac;
     border-color: #64c4ac;
 }
+
 /* Estilo para el encabezado de la tabla */
 .header-row {
     background-color: #614d56;
@@ -367,7 +361,8 @@ td {
 
 th {
     text-align: left;
-    color: white; /* Asegura que el texto del encabezado sea blanco */
+    color: white;
+    /* Asegura que el texto del encabezado sea blanco */
 }
 
 td {
@@ -376,12 +371,15 @@ td {
 
 /* Margen adicional para radio buttons */
 .radio-margin {
-    margin-left: 1rem; /* Ajusta el margen según sea necesario */
+    margin-left: 1rem;
+    /* Ajusta el margen según sea necesario */
 }
 
 .p-calendar {
-    width: 100%; /* Asegura que el calendario ocupe el 100% del ancho del contenedor */
-    border-radius: 0.25rem; /* Ajusta el borde del calendario */
+    width: 100%;
+    /* Asegura que el calendario ocupe el 100% del ancho del contenedor */
+    border-radius: 0.25rem;
+    /* Ajusta el borde del calendario */
 }
 
 .header-container {
@@ -392,6 +390,7 @@ td {
 
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Opcional: redondear bordes */
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
 }
 </style>

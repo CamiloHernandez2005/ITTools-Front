@@ -161,8 +161,8 @@ export default {
                 >
                 <div class="flex justify-between items-center mb-2">
                     <div class="flex gap-2">
-                        <Calendar v-model="startDate" placeholder="Start Date" showIcon dateFormat="dd/mm/yy" />
-                        <Calendar v-model="endDate" placeholder="End Date" showIcon dateFormat="dd/mm/yy" />
+                        <Calendar v-model="startDate" placeholder="Start date" showIcon dateFormat="dd/mm/yy" />
+                        <Calendar v-model="endDate" placeholder="End date" showIcon dateFormat="dd/mm/yy" />
                     </div>
 
                     <div>

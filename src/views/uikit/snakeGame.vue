@@ -312,15 +312,30 @@ export default {
                 <!-- Puntajes en fila -->
                 <div class="flex justify-between w-full ">
                     <p class="text-left"><strong>Score:</strong> {{ snakeGame.score }}</p>
-                    <p class="text-right"><strong>High Score:</strong> {{ snakeGame.highScore }}</p>
+                    <p class="text-right"><strong>High score:</strong> {{ snakeGame.highScore }}</p>
                 </div>
 
                 <!-- Canvas -->
                 <canvas id="snakeCanvas" width="300" height="300" class="border mx-auto snake"></canvas>
 
                 <!-- Botón centrado -->
-                <Button @click="startSnakeGame" class="mt-4 p-button w-[300px] mx-auto">Reiniciar Snake</Button>
+                <Button @click="startSnakeGame" id="create-button" class="mt-4 p-button w-[300px] mx-auto">Reiniciar snake</Button>
             </div>
 
         </div>
 </template>
+
+<style>
+
+#create-button {
+  background: #64c4ac;
+  color: white;
+  border-color: #64c4ac;
+}
+
+#create-button:hover {
+  background: white;
+  color: #64c4ac;
+  border-color: #64c4ac;
+}
+</style>

@@ -52,11 +52,11 @@ const callback = async (response) => {
 
     // Decodifica el token de Google
     const decodedData = decodeJWT(googleToken);
-    const { email, name } = decodedData;
+    const { email, given_name } = decodedData;
 
     // Guarda el email y el nombre en el localStorage
     localStorage.setItem('userEmail', email);
-    localStorage.setItem('userName', name);
+    localStorage.setItem('userName', given_name);
 
     const { token } = await authService.loginWithGoogle(googleToken);
     if (token) {
@@ -125,7 +125,7 @@ const callback = async (response) => {
 
           <!-- Sección para inicio de sesión con Google -->
           <div class="flex flex-col items-center">
-          <GoogleLogin :callback="callback" prompt auto-login/>
+          <GoogleLogin :callback="callback" prompt/>
           </div>
         </div>
       </div>

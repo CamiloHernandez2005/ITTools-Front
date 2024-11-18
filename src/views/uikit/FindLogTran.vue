@@ -342,7 +342,7 @@ export default {
 </script>
 
 <template>
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col grid p-4">
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
                 <div class="title font-semibold text-xl ml-4">Multi find logs</div>
@@ -353,8 +353,8 @@ export default {
         </div>
         <div class="flex gap-6">
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-                <div class="mb-2">
-                    <div class="font-semibold text-xl mb-4">Region details</div>
+              
+                    <div class="font-semibold text-xl">Region details</div>
 
                     <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
                     <div class="flex flex-col md:flex-row gap-4">
@@ -381,16 +381,16 @@ export default {
                             </div>
                         </div>
                     </div>
-                </div>
+              
             </div>
 
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border"  >
-                <div class="font-semibold text-xl mb-2 ">Transaction details</div>
+                <div class="font-semibold text-xl  ">Transaction details</div>
 
                 <div class="flex items-center">
                     <!-- Contenedor para el input y label -->
-                    <label for="transaction-id" class="block text-sm font-medium mb-0 mr-2">Transaction ID</label>
-                    <InputText id="transaction-id" v-model="transactionId" type="text" class="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-2/5" placeholder="Enter transaction ID" />
+                    <label for="transaction-id" class="block text-sm font-medium mb-0 mr-4">Transaction ID</label>
+                    <InputText id="transaction-id" v-model="transactionId" type="text" class="border input-with-line " placeholder="Enter transaction ID" />
                     <!-- Ajuste del tamaño -->
                 </div>
 
@@ -483,8 +483,8 @@ export default {
     </Dialog>
 
 
-        <div v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</div>
-        <div v-else class="mt-4 ml-4">
+
+        <div class="mt-4 ml-4">
             <div class="flex items-center">
                 <i class="pi pi-info-circle mr-2"></i>
                 <span>In this module you can search for a transaction on several agents, this may take some time..</span>
@@ -545,5 +545,13 @@ export default {
     padding: 5px; /* Espaciado interno */
     position: sticky; /* Mantener el encabezado sticky */
     top: 0; /* Pegado a la parte superior */
+}
+.input-with-line {
+    border: none;
+    border-bottom: 1px solid #d1d5db; /* Línea de color gris claro */
+    padding: 0.5rem 0.4rem; /* Ajustar el padding vertical */
+    background: transparent; /* Fondo transparente */
+    outline: none; /* Eliminar el borde de enfoque predeterminado */
+    box-shadow: none; /* Eliminar la sombra del campo de entrada */
 }
 </style>

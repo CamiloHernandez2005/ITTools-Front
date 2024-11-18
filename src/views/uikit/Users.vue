@@ -327,7 +327,7 @@ export default {
                         <template #empty> No users found. </template>
                         <template #loading> Loading users data. Please wait. </template>
 
-                        <Column field="full_name" header="Full Name" :showFilterMatchModes="false" sortable>
+                        <Column field="full_name" header="Full name" :showFilterMatchModes="false" sortable>
                             <template #body="{ data }">
                                 {{ data.full_name }}
                             </template>

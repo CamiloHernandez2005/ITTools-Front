@@ -54,7 +54,7 @@ export default {
         const showResultsModal = ref(false); // Modal visibility
         const searchResults = ref([]); // Store search results
         const visibleLogs = ref([]);
-       
+
 
         const showSuccess = (message) => {
             toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
@@ -94,14 +94,14 @@ export default {
             if (searchResults.value.length > 0) {
                 // Verificar si hay resultados de búsqueda
                 isDowload.value = true;
-                
+
                 showAdditionalMessage.value = false;
                 showAdditionalMessage2.value = false;
                 showAdditionalMessage3.value = false;
                 showAdditionalMessage4.value = false;
                 showAdditionalMessage5.value = false;
 
-              
+
 
                 const additionalMessageTimeout = setTimeout(() => {
                     showAdditionalMessage.value = true;
@@ -144,7 +144,7 @@ export default {
                     showError('Error downloading log file: ' + error.message);
                 } finally {
                     isDowload.value = false;
-                   
+
                     clearTimeout(additionalMessageTimeout);
                     showAdditionalMessage.value = false;
                     clearTimeout(additionalMessageTimeout2);
@@ -169,7 +169,7 @@ export default {
             showAdditionalMessage3.value = false;
             showAdditionalMessage4.value = false;
             showAdditionalMessage5.value = false;
-            
+
 
             const additionalMessageTimeout = setTimeout(() => {
                 showAdditionalMessage.value = true;
@@ -364,14 +364,14 @@ export default {
             toggleLogVisibility,
             isLogVisible,
             downloadSingleLog,
-           
+
         };
     }
 };
 </script>
 
 <template>
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col grid p-4">
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
                 <div class="title font-semibold text-xl ml-4">Find in a log file</div>
@@ -383,38 +383,41 @@ export default {
         <div class="flex gap-6">
             <!-- First Half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-                <div class="mb-2">
-                    <div class="font-semibold text-xl mb-4">Region details</div>
 
-                    <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <div class="flex-1">
-                            <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search region" />
+                <div class="font-semibold text-xl ">Region details</div>
 
-                            <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transation date</label>
-                            <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
-                        </div>
+                <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                            option-value="id" placeholder="Select region" class="w-full" filter
+                            filterPlaceholder="Search region" />
 
-                        <div class="flex-1">
-                            <label class="block text-sm font-medium mb-3">Agents</label>
-                            <div class="flex flex-col gap-2 ml-4">
-                                <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
-                                    <div class="flex items-center gap-2 radio-margin">
-                                        <RadioButton v-model="selectedAgent" :value="agent.idAgent" name="agent" />
-                                        <span class="text-sm">{{ agent.agentName }}</span>
-                                        <span class="text-sm">||</span>
-                                        <span class="text-sm">{{ agent.ipagent }}</span>
-                                    </div>
+                        <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transation date</label>
+                        <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
+                    </div>
+
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium mb-3">Agents</label>
+                        <div class="flex flex-col gap-2 ml-4">
+                            <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
+                                <div class="flex items-center gap-2 radio-margin">
+                                    <RadioButton v-model="selectedAgent" :value="agent.idAgent" name="agent" />
+                                    <span class="text-sm">{{ agent.agentName }}</span>
+                                    <span class="text-sm">||</span>
+                                    <span class="text-sm">{{ agent.ipagent }}</span>
                                 </div>
-                                <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500">No agents found for the selected region</div>
                             </div>
+                            <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500">No agents found for
+                                the selected region</div>
                         </div>
                     </div>
                 </div>
+
             </div>
-           
-          
+
+
 
             <!-- Second Half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
@@ -444,8 +447,10 @@ export default {
 
                 <div class="mb-4 flex justify-end items-center">
                     <div class="flex items-center">
-                        <label for="transaction-id" class="block text-sm font-medium mb-0 mr-2">Transaction ID</label>
-                        <InputText id="transaction-id" v-model="transactionId" type="text" class="border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter transaction ID" />
+                        <label for="transaction-id" class="block text-sm font-medium mb-0 mr-4">Transaction ID</label>
+                        <InputText id="transaction-id" v-model="transactionId" type="text"
+                            class="border input-with-line "
+                            placeholder="Enter transaction ID" />
                     </div>
                 </div>
 
@@ -457,7 +462,8 @@ export default {
 
         <div v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</div>
 
-        <Dialog v-model:visible="showResultsModal" header="Transaction logs" modal :style="{ 'max-width': '80vw', width: 'auto' }">
+        <Dialog v-model:visible="showResultsModal" header="Transaction logs" modal
+            :style="{ 'max-width': '80vw', width: 'auto' }">
             <template #footer>
                 <div class="flex mt-2 justify-between items-center w-full">
                     <div class="flex items-center">
@@ -465,7 +471,8 @@ export default {
                         <span>For more information, please download the logs.</span>
                     </div>
                     <div class="flex">
-                        <Button id="create-button" @click="downloadSelectedLogs" label="Download logs" icon="pi pi-download" :loading="isDowload" class="mr-2 ml-4" />
+                        <Button id="create-button" @click="downloadSelectedLogs" label="Download logs"
+                            icon="pi pi-download" :loading="isDowload" class="mr-2 ml-4" />
                         <Button label="Close" id="close-button" @click="showResultsModal = false" />
                     </div>
                 </div>
@@ -482,7 +489,8 @@ export default {
                             {{ result.filename }}
                         </span>
                         <!-- Botón de descarga para cada log -->
-                        <Button label="Download" icon="pi pi-download" @click="downloadSingleLog(result.filename)" class="p-button-sm" id="create-button" />
+                        <Button label="Download" icon="pi pi-download" @click="downloadSingleLog(result.filename)"
+                            class="p-button-sm" id="create-button" />
                     </div>
 
                     <div v-if="isLogVisible(index)">
@@ -495,7 +503,7 @@ export default {
                 </div>
             </div>
 
-            
+
 
             <div v-else>
                 <p>No results found.</p>
@@ -503,9 +511,10 @@ export default {
         </Dialog>
 
         <!-- Modal que contiene el juego -->
-          
+
         <!-- Modal de carga -->
-        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
+        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false"
+            style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
             <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
                 <p class="mt-4">Searching for transaction...</p>
@@ -515,30 +524,41 @@ export default {
         <!-- Modal que contiene el juego -->
 
 
- <!-- Modal de carga -->
- <Dialog v-model:visible="isDowload" header="Dowloading..." modal :dismissableMask="false" :closable="false"  :style="{ 'max-width': '80vw', width: '40vw' }"  >
-        
-        <div class="flex w-full h-full justify-center items-center">
-            
-            <!-- Sección izquierda para el juego Snake -->
-            <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
-                <SnakeGame />
-            </div>
+        <!-- Modal de carga -->
+        <Dialog v-model:visible="isDowload" header="Dowloading..." modal :dismissableMask="false" :closable="false"
+            :style="{ 'max-width': '80vw', width: '40vw' }">
 
-            <!-- Sección derecha para el Progress Spinner y mensajes -->
-            <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
-                <ProgressSpinner />
-                <p class="mt-4">Downloading logs...</p>
+            <div class="flex w-full h-full justify-center items-center">
 
-                <!-- Mensajes adicionales que aparecen en intervalos -->
-                <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
-                <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
-                <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
-                <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
-                <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
+                <!-- Sección izquierda para el juego Snake -->
+                <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
+                    <SnakeGame />
+                </div>
+
+                <!-- Sección derecha para el Progress Spinner y mensajes -->
+                <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
+                    <ProgressSpinner />
+                    <p class="mt-4">Downloading logs...</p>
+
+                    <!-- Mensajes adicionales que aparecen en intervalos -->
+                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your
+                        download is
+                        being processed...</p>
+                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some
+                        water, your
+                        body will thank you!</p>
+                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working
+                        on your
+                        file...</p>
+                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only
+                        take a
+                        moment longer.</p>
+                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you
+                        for
+                        your patience.</p>
+                </div>
             </div>
-        </div>
-    </Dialog>
+        </Dialog>
 
         <div v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</div>
         <div v-else class="mt-4 ml-4">
@@ -571,7 +591,8 @@ td {
 
 th {
     text-align: left;
-    color: white; /* Asegura que el texto del encabezado sea blanco */
+    color: white;
+    /* Asegura que el texto del encabezado sea blanco */
 }
 
 td {
@@ -580,13 +601,17 @@ td {
 
 /* Margen adicional para radio buttons */
 .radio-margin {
-    margin-left: 1rem; /* Ajusta el margen según sea necesario */
+    margin-left: 1rem;
+    /* Ajusta el margen según sea necesario */
 }
 
 .p-calendar {
-    width: 100%; /* Asegura que el calendario ocupe el 100% del ancho del contenedor */
-    border-radius: 0.375rem; /* Radio de borde consistente */
-    border: 1px solid #d1d5db; /* Borde consistente */
+    width: 100%;
+    /* Asegura que el calendario ocupe el 100% del ancho del contenedor */
+    border-radius: 0.375rem;
+    /* Radio de borde consistente */
+    border: 1px solid #d1d5db;
+    /* Borde consistente */
 }
 
 button {
@@ -625,14 +650,27 @@ button {
 
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Opcional: redondear bordes */
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
 }
 
 .log-header {
     background-color: #614d56;
     color: #fff;
-    padding: 5px; /* Espaciado interno */
-    position: sticky; /* Mantener el encabezado sticky */
-    top: 0; /* Pegado a la parte superior */
+    padding: 5px;
+    /* Espaciado interno */
+    position: sticky;
+    /* Mantener el encabezado sticky */
+    top: 0;
+    /* Pegado a la parte superior */
+}
+
+.input-with-line {
+    border: none;
+    border-bottom: 1px solid #d1d5db; /* Línea de color gris claro */
+    padding: 0.5rem 0.4rem; /* Ajustar el padding vertical */
+    background: transparent; /* Fondo transparente */
+    outline: none; /* Eliminar el borde de enfoque predeterminado */
+    box-shadow: none; /* Eliminar la sombra del campo de entrada */
 }
 </style>
