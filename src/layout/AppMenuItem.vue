@@ -1,5 +1,5 @@
 <template>
-    <li :class="menuItemClasses" class="layout-menuitem">
+    <li :class="menuItemClasses" class="layout-menuitem ">
         <a v-if="!item.items" :href="item.to" class="menu-link" @click="handleClick(item)">
             <i :class="item.icon" class="menu-icon"></i>
             <span class="menu-label" v-if="!collapsed">{{ item.label }}</span>

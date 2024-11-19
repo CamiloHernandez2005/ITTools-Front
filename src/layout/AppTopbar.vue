@@ -121,52 +121,53 @@ const goToAudits = () => {
         </button>
       </div>
 
-      <!-- Botón de Notificaciones -->
-      <div class="relative">
-        <button type="button" class="layout-topbar-action flex items-center relative" @click="toggleNotifications">
-          <i class="pi pi-bell text-2xl"></i>
-          <span v-if="filteredAudits.length > 0"
-            class="absolute top-0 right-0 bg-red-500 text-white text-sm font-semibold rounded-full h-6 w-6 flex items-center justify-center -mt-3 -mr-3">
-            {{ filteredAudits.length }}
-          </span>
-        </button>
+  <!-- Botón de Notificaciones -->
+<div class="relative">
+  <button type="button" class="layout-topbar-action flex items-center relative" @click="toggleNotifications">
+    <i class="pi pi-bell text-2xl"></i>
+    <span v-if="filteredAudits.length > 0"
+      class="absolute top-0 right-0 bg-red-500 text-white text-sm font-semibold rounded-full h-6 w-6 flex items-center justify-center -mt-3 -mr-3">
+      {{ filteredAudits.length }}
+    </span>
+  </button>
 
-        <!-- Panel de Notificaciones -->
-        <div v-if="showNotifications"
-          class="notifications-panel absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-          <!-- Encabezado -->
-          <header class="text-gray-800 font-semibold text-center py-3 rounded-t-lg">
-            Notifications
-          </header>
+  <!-- Panel de Notificaciones -->
+  <div v-if="showNotifications"
+    class="notifications-panel absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+    <!-- Encabezado -->
+    <header class="text-gray-800 font-semibold text-center py-3 rounded-t-lg">
+      Notifications
+    </header>
 
-          <ul class="notifications-list max-h-52 overflow-y-auto">
-            <li v-for="(audit, index) in filteredAudits" :key="index"
-              class="notification-item p-3 border-b last:border-b-0 text-sm text-gray-700 cursor-pointer flex justify-between items-center ml-4 mr-4"
-              @click="goToAudits">
-              <!-- Contenedor izquierdo para el mensaje -->
-              <div class="flex items-center">
-                <!-- Icono de check -->
-                <i class="pi pi-check mr-2 text-green-500"></i>
-                <!-- Mostrar userAction sin ", ID: <valor>" -->
-                {{ audit.userAction.replace(/, ID: \d+/g, '') }}
-              </div>
+    <ul class="notifications-list max-h-52 overflow-y-auto">
+      <!-- Mensaje si no hay notificaciones -->
+      <li v-if="filteredAudits.length === 0" class="p-3 text-gray-500 ml-4">
+        No notifications for today
+      </li>
 
-              <!-- Contenedor derecho para el tiempo transcurrido -->
-              <span class="text-gray-500">{{ timeAgo(audit.dateTime) }}</span>
-            </li>
-          </ul>
-
-
-
-
-          <!-- Pie de Página con Botón -->
-          <footer class="p-2 rounded-b-lg flex justify-end border-t border-gray-200">
-            <button @click="goToAudits" class="p-button p-button-sm mt-2" id="create-button">
-              See all activities
-            </button>
-          </footer>
+      <!-- Lista de notificaciones cuando existen -->
+      <li v-for="(audit, index) in filteredAudits" :key="index"
+        class="notification-item p-3 border-b last:border-b-0 text-sm text-gray-700 cursor-pointer flex justify-between items-center ml-4 mr-4"
+        @click="goToAudits">
+        <!-- Contenedor izquierdo para el mensaje -->
+        <div class="flex items-center">
+          <i class="pi pi-check mr-2 text-green-500"></i>
+          {{ audit.userAction.replace(/, ID: \d+/g, '') }}
         </div>
-      </div>
+
+        <!-- Contenedor derecho para el tiempo transcurrido -->
+        <span class="text-gray-500">{{ timeAgo(audit.dateTime) }}</span>
+      </li>
+    </ul>
+
+    <!-- Pie de Página con Botón -->
+    <footer class="p-2 rounded-b-lg flex justify-end border-t border-gray-200">
+      <button @click="goToAudits" class="p-button p-button-sm mt-2" id="create-button">
+        See all activities
+      </button>
+    </footer>
+  </div>
+</div>
 
 
       <button class="layout-topbar-menu-button layout-topbar-action"

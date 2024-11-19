@@ -13,7 +13,7 @@ const sidebarClasses = computed(() => ({
 </script>
 
 <template>
-    <div :class="sidebarClasses">
+    <div :class="sidebarClasses" class="border shadow-custom">
         <app-menu></app-menu>
     </div>
 </template>
@@ -28,5 +28,9 @@ const sidebarClasses = computed(() => ({
     width: 90px; /* Ancho cuando está colapsada */
 }
 
-/* Otros estilos según sea necesario */
+.shadow-custom {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
 </style>
