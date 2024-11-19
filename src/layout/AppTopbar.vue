@@ -33,34 +33,17 @@ const updateTime = () => {
 const fetchAuditData = async () => {
   try {
     const response = await ActuatorService.getAuditData();
-    audits.value = response.data.map(audit => ({
-      ...audit,
-      userAction: audit.userAction.replace(/, ID: \d+/g, '')
-    }));
+    audits.value = response.data || [];
   } catch (error) {
     console.error('Error fetching audit data:', error);
   }
-};
-
-
-// Función para calcular el tiempo transcurrido
-const timeAgo = (dateTime) => {
-  const now = new Date();
-  const diffInSeconds = Math.floor((now - new Date(dateTime)) / 1000);
-
-  if (diffInSeconds < 60) return `${diffInSeconds} segundos atrás`;
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `${diffInMinutes} minutos atrás`;
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours} horas atrás`;
-  const diffInDays = Math.floor(diffInHours / 24);
-  return `${diffInDays} días atrás`;
 };
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
 const filteredAudits = computed(() => {
+  // Filtra las auditorías relevantes (hoy y con acción relevante)
   const filtered = audits.value.filter(audit => {
     const auditDate = new Date(audit.dateTime);
     auditDate.setHours(0, 0, 0, 0);
@@ -68,9 +51,14 @@ const filteredAudits = computed(() => {
     const isRelevantAction = /create|update|delete/i.test(audit.userAction);
     return isToday && isRelevantAction;
   });
+
+  // Ordena las auditorías de la más reciente a la más antigua (por fecha)
   const sorted = filtered.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+
+  // Devuelve solo las 5 más recientes
   return sorted.slice(0, 5);
 });
+
 
 onMounted(() => {
   updateTime();
@@ -86,15 +74,41 @@ const showNotifications = ref(false);
 const toggleNotifications = () => {
   showNotifications.value = !showNotifications.value;
 };
+const goToAudits = (notification) => {
+  console.log('Redirecting based on notification:', notification); // Agregar esta línea para depuración
+  showNotifications.value = false;
 
-const goToAudits = () => {
+  // Verifica si hay una notificación específica para redirigir a un módulo
+  if (notification) {
+    const lowerCaseNotification = notification.toLowerCase();
+    if (lowerCaseNotification.includes("user")) {
+      router.push({ name: "formlayout" });
+    } else if (lowerCaseNotification.includes("role")) {
+      router.push({ name: "Roles" });
+    } else if (lowerCaseNotification.includes("region")) {
+      router.push({ name: "RegionList" });
+    } else if (lowerCaseNotification.includes("agent")) {
+      router.push({ name: "Agents" });
+    } else if (lowerCaseNotification.includes("server")) {
+      router.push({ name: "ServersDB" });
+    } else {
+      console.warn("No se encontró un módulo correspondiente para la notificación");
+    }
+  } else {
+    router.push('/uikit/Audit');
+  }
+};
+
+const goToAuditPage = () => {
   showNotifications.value = false;
   router.push('/uikit/Audit');
 };
+
+
 </script>
 
 <template>
-  <div class="layout-topbar">
+  <div class="layout-topbar border">
     <div class="layout-topbar-logo-container">
       <router-link to="/home" class="layout-topbar-logo">
         <img :src="currentLogo" :width="logoWidth" :style="logoStyle" alt="Logo" />
@@ -121,53 +135,43 @@ const goToAudits = () => {
         </button>
       </div>
 
-  <!-- Botón de Notificaciones -->
-<div class="relative">
-  <button type="button" class="layout-topbar-action flex items-center relative" @click="toggleNotifications">
-    <i class="pi pi-bell text-2xl"></i>
-    <span v-if="filteredAudits.length > 0"
-      class="absolute top-0 right-0 bg-red-500 text-white text-sm font-semibold rounded-full h-6 w-6 flex items-center justify-center -mt-3 -mr-3">
-      {{ filteredAudits.length }}
-    </span>
-  </button>
+      <!-- Botón de Notificaciones -->
+      <div class="relative">
+        <button type="button" class="layout-topbar-action flex items-center relative" @click="toggleNotifications">
+          <i class="pi pi-bell text-2xl"></i>
+          <span v-if="filteredAudits.length > 0"
+            class="absolute top-0 right-0 bg-red-500 text-white text-sm font-semibold rounded-full h-6 w-6 flex items-center justify-center -mt-3 -mr-3">
+            {{ filteredAudits.length }}
+          </span>
+        </button>
 
-  <!-- Panel de Notificaciones -->
-  <div v-if="showNotifications"
-    class="notifications-panel absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-    <!-- Encabezado -->
-    <header class="text-gray-800 font-semibold text-center py-3 rounded-t-lg">
-      Notifications
-    </header>
+        <!-- Panel de Notificaciones -->
+        <div v-if="showNotifications"
+          class="notifications-panel absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <!-- Encabezado -->
+          <header class="text-gray-800 font-semibold text-center py-3 rounded-t-lg">
+            Notifications
+          </header>
 
-    <ul class="notifications-list max-h-52 overflow-y-auto">
-      <!-- Mensaje si no hay notificaciones -->
-      <li v-if="filteredAudits.length === 0" class="p-3 text-gray-500 ml-4">
-        No notifications for today
-      </li>
+          <!-- Lista de Notificaciones -->
+          <ul class="notifications-list max-h-52 overflow-y-auto">
+            <li v-for="(audit, index) in filteredAudits" :key="index"
+              class="notification-item p-3 border-b last:border-b-0 text-sm text-gray-700 cursor-pointer flex items-center ml-4 mr-4"
+              @click="goToAudits(audit.userAction)">
+              <i class="pi pi-check mr-2 text-green-500"></i>
+              {{ audit.userAction }}
+            </li>
+          </ul>
 
-      <!-- Lista de notificaciones cuando existen -->
-      <li v-for="(audit, index) in filteredAudits" :key="index"
-        class="notification-item p-3 border-b last:border-b-0 text-sm text-gray-700 cursor-pointer flex justify-between items-center ml-4 mr-4"
-        @click="goToAudits">
-        <!-- Contenedor izquierdo para el mensaje -->
-        <div class="flex items-center">
-          <i class="pi pi-check mr-2 text-green-500"></i>
-          {{ audit.userAction.replace(/, ID: \d+/g, '') }}
+
+          <footer class="p-2 rounded-b-lg flex justify-end border-t border-gray-200">
+            <button @click="goToAuditPage" class="p-button p-button-sm mt-2" id="create-button">
+              See all activities
+            </button>
+          </footer>
+
         </div>
-
-        <!-- Contenedor derecho para el tiempo transcurrido -->
-        <span class="text-gray-500">{{ timeAgo(audit.dateTime) }}</span>
-      </li>
-    </ul>
-
-    <!-- Pie de Página con Botón -->
-    <footer class="p-2 rounded-b-lg flex justify-end border-t border-gray-200">
-      <button @click="goToAudits" class="p-button p-button-sm mt-2" id="create-button">
-        See all activities
-      </button>
-    </footer>
-  </div>
-</div>
+      </div>
 
 
       <button class="layout-topbar-menu-button layout-topbar-action"

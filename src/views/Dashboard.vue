@@ -46,10 +46,10 @@ function formatDateTime(value) {
 }
 
 function setCalendarUrl() {
-            if (userEmail.value) {
-                calendarUrl.value = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(userEmail.value)}&ctz=America%2FBogota`;
-            }
-        };
+    if (userEmail.value) {
+        calendarUrl.value = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(userEmail.value)}&ctz=America%2FBogota`;
+    }
+};
 
 
 
@@ -483,12 +483,11 @@ function getStatusIcon(statusCode) {
             </div>
         </div>
 
-        <!-- Tabla con las solicitudes -->
         <div class="col-span-12 xl:col-span-6">
             <div class="card flex flex-col shadow-custom border">
                 <div class="font-semibold text-xl mb-4">System information</div>
                 <div class="flex flex-wrap items-start justify-between">
-                    
+
                     <div class="flex items-center mr-8 mb-2">
                         <i class="pi pi-server mr-2 mt-1"></i>
                         <strong>System:</strong>
@@ -525,8 +524,7 @@ function getStatusIcon(statusCode) {
                 <div class="font-semibold text-xl mb-4">Http response</div>
                 <DataTable :value="filteredRequests()" class="p-datatable-sm" :paginator="true" :rows="8"
                     :rowsPerPageOptions="[8, 10, 20]" :totalRecords="filteredRequests().length" :sortField="'timestamp'"
-                    :sortOrder="-1" dataKey="id" :rowHover="true"
-                    v-model:filters="filters" filterDisplay="menu">
+                    :sortOrder="-1" dataKey="id" :rowHover="true" v-model:filters="filters" filterDisplay="menu">
                     <template #empty> No http request found. </template>
                     <template #loading> Loading http request. Please wait. </template>
                     <Column field="requestUri" header="Request URL" :showFilterMatchModes="false" :sortable="true">
@@ -572,16 +570,15 @@ function getStatusIcon(statusCode) {
             </div>
         </div>
 
-        <!-- Información del sistema -->
         <div class="col-span-12 xl:col-span-6">
             <div class="card shadow-custom border">
                 <div class="font-semibold text-xl mb-2">Activity</div>
                 <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="5"
                     :rowsPerPageOptions="[5, 10, 20]" :totalRecords="audits.length" :sortField="'dateTime'"
-                    :sortOrder="-1"  :rowHover="true">
+                    :sortOrder="-1" :rowHover="true">
                     <template #empty> No activity found. </template>
                     <template #loading> Loading activity. Please wait. </template>
-                    <Column field="userAction" header="Action" sortable/>
+                    <Column field="userAction" header="Action" sortable />
                     <Column field="dateTime" header="Date & time" sortable>
                         <template #body="slotProps">
                             {{ formatDateTime(slotProps.data.dateTime) }}
@@ -589,19 +586,20 @@ function getStatusIcon(statusCode) {
                     </Column>
                 </DataTable>
             </div>
+
             <!-- Gráfica de agentes más utilizados -->
             <div class="col-span-6">
                 <div class="card shadow-custom border ">
                     <div class="font-semibold text-xl mb-4">User interact</div>
 
-                    <ListItem v-for="(user, index) in topUsers" :key="user[0]" class="mb-4">
+                    <div v-for="(user, index) in topUsers" :key="user[0]" class="mb-4">
                         <div class="flex justify-between items-center mb-6">
                             <div class="flex items-center">
                                 <span>{{ index + 1 }}. {{ user[0] }}</span>
                             </div>
                             <div class="font-semibold">{{ user[1] }} auditorías</div>
                         </div>
-                    </ListItem>
+                    </div>
                 </div>
             </div>
         </div>
@@ -618,10 +616,10 @@ function getStatusIcon(statusCode) {
             <div class="card shadow-custom border h-full">
                 <div class="font-semibold text-xl mb-4">Calendar</div>
                 <div v-if="calendarUrl">
-                            <iframe :src="calendarUrl" style="border: 0" width="100%" height="330px" frameborder="0"
-                                scrolling="no">
-                            </iframe>
-                        </div>
+                    <iframe :src="calendarUrl" style="border: 0" width="100%" height="330px" frameborder="0"
+                        scrolling="no">
+                    </iframe>
+                </div>
             </div>
         </div>
     </div>

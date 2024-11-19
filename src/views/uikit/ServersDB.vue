@@ -572,7 +572,7 @@ export default {
                     <!-- Contenedor para alinear el botón al final -->
                     <div class="flex justify-end mt-4">
                     <Button id="close-button" label="Close" @click="handleClose" style="margin-right: 8px" />
-                    <Button id="create-button" type="submit" label="Create" />
+                    <Button id="create-button" type="submit" label="Save" />
                 </div>
                 </form>
             </Dialog>
