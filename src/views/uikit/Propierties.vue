@@ -1,15 +1,16 @@
 <script>
+import { FilterMatchMode } from '@primevue/core/api';
 import axios from 'axios';
+import Breadcrumb from 'primevue/breadcrumb';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
-import Dropdown from 'primevue/dropdown';
-import RadioButton from 'primevue/radiobutton';
-import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
+import Dropdown from 'primevue/dropdown';
 import ProgressSpinner from 'primevue/progressspinner';
-import { ref, watch, onMounted } from 'vue';
-import Breadcrumb from 'primevue/breadcrumb';
+import RadioButton from 'primevue/radiobutton';
+import { onMounted, ref, watch } from 'vue';
 
 export default {
     components: {
@@ -44,6 +45,24 @@ export default {
         // Función para mostrar el modal de carga
         const showLoading = () => {
             isLoading.value = true;
+        };
+
+        const filtersProperties = ref({
+            global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            property_id: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            project: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            property: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            module: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            value: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            instance: { value: null, matchMode: FilterMatchMode.CONTAINS },
+
+
+        });
+
+        const clearFilter = () => {
+            Object.keys(filtersProperties.value).forEach((key) => {
+                filtersProperties.value[key].value = null;
+            });
         };
 
         // Función para ocultar el modal de carga
@@ -149,14 +168,16 @@ export default {
             isLoading, // Estado de carga
             loadDatabases,
             loadProperties,
-            breadcrumbItems
+            breadcrumbItems,
+            filtersProperties,
+            clearFilter
         };
     },
 };
 </script>
 
 <template>
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col  grid p-4">
 
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
@@ -170,36 +191,37 @@ export default {
         <div class="flex justify-between space-x-4 mb-4">
             <!-- Panel de selección de región -->
             <div class="w-1/2 card p-4 h-full overflow-auto shadow-custom border">
-    <div class="font-semibold text-xl">Region details</div>
-    <div class="mt-2 ml-3 flex items-start gap-4">
-        
-        <!-- Región (a la izquierda) -->
-        <div class="w-1/2">
-            <label for="region" class="block text-sm font-medium mb-2">Region</label>
-            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id"
-                placeholder="Select region" class="w-full" filter filterPlaceholder="Search Region" style="width: 100%;" />
-        </div>
+                <div class="font-semibold text-xl">Region details</div>
+                <div class="mt-2 ml-3 flex items-start gap-4">
 
-        <!-- ServersDB (a la derecha) -->
-        <div class="w-1/2">
-            <label class="block text-sm font-medium mb-2">ServersDB</label>
-            <div class="flex flex-col gap-2">
-                <div v-for="server in filteredServers" :key="server.idServer" class="flex items-center">
-                    <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server"
-                        @change="loadDatabases" />
-                    <span class="text-sm ml-2">{{ server.serverName }}</span>
-                    <span class="text-sm ml-2">||</span>
-                    <span class="text-sm ml-2">{{ server.ipServer }}</span>
-                    <span class="text-sm ml-2">||</span>
-                    <span class="text-sm ml-2">{{ server.description }}</span>
-                </div>
-                <div v-if="filteredServers.length === 0" class="text-sm text-gray-500 mt-2 ml-2">
-                    No servers found for the selected region
+                    <!-- Región (a la izquierda) -->
+                    <div class="w-1/2">
+                        <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                            option-value="id" placeholder="Select region" class="w-full" filter
+                            filterPlaceholder="Search Region" style="width: 100%;" />
+                    </div>
+
+                    <!-- ServersDB (a la derecha) -->
+                    <div class="w-1/2">
+                        <label class="block text-sm font-medium mb-2">ServersDB</label>
+                        <div class="flex flex-col gap-2">
+                            <div v-for="server in filteredServers" :key="server.idServer" class="flex items-center">
+                                <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server"
+                                    @change="loadDatabases" />
+                                <span class="text-sm ml-2">{{ server.serverName }}</span>
+                                <span class="text-sm ml-2">||</span>
+                                <span class="text-sm ml-2">{{ server.ipServer }}</span>
+                                <span class="text-sm ml-2">||</span>
+                                <span class="text-sm ml-2">{{ server.description }}</span>
+                            </div>
+                            <div v-if="filteredServers.length === 0" class="text-sm text-gray-500 mt-2 ml-2">
+                                No servers found for the selected region
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
 
             <!-- Panel de selección de base de datos -->
@@ -221,15 +243,48 @@ export default {
         <div class="w-full card p-6 flex flex-col  shadow-custom border">
             <h2 class="font-semibold text-xl mb-2">Properties</h2>
             <DataTable :value="properties" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage"
-                :rowsPerPageOptions="[5, 10, 20]" :totalRecords="properties.length" :rowHover="true">
+                :rowsPerPageOptions="[5, 10, 20]" :totalRecords="properties.length" :rowHover="true"
+                v-model:filters="filtersProperties" filterDisplay="menu"
+                :global-filter-fields="['property_id', ' project', 'property', 'module', 'value', 'instance']">
+                <template #header>
+                    <div class="flex justify-end">
+
+                        <div class="flex gap-2">
+                            <InputText v-model="filtersProperties.global.value" placeholder="Global search" />
+                            <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined
+                                @click="clearFilter()" />
+                        </div>
+                    </div>
+                </template>
                 <template #empty> No properties found. </template>
                 <template #loading> Loading properties data. Please wait. </template>
-                <Column field="property_id" header="ID property" sortable />
-                <Column field="project" header="Project" sortable />
-                <Column field="property" header="Property name" sortable />
-                <Column field="module" header="Module" sortable />
-                <Column field="value" header="Value" sortable />
-                <Column field="instance" header="Instance" sortable />
+                <Column field="property_id" header="Id property" sortable>
+                </Column>
+                <Column field="project" header="Project" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                    </template>
+                </Column>
+                <Column field="property" header="Property name" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                    </template>
+                </Column>
+                <Column field="module" header="Module" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                    </template>
+                </Column>
+                <Column field="value" header="Value" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                    </template>
+                </Column>
+                <Column field="instance" header="Instance" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                    </template>
+                </Column>
             </DataTable>
             <div v-if="properties.length === 0 && selectedDatabase !== null && selectedServerDB !== null"
                 class="text-center mt-4 text-red-500">

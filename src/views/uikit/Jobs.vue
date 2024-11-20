@@ -1,14 +1,18 @@
 <script>
 import axios from 'axios';
+import Breadcrumb from 'primevue/breadcrumb';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Dialog from 'primevue/dialog';
 import Dropdown from 'primevue/dropdown';
-import RadioButton from 'primevue/radiobutton';
-import Breadcrumb from 'primevue/breadcrumb';
 import ProgressSpinner from 'primevue/progressspinner';
-import { onMounted, ref, watch } from 'vue';
+import RadioButton from 'primevue/radiobutton';
+import { onMounted, ref, watch, computed, reactive } from 'vue';
+import { FilterMatchMode } from '@primevue/core/api';
+import dayjs from 'dayjs';
+import InputText from 'primevue/inputtext';
+import { resolveFieldData } from '@primevue/core';
 
 export default {
     components: {
@@ -20,6 +24,7 @@ export default {
         Column,
         Breadcrumb,
         ProgressSpinner,
+        InputText
     },
     setup() {
         const regions = ref([]);
@@ -32,12 +37,39 @@ export default {
         const modalVisible = ref(false); // Controlar la visibilidad del modal
         const selectedJob = ref({}); // Para almacenar el trabajo seleccionado
 
+        // Dentro del setup() de tu componente
+
+        // Computed property para filtrar trabajos programados
+        const filtersScheduledJobs = ref({
+            jobName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            scheduledDate: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            startDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
+            stopDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
+            executionTime: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+
+
+        }); 
+
+        const filtersRunningJobs = ref({
+            jobName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            startDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
+            stepName: { value: null, matchMode: FilterMatchMode.CONTAINS }
+        });
 
         const breadcrumbItems = ref([
             { label: 'Home', icon: 'pi pi-home', url: '/' },
             { label: 'Database', icon: 'pi pi-database' },
             { label: 'Jobs', icon: 'pi pi-briefcase', route: { name: 'Jobs' } }
         ]);
+
+        const clearFilter = () => {
+            Object.keys(filtersScheduledJobs.value).forEach((key) => {
+                filtersScheduledJobs.value[key].value = null;
+            });
+        };
+
+
 
         // Loading state for the spinner dialog
         const isLoading = ref(false);
@@ -94,6 +126,8 @@ export default {
             }
         }
 
+
+
         function filterServersByRegion() {
             if (selectedRegion.value) {
                 filteredDB.value = ServersDB.value.filter((server) => server.regionId == selectedRegion.value);
@@ -112,6 +146,10 @@ export default {
             await loadServersDB();
         });
 
+        function formatDateTime(value) {
+            return value ? dayjs(value).format('DD/MMM/YYYY HH:mm:ss') : '';
+        }
+
         watch(selectedRegion, filterServersByRegion);
         watch(selectedServerDB, loadJobs); // Cargar trabajos cuando se seleccione un servidor
 
@@ -129,14 +167,20 @@ export default {
             breadcrumbItems,
             showLoading,
             hideLoading,
-            isLoading
+            isLoading,
+            loadJobs,
+            formatDateTime,
+            filtersScheduledJobs,
+            filtersRunningJobs,
+            clearFilter
+
         };
     }
 };
 </script>
 
 <template>
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col  grid p-4">
 
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
@@ -152,7 +196,7 @@ export default {
                     <label for="region" class="block text-sm font-medium mb-2">Region</label>
                     <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
                         option-value="id" placeholder="Select Region" class="w-full mb-4" filter
-                        filterPlaceholder="Search Region"  />
+                        filterPlaceholder="Search Region" />
                 </div>
 
                 <!-- Sección de ServersDB (alineada a la derecha de Region) -->
@@ -179,37 +223,125 @@ export default {
 
 
 
-        <div class="flex gap-6 mb-4">
+        <div class="flex gap-6 mb-2">
+
+            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-2 h-full shadow-custom border">
+                <h2 class="font-semibold text-lg ">Scheduled jobs</h2>
+                <DataTable :value="scheduledJobs" :filters="filtersScheduledJobs" filterDisplay="menu"
+                    class="p-datatable-sm" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]"
+                    :totalRecords="scheduledJobs.length" :rowHover="true" v-model:filters="filtersScheduledJobs"
+                    :global-filter-fields="['jobName', ' scheduledDate', ' startDate', 'stopDate', 'executioTime']">
+
+                    <template #header>
+                        <div class="flex justify-end">
+
+                            <div class="flex gap-2">
+                                <InputText v-model="filtersScheduledJobs.global.value" placeholder="Global search" />
+                                <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined
+                                    @click="clearFilter()" />
+                            </div>
+                        </div>
+                    </template>
+
+                    <template #empty> No schedued jobs found. </template>
+                    <template #loading> Loading scheduled jobs data. Please wait. </template>
+
+                    <Column field="jobName" header="Job name" sortable :showFilterMatchModes="false">
+                        <template #filter="{ filterModel }">
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by jobName" />
+                        </template>
+                    </Column>
+                    <Column field="scheduledDate" header="Scheduled date" sortable :showFilterMatchModes="false">
+                        <template #body="slotProps">
+                            {{ formatDateTime(slotProps.data.scheduledDate) }}
+                        </template>
+                        <template #filter="{ filterModel }">
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by scheduledDate " />
+                        </template>
+                    </Column>
+                    <Column field="startDate" header="Start date" sortable>
+                        <template #body="slotProps">
+                            {{ formatDateTime(slotProps.data.startDate) }}
+                        </template>
+                        <template #filter="{ filterModel }">
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by Start Date" />
+                        </template>
+
+                    </Column>
+                    <Column field="stopDate" header="Stop date" :showFilterMatchModes="false" sortable>
+                        <template #body="slotProps">
+                            {{ formatDateTime(slotProps.data.stopDate) }}
+                        </template>
+                        <template #filter="{ filterModel }">
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by StopDate" />
+                        </template>
+                    </Column>
+                    <Column field="executionTime" header="ExecutionTime" sortable :showFilterMatchModes="false">
+
+                        <template #filter="{ filterModel }">
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by execution Time" />
+                        </template>
+                    </Column>
+                </DataTable>
+
+
+
+
+
+            </div>
             <!-- Div para mostrar trabajos en ejecución -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-2 h-full shadow-custom border">
+
                 <h2 class="font-semibold text-lg ">Running jobs</h2>
-                <DataTable :value="runningJobs" class="p-datatable-sm" :paginator="true" :rows="5"
-                    :rowsPerPageOptions="[5, 10, 20]" :totalRecords="runningJobs.length" :rowHover="true">
+                <DataTable :value="runningJobs" :filters="filtersRunningJobs" filterDisplay="menu"
+                    class="p-datatable-sm" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]"
+                    :totalRecords="runningJobs.length" :rowHover="true"
+                    :globalFilterFields="['jobName', 'startDate', 'stepName']">
+                    <template #header>
+                        <div class="flex justify-end">
+
+                            <div class="flex gap-2">
+                                <InputText v-model="filtersScheduledJobs.global.value" placeholder="Global search" />
+                                <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined
+                                    @click="clearFilter()" />
+                            </div>
+                        </div>
+                    </template>
+
                     <template #empty> No running jobs found. </template>
                     <template #loading> Loading running jobs data. Please wait. </template>
-                    <Column field="jobName" header="Job name" sortable />
-                    <Column field="startDate" header="Start date" sortable />
-                    <Column field="stopDate" header="Stop date" sortable />
-                    <Column field="executionTime" header="Execution time (min)" sortable />
+
+                    <Column field="jobName" header="Job Name" sortable :showFilterMatchModes="false">
+                        <template #body="slotProps">
+                            {{ formatDateTime(slotProps.data.scheduledDate) }}
+                        </template>
+                        <template #filter="{ filterModel }">
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by  jobName " />
+                        </template>
+                    </Column>
+                    <Column field="startDate" header="Start Date" sortable :showFilterMatchModes="false">
+                        <template #body="slotProps">
+                            {{ formatDateTime(slotProps.data.scheduledDate) }}
+                        </template>
+                        <template #filter="{ filterModel }">
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by startDate " />
+                        </template>
+                    </Column>
+                    <Column field="stepName" header="Step Name" :showFilterMatchModes="false" sortable>
+                        <template #body="slotProps">
+                            {{ formatDateTime(slotProps.data.scheduledDate) }}
+                        </template>
+                        <template #filter="{ filterModel }">
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by stepName " />
+                        </template>
+                    </Column>
                 </DataTable>
+
 
             </div>
 
             <!-- Div para mostrar trabajos programados -->
-            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-2 h-full shadow-custom border">
-                <h2 class="font-semibold text-lg ">Scheduled jobs</h2>
-                <DataTable :value="scheduledJobs" class="p-datatable-sm" :paginator="true" :rows="5"
-                    :rowsPerPageOptions="[5, 10, 20]" :totalRecords="scheduledJobs.length" :rowHover="true">
-                    <template #empty> No scheduled jobs found. </template>
-                    <template #loading> Loading scheduled jobs data. Please wait. </template>
-                    <Column field="jobName" header="Job name" sortable />
-                    <Column field="scheduledDate" header="Scheduled date" sortable />
-                    <Column field="startDate" header="Start date" sortable />
-                    <Column field="stopDate" header="Stop date" sortable />
-                    <Column field="executionTime" header="Execution time (min)" sortable />
-                </DataTable>
 
-            </div>
         </div>
 
 
