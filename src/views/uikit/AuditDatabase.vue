@@ -6,6 +6,7 @@ import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
+import { FilterMatchMode } from '@primevue/core/api';
 
 export default {
   components: {
@@ -21,6 +22,49 @@ export default {
       searchQuery: '',
       sortOrder: 'desc',
       sortColumn: 'dateRecycling',
+      filterAuditDatabase: {
+        username: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        pin: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        filename: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        ticket: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        sku: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        controlNo: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        statusPinBefore: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        statusPinAfter: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        descriptionError: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        authorizationFor: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        recycleDate: { value: null, matchMode: FilterMatchMode.BETWEEN},
+      },
+      columnOptions: [
+        { field: 'username', header: 'username', visible: true },
+        { field: 'pin', header: 'Pin', visible: true },
+        { field: 'filename', header: 'Filename', visible: true },
+        { field: 'ticket', header: 'Ticket', visible: true },
+        { field: 'controlNo', header: 'Control No', visible: true },
+        { field: 'statusPinBefore', header: 'Status pin before', visible: true },
+        { field: 'statusPinAfter', header: 'Status pin after', visible: true },
+        { field: 'descriptionError', header: 'Description Error', visible: true },
+        { field: 'authorizationFor', header: 'Authorization For', visible: true },
+        { field: 'recycleDate', header: 'RecycleDate', visible: true }
+      ],
+      selectedColumns: ['pin', 'filename', 'username'],
+      home: {
+        label: 'Home',
+        icon: 'pi pi-home',
+        url: '/'
+      },
+      items: [
+        {
+          label: 'Database',
+          icon: 'pi pi pi-database',
+          route: { name: 'Database' }
+        },
+        {
+          icon: 'pi pi-fw pi-database',
+          label: 'Audit database',
+          route: { name: 'AuditDatabase' }
+        }
+      ]
     };
   },
   computed: {
@@ -44,56 +88,107 @@ export default {
 
         const matchesSearchQuery =
           audit.username?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          audit.pin?.toLowerCase().includes(this.searchQuery.toLowerCase()) || // Filtrado por pin
-          audit.filename?.toLowerCase().includes(this.searchQuery.toLowerCase()) || // Filtrado por filename
-          audit.ticket?.toLowerCase().includes(this.searchQuery.toLowerCase()) || // Filtrado por ticket
-          audit.sku?.toLowerCase().includes(this.searchQuery.toLowerCase()) || // Filtrado por SKU
-          audit.controlNo?.toLowerCase().includes(this.searchQuery.toLowerCase()) || // Filtrado por ControlNo
-          audit.statusPinBefore?.toLowerCase().includes(this.searchQuery.toLowerCase()) || // Filtrado por statusPinBefore
-          audit.statusPinAfter?.toLowerCase().includes(this.searchQuery.toLowerCase()) || // Filtrado por statusPinAfter
-          audit.descriptionError?.toLowerCase().includes(this.searchQuery.toLowerCase()) || // Filtrado por descriptionError
+          audit.pin?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          audit.filename?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          audit.ticket?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          audit.sku?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          audit.controlNo?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          audit.statusPinBefore?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          audit.statusPinAfter?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+          audit.descriptionError?.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
           formattedDateTime.toLowerCase().includes(this.searchQuery.toLowerCase());
 
-        return matchesSearchQuery; // Solo se considera la búsqueda global
+        return matchesSearchQuery;
       });
+    },
+
+    columnsToShow() {
+      return this.columnOptions.filter(column =>
+        this.selectedColumns.includes(column.field)
+      );
     }
   },
+
   async created() {
     this.audits = await AuditDatabaseService.getAllAuditsDatabase();
   },
+
   methods: {
     formatDateTime(value) {
       return value ? dayjs(value).format('DD/MMM/YYYY HH:mm:ss') : '';
+    },
+    clearFilter() {
+      this.searchQuery = '';  // Limpia la búsqueda global
+      Object.keys(this.filterAuditDatabase).forEach((key) => {
+        this.filterAuditDatabase[key].value = null;  // Limpia los filtros individuales
+      });
     }
   }
 };
 </script>
 
+
 <template>
-  <div class="flex flex-col min-h-screen">
+  <div class="flex flex-col grid p-4">
     <!-- Contenedor de la DataTable -->
     <div class="flex-2">
-      <div class="card p-4 flex flex-col gap-4 h-full">
-        <div class="font-semibold text-xl">Audits DataBase</div>
+      <div class="card p-6 flex flex-col gap-2 h-full shadow-custom border">
 
-        <!-- Contenedor de búsqueda alineado a la derecha -->
-        <div class="flex justify-end items-center mb-2">
-          <InputText v-model="searchQuery" placeholder="Global search..." class="p-inputtext p-component" />
+        <div class="header-container">
+          <div class="title font-semibold text-xl">Audits database</div>
+          <Breadcrumb :home="home" :model="items" />
         </div>
+        <!-- Contenedor de búsqueda alineado a la derecha -->
 
-        <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 20]" :totalRecords="audits.length" sortMode="multiple">
-          <Column field="filename" header="Filename" sortable />
-          <Column field="pin" header="Pin" sortable />
-          <Column field="ticket" header="Ticket" sortable />
-          <Column field="authorizationFor" header="Authorization For" sortable />
-          <Column field="username" header="User" sortable />
-          <Column field="sku" header="Sku / ProductId" sortable />
-          <Column field="controlNo" header="ControlNo" sortable />
-          <Column field="statusPinBefore" header="Status Pin Before" sortable />
-          <Column field="statusPinAfter" header="Status Pin After" sortable />
-          <Column field="descriptionError" header="Description Error" sortable />
+
+        <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="10" :rowHover="true"
+          :rowsPerPageOptions="[5, 10, 20]" :totalRecords="audits.length" sortMode="multiple"
+          v-model:filters="filterAuditDatabase" filterDisplay="menu"
+          :global-filter-fields="columnsToShow.map(column => column.field)">
+
+          <template #empty> No  audits found. </template>
+          
+          <div class="flex justify-end items-center mb-2">
+            <InputText v-model="searchQuery" placeholder="Global search..." class="p-inputtext p-component mr-2" />
+            <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click=" clearFilter()" />
+          </div>
+          
+          <div class="column-selector mb-2">
+            <label for="column-select">Select Columns:</label>
+            <MultiSelect v-model="selectedColumns" :options="columnOptions" optionLabel="header" optionValue="field"
+              display="chip" placeholder="Select columns" />
+          </div>
+
+          <Column v-for="column in columnsToShow" :key="column.field" :field="column.field" :header="column.header"
+            sortable :showFilterMatchModes="false">
+            
+            <!-- Personalización del cuerpo para la columna recycleDate -->
+            <template v-if="column.field === 'recycleDate'" #body="{ data }">
+              {{ formatDateTime(data.recycleDate) }}
+            </template>
+            
+            <!-- Filtro para las columnas -->
+            <template #filter="{ filterModel }">
+              <InputText v-model="filterModel.value" :placeholder="'Search by data'" />
+            </template>
+          </Column>
+
         </DataTable>
       </div>
     </div>
   </div>
 </template>
+<style>
+.shadow-custom {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  /* Opcional: redondear bordes */
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -1rem;
+}
+</style>

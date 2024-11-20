@@ -1,12 +1,14 @@
 <script>
+import { FilterMatchMode } from '@primevue/core/api';
 import axios from 'axios';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Dialog from 'primevue/dialog';
 import Dropdown from 'primevue/dropdown';
+import MultiSelect from 'primevue/multiselect'; // Importar MultiSelect
 import ProgressSpinner from 'primevue/progressspinner';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 
 
 
@@ -17,7 +19,8 @@ export default {
         Dialog,
         DataTable,
         Column,
-        ProgressSpinner
+        ProgressSpinner,
+        MultiSelect
     },
     data() {
         return {
@@ -53,6 +56,55 @@ export default {
         const selectedProcessSPID = ref(null);
         const isLoading = ref(false); // Nueva propiedad para controlar el diálogo de carga
         const rowsPerPage = ref(10);
+
+
+        const filterRunning = ref({
+            databaseName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            timeSec: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            username: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            hostname: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            sqlBatchText: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            status: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            command: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            proceso: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            spid: { value: null, matchMode: FilterMatchMode.CONTAINS },
+            global: { value: null, matchMode: 'contains' },
+
+
+        });
+
+
+
+        const selectedColumns = ref(['databaseName', 'timeSec', 'username']);
+
+
+
+        // Todas las columnas disponibles
+        const columnOptions = ref([
+            { field: 'databaseName', header: 'Database name', visible: true },
+            { field: 'timeSec', header: 'Time (Sec)', visible: true },
+            { field: 'username', header: 'Username', visible: true },
+            { field: 'hostname', header: 'Hostname', visible: true },
+            { field: 'sqlBatchText', header: 'SQL batch text', visible: true },
+            { field: 'spid', header: 'SPID', visible: true },
+            { field: 'status', header: 'Status', visible: true },
+            { field: 'command', header: 'Command', visible: true },
+            { field: 'proceso', header: 'Process', visible: true }
+        ]);
+
+
+        const columnsToShow = computed(() =>
+            columnOptions.value.filter(column =>
+                selectedColumns.value.includes(column.field)
+            )
+        );
+
+
+        const clearFilter = () => {
+            Object.keys(filterRunning.value).forEach((key) => {
+                filterRunning.value[key].value = null;
+            });
+        };
 
         // Cargar regiones
         async function loadRegions() {
@@ -115,6 +167,7 @@ export default {
                 }
             }
         }
+
         function radioButtonTemplate(data) {
             return h(RadioButton, {
                 modelValue: selectedProcessSPID.value,
@@ -148,13 +201,18 @@ export default {
             loadProcesses,
             killProcess,
             radioButtonTemplate,
+            filterRunning,
+            clearFilter,
+            columnsToShow,
+            columnOptions,
+            selectedColumns
         };
     }
 };
 </script>
 
 <template>
-    <div class="flex flex-col h-screen p-4">
+    <div class="flex flex-col grid p-4">
         <!-- Selección de la región -->
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
@@ -164,14 +222,14 @@ export default {
                 </div>
             </div>
 
-         
+
             <div class="mb-6 ml-6 flex items-start gap-4">
                 <!-- Sección de Región -->
                 <div class="w-1/6">
                     <label for="region" class="block text-sm font-medium mb-2">Region</label>
                     <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
                         option-value="id" placeholder="Select Region" class="w-full mb-4" filter
-                        filterPlaceholder="Search Region"  />
+                        filterPlaceholder="Search Region" />
                 </div>
 
                 <!-- Sección de ServersDB (alineada a la derecha de Region) -->
@@ -199,32 +257,57 @@ export default {
 
         <!-- Lista de procesos en ejecución -->
         <div class="w-full card p-4 flex flex-col gap-4 shadow-custom border">
-            <h2 class="font-semibold text-xl mb-2">Running Processes</h2>
+            <!-- Selector de columnas -->
+
+            <!-- Título de la tabla -->
+            <h2 class="font-semibold text-xl mb-2">Running processes</h2>
+
+            <!-- DataTable -->
             <DataTable :value="runningProcesses" class="p-datatable-sm" :paginator="true" :rows="5"
-                :rowsPerPageOptions="[5, 10, 20]" :rowHover="true">
+                :rowsPerPageOptions="[5, 10, 20]" :rowHover="true" v-model:filters="filterRunning" filterDisplay="menu"
+                :global-filter-fields="columnsToShow.map(column => column.field)">
+                <template #header>
+                    <div class="flex justify-end">
+                        <div class="flex gap-2">
+                            <InputText v-model="filterRunning.global.value" placeholder="Global search" />
+                            <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined
+                                @click="clearFiltrer()" />
+                        </div>
+                    </div>
+
+                    <div class="column-selector mb-2">
+            <label for="column-select">Select Columns : </label>
+            <MultiSelect v-model="selectedColumns" :options="columnOptions" optionLabel="header" optionValue="field"
+              display="chip" placeholder="Select columns" />
+          </div>
+
+                </template>
+
                 <template #empty> No running process found. </template>
                 <template #loading> Loading running process data. Please wait. </template>
+
+                <!-- Columna para seleccionar procesos -->
                 <Column header="Select">
                     <template #body="{ data }">
                         <RadioButton v-model="selectedProcessSPID" :value="data.spid" name="process" />
                     </template>
                 </Column>
-                <Column field="databaseName" header="Database name" />
-                <Column field="timeSec" header="Time (Sec)" />
-                <Column field="username" header="Username" />
-                <Column field="hostname" header="Hostname" />
-                <Column field="sqlBatchText" header="SQL batch text" />
-                <Column field="spid" header="SPID" />
-                <Column field="status" header="Status" />
-                <Column field="command" header="Command" />
-                <Column field="proceso" header="Process" />
-            </DataTable>
-            
 
+                <!-- Columnas dinámicas -->
+                <Column v-for="column in columnsToShow" :key="column.field" :field="column.field"
+                    :header="column.header" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" :placeholder="'Search by data'" />
+                    </template>
+                </Column>
+            </DataTable>
+
+
+            <!-- Botones de acción -->
             <div class="flex justify-end gap-2">
-                <!-- Botón para cargar procesos -->
-                <Button label="Load Processes" icon="pi pi-refresh" @click="loadProcesses" id="boton1"/>
-                <Button label="Kill Process" icon="pi pi-times" @click.prevent="killProcess(selectedProcessSPID)"  id="boton2" />
+                <Button label="Load Processes" icon="pi pi-refresh" @click="loadProcesses" id="boton1" />
+                <Button label="Kill Process" icon="pi pi-times" @click.prevent="killProcess(selectedProcessSPID)"
+                    id="boton2" />
             </div>
         </div>
 
@@ -259,7 +342,7 @@ export default {
 }
 
 #boton2:hover {
-  background: white;
+    background: white;
     color: #614d56;
     border-color: #614d56;
 }

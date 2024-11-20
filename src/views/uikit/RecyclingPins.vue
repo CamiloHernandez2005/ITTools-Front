@@ -6,8 +6,8 @@ import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Dialog from 'primevue/dialog';
 import Dropdown from 'primevue/dropdown';
-import RadioButton from 'primevue/radiobutton';
 import ProgressSpinner from 'primevue/progressspinner';
+import RadioButton from 'primevue/radiobutton';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref, watch } from 'vue';
 import * as XLSX from 'xlsx';
@@ -65,7 +65,7 @@ export default {
         const isLoading = ref(false);
 
         const showSuccess = (detail) => {
-            toast.add({ severity: 'success', summary: 'Success', detail, life: 6000 });
+            toast.add({ severity: 'success', summary: 'Success', detail, life: 8000 });
         };
 
         const showError = (detail) => {
@@ -84,9 +84,9 @@ export default {
 
         const confirmUpload = (type) => {
             uploadType.value = type; // Guarda el tipo de carga
-            confirmationMessage.value = `Are you sure you want to proceed with  ${type === 'recycled' || type === 'selRecycled'
-                    ? '<span class="recycled"> RECYCLED </span>'
-                    : '<span class="quarantine"> QUARANTINE </span>'
+            confirmationMessage.value = `Are  you  sure  you  want   to  proceed  with    ${type === 'recycled' || type === 'selRecycled'
+                ? '<span class="recycled">   RECYCLED  </span>'
+                : '<span class="quarantine">  QUARANTINE  </span>'
                 }  pins?`;
 
             confirmVisible.value = true; // Muestra el modal de confirmación
@@ -339,8 +339,10 @@ export default {
                     // Calcula la cantidad de pines reciclados
                     const recycledPinsCount = response.data.recycledPins.length;
 
-                    // Muestra una alerta con la cantidad de pines actualizados
-                    showSuccess(`Total of recycled pins : ${recycledPinsCount}`);
+                    if (recycledPinsCount > 0) {
+                        // Muestra una alerta con la cantidad de pines actualizados
+                        showSuccess(`Total of recycled pins : ${recycledPinsCount}`);
+                    }
 
                     // Mapea los PINs fallidos y sus errores correspondientes
                     nonUpdatedPins.value = response.data.failedPins.map((pinId, index) => ({
@@ -364,7 +366,7 @@ export default {
 
 
 
-      
+
 
         //Metdodo para poner pines en  quarentena
         async function uploadFileQuarantine() {
@@ -393,7 +395,10 @@ export default {
                 if (response.data.quarantinePins && response.data.failedPins && response.data.errorMessages) {
                     // Mapea los PINs reciclados
                     const quarantinePinsCount = response.data.quarantinePins.length;
-                     showSuccess('Total of pins placed in quarantine '+ quarantinePinsCount);
+                    if (quarantinePinsCount > 0) {
+                        showSuccess('Total of pins placed in quarantine ' + quarantinePinsCount);
+
+                    }
 
                     // Mapea los PINs fallidos y sus errores correspondientes
                     nonUpdatedPins.value = response.data.failedPins.map((pinId, index) => ({
@@ -500,7 +505,7 @@ export default {
 };
 </script>
 <template>
-    <div class="flex flex-col min-h-screen p-4">
+    <div class="flex flex-col grid p-4">
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
                 <div class="title font-semibold text-xl ml-4">Recycling pins or quarantine pins</div>
@@ -688,6 +693,7 @@ export default {
                 <Column field="controlNo" header="ControlNo"></Column>
                 <Column field="state" header="State"></Column>
                 <Column field="amount" header="Amount"></Column>
+                <Column field="recycleDate" header="Recycle date"></Column>
             </DataTable>
 
             <div class="flex justify-between items-center mt-6">
@@ -761,14 +767,25 @@ export default {
 }
 
 .recycled {
-    color: black;
-    /* Cambia el color según tu preferencia */
+    color: green;
+    /* Color destacado para reciclados */
     font-weight: bold;
 }
 
 .quarantine {
-    color: black;
-    /* Cambia el color según tu preferencia */
+    color: red;
+    /* Color destacado para cuarentena */
     font-weight: bold;
+}
+
+/* Estilos para el modo oscuro */
+body.dark-mode .recycled {
+    color: lightgreen;
+    /* Color más claro para modo oscuro */
+}
+
+body.dark-mode .quarantine {
+    color: salmon;
+    /* Color más claro para modo oscuro */
 }
 </style>
