@@ -368,7 +368,7 @@ export default {
                         <template #empty> No agents found. </template>
                         <template #loading> Loading agents data. Please wait. </template>
 
-                        <Column field="agentName" header="Server name" :showFilterMatchModes="false" sortable>
+                        <Column field="agentName" header="Agent name" :showFilterMatchModes="false" sortable>
                             <template #body="{ data }">
                                 {{ data.agentName }}
                             </template>
@@ -381,7 +381,7 @@ export default {
                                 {{ data.ipagent }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by ip" />
                             </template>
                         </Column>
                         <Column field="pathLog" header="Path log" :showFilterMatchModes="false" sortable>
@@ -389,7 +389,7 @@ export default {
                                 {{ data.pathLog }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by path" />
                             </template>
                         </Column>
                         <Column field="pathArchive" header="Path log archive" :showFilterMatchModes="false" sortable>
@@ -397,7 +397,7 @@ export default {
                                 {{ data.pathArchive }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by path archive" />
                             </template>
                         </Column>
 
@@ -440,8 +440,8 @@ export default {
                     <!-- Inputs columna izquierda -->
                     <div class="flex flex-col w-1/2 gap-4">
                         <div class="flex flex-col gap-2">
-                            <label for="create_serverName">Server name</label>
-                            <InputText id="create_serverName" v-model="newServer.agentName" class="p-inputtext-sm input-with-line" placeholder="Enter server name" />
+                            <label for="create_serverName">Agent name</label>
+                            <InputText id="create_serverName" v-model="newServer.agentName" class="p-inputtext-sm input-with-line" placeholder="Enter agent name" />
                         </div>
                         <div class="flex flex-col gap-2">
                             <label for="create_ipagent">IP address</label>

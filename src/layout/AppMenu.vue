@@ -69,10 +69,10 @@ const model = ref([
         icon: ' pi pi-database',
         items: [
             { label: 'Jobs', icon: 'pi pi-fw pi-briefcase', to: '/uikit/Jobs' },
-            { label: 'Running Queries', icon: 'pi pi-fw  pi-spinner', to: '/uikit/Running' },
+            { label: 'Running queries', icon: 'pi pi-fw  pi-spinner', to: '/uikit/Running' },
             { label: 'Recycling', icon: 'pi pi-fw pi-refresh', to: '/uikit/Recycling' },
             { label: 'Propierties', icon: 'pi pi-fw pi-cog', to: '/uikit/Propierties' },
-            { label: 'Log Shipping', icon: 'pi pi-fw pi-bookmark', to: '/uikit/shipping' }
+            { label: 'Log shipping', icon: 'pi pi-fw pi-bookmark', to: '/uikit/shipping' }
         ]// Icono actualizado para Audit
 
     },
@@ -83,7 +83,7 @@ const model = ref([
         // Icono actualizado para Audit
         items: [
             { label: 'Audit', icon: 'pi pi-fw pi-chart-line', to: '/uikit/Audit' },
-            { label: 'Audit Database', icon: 'pi pi-database', to: '/uikit/AuditDatabase' },
+            { label: 'Audit database', icon: 'pi pi-database', to: '/uikit/AuditDatabase' },
 
         ]
 

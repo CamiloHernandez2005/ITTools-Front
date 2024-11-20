@@ -349,7 +349,7 @@ export default {
                                 {{ data.serverName }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by server name" />
                             </template>
                         </Column>
 
@@ -358,7 +358,7 @@ export default {
                                 {{ data.description }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by ip" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by description" />
                             </template>
                         </Column>
                         <Column field="ipServer" header="IP address" :showFilterMatchModes="false" sortable >
@@ -366,7 +366,7 @@ export default {
                                 {{ data.ipServer }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by path" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by ip server" />
                             </template>
                         </Column>
                         <Column field="serverDB" header="Server DB" :showFilterMatchModes="false" sortable >
@@ -374,7 +374,7 @@ export default {
                                 {{ data.serverDB }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by ip path archive" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by server db" />
                             </template>
                         </Column>
                         <Column field="region" header="Region" :showFilterMatchModes="false" sortable>

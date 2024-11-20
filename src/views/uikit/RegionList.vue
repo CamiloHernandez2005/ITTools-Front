@@ -300,7 +300,7 @@ export default {
                                 {{ data.description}}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by description" />
                             </template>
                         </Column>
                         <Column field="status" header="Status" sortable>

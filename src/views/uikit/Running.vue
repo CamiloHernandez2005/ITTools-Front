@@ -83,8 +83,8 @@ export default {
         const columnOptions = ref([
             { field: 'databaseName', header: 'Database name', visible: true },
             { field: 'timeSec', header: 'Time (Sec)', visible: true },
-            { field: 'username', header: 'Username', visible: true },
-            { field: 'hostname', header: 'Hostname', visible: true },
+            { field: 'username', header: 'User name', visible: true },
+            { field: 'hostname', header: 'Host name', visible: true },
             { field: 'sqlBatchText', header: 'SQL batch text', visible: true },
             { field: 'spid', header: 'SPID', visible: true },
             { field: 'status', header: 'Status', visible: true },
@@ -216,7 +216,7 @@ export default {
         <!-- Selección de la región -->
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
-                <div class="title font-semibold text-xl ml-4">Running </div>
+                <div class="title font-semibold text-xl ml-4">Running queries </div>
                 <div class="breadcrumb-section mr-2">
                     <Breadcrumb :home="home" :model="items" class="breadcrumb-item" />
                 </div>
@@ -228,8 +228,8 @@ export default {
                 <div class="w-1/6">
                     <label for="region" class="block text-sm font-medium mb-2">Region</label>
                     <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
-                        option-value="id" placeholder="Select Region" class="w-full mb-4" filter
-                        filterPlaceholder="Search Region" />
+                        option-value="id" placeholder="Select region" class="w-full mb-4" filter
+                        filterPlaceholder="Search region" />
                 </div>
 
                 <!-- Sección de ServersDB (alineada a la derecha de Region) -->
@@ -267,21 +267,24 @@ export default {
                 :rowsPerPageOptions="[5, 10, 20]" :rowHover="true" v-model:filters="filterRunning" filterDisplay="menu"
                 :global-filter-fields="columnsToShow.map(column => column.field)">
                 <template #header>
-                    <div class="flex justify-end">
-                        <div class="flex gap-2">
+                    <div class="flex justify-between items-center gap-4">
+                         <!-- Selector de Columnas -->
+                        <div class="column-selector flex items-center">
+                            <label for="column-select" class="mr-2">Select columns:</label>
+                            <MultiSelect v-model="selectedColumns" :options="columnOptions" optionLabel="header"
+                                optionValue="field" display="chip" placeholder="Select columns" />
+                        </div>
+                        <!-- Búsqueda Global y Botón -->
+                        <div class="flex items-center gap-2">
                             <InputText v-model="filterRunning.global.value" placeholder="Global search" />
                             <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined
                                 @click="clearFiltrer()" />
                         </div>
+
+                       
                     </div>
-
-                    <div class="column-selector mb-2">
-            <label for="column-select">Select Columns : </label>
-            <MultiSelect v-model="selectedColumns" :options="columnOptions" optionLabel="header" optionValue="field"
-              display="chip" placeholder="Select columns" />
-          </div>
-
                 </template>
+
 
                 <template #empty> No running process found. </template>
                 <template #loading> Loading running process data. Please wait. </template>
@@ -305,8 +308,8 @@ export default {
 
             <!-- Botones de acción -->
             <div class="flex justify-end gap-2">
-                <Button label="Load Processes" icon="pi pi-refresh" @click="loadProcesses" id="boton1" />
-                <Button label="Kill Process" icon="pi pi-times" @click.prevent="killProcess(selectedProcessSPID)"
+                <Button label="Load processes" icon="pi pi-refresh" @click="loadProcesses" id="boton1" />
+                <Button label="Kill process" icon="pi pi-times" @click.prevent="killProcess(selectedProcessSPID)"
                     id="boton2" />
             </div>
         </div>

@@ -332,7 +332,7 @@ export default {
                                 {{ data.full_name }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by Full Name" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by full name" />
                             </template>
                         </Column>
 
@@ -341,7 +341,7 @@ export default {
                                 {{ data.area }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by Area" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by area" />
                             </template>
                         </Column>
 
@@ -350,7 +350,7 @@ export default {
                                 <span>{{ data.roles.join(', ') }}</span>
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by Roles" />
+                                <InputText v-model="filterModel.value" type="text" placeholder="Search by roles" />
                             </template>
                         </Column>
 

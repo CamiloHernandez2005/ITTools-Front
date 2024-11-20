@@ -360,7 +360,7 @@ export default {
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex-1">
                             <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search Region" />
+                            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search region" />
 
                             <label for="transaction-date" class="block text-sm font-medium mb-2 mt-4">Transaction date</label>
                             <Calendar id="transaction-date" v-model="transactionDate" dateFormat="mm/dd/yy" placeholder="Select date" class="w-full" />

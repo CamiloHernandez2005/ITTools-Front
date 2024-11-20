@@ -516,78 +516,75 @@ export default {
         </div>
 
         <div class="w-full flex gap-4">
-            <!-- Div para seleccionar región y servidor -->
-            <div class="card p-4 shadow-custom border flex-1 flex flex-col">
-                <div class="font-semibold text-xl mb-4">Region details</div>
+    <!-- Div para seleccionar región y servidor -->
+    <div class="card p-4 shadow-custom border flex-1 flex flex-col h-full">
+        <div class="font-semibold text-xl mb-4">Region details</div>
 
-                <div class="flex gap-4 h-full">
-                    <!-- Dropdown de región ocupando el 50% -->
-                    <div class="flex flex-col w-1/2">
-                        <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
-                            option-value="id" placeholder="Select region" class="w-full" filter
-                            filterPlaceholder="Search region" />
-                    </div>
-
-                    <!-- ServersDB ocupando el 50% restante a la derecha -->
-                    <div class="flex flex-col w-1/2">
-                        <label class="block text-sm font-medium mb-3">Servers DB</label>
-                        <div class="flex flex-col gap-2">
-                            <div v-for="server in filteredDB" :key="server.idServer" class="flex items-center">
-                                <div class="flex items-center gap-2 radio-margin">
-                                    <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server" />
-                                    <span class="text-sm">{{ server.serverName }}</span>
-                                    <span class="text-sm">||</span>
-                                    <span class="text-sm">{{ server.ipServer }}</span>
-                                    <span class="text-sm">||</span>
-                                    <span class="text-sm">{{ server.description }}</span>
-                                </div>
-                            </div>
-                            <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for
-                                the selected region</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botones alineados abajo a la derecha -->
-                <div class="flex justify-end mt-10">
-                    <Button label="Upload file" icon="pi pi-cloud-upload" id="Boton1" @click="openUploadModal"
-                        styleClass="p-button-sm mr-2" />
-                    <Button label="Selected pins" icon="pi pi-check" id="Boton2" @click="showRecycleModal"
-                        styleClass="p-button-sm" />
-                </div>
+        <div class="flex gap-4 h-full">
+            <!-- Dropdown de región ocupando el 50% -->
+            <div class="flex flex-col w-1/2">
+                <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                    option-value="id" placeholder="Select region" class="w-full" filter
+                    filterPlaceholder="Search region" />
             </div>
 
-            <!-- Tabla de pines fallidos (no actualizados) -->
-            <div class="card p-4 shadow-custom border w-1/2 h-full">
-                <div class="font-semibold text-xl mb-4">Failed pins</div>
-                <DataTable :value="nonUpdatedPins" class="p-datatable-sm" :paginator="true" rows="10"
-                    :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple" :rowHover="true">
-
-                    <template #empty> No failed pins found. </template>
-                    <template #loading> Loading failed pins data. Please wait. </template>
-
-                    <Column field="pinId" header="Pin ID" sortable />
-                    <Column header="Status">
-                        <template #body="slotProps">
-                            <span :class="{ 'text-red': slotProps.data.status === 'Failed' }">
-                                {{ slotProps.data.status }}
-                            </span>
-                        </template>
-                    </Column>
-
-                    <!-- Columna que contiene el botón para ver detalles -->
-                    <Column header="Details">
-                        <template #body="slotProps">
-
-                            <Button icon="pi pi-eye" class="p-button-rounded p-button-success p-button-text"
-                                @click="showErrorDetails(slotProps.data)" />
-                        </template>
-                    </Column>
-                </DataTable>
+            <!-- ServersDB ocupando el 50% restante a la derecha -->
+            <div class="flex flex-col w-1/2">
+                <label class="block text-sm font-medium mb-3">Servers DB</label>
+                <div class="flex flex-col gap-2">
+                    <div v-for="server in filteredDB" :key="server.idServer" class="flex items-center">
+                        <div class="flex items-center gap-2 radio-margin">
+                            <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server" />
+                            <span class="text-sm">{{ server.serverName }}</span>
+                            <span class="text-sm">||</span>
+                            <span class="text-sm">{{ server.ipServer }}</span>
+                            <span class="text-sm">||</span>
+                            <span class="text-sm">{{ server.description }}</span>
+                        </div>
+                    </div>
+                    <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for
+                        the selected region</div>
+                </div>
             </div>
         </div>
 
+        <!-- Botones alineados abajo a la derecha -->
+        <div class="flex justify-end mt-auto">
+            <Button label="Upload file" icon="pi pi-cloud-upload" id="Boton1" @click="openUploadModal"
+                styleClass="p-button-sm mr-2" />
+            <Button label="Selected pins" icon="pi pi-check" id="Boton2" @click="showRecycleModal"
+                styleClass="p-button-sm" />
+        </div>
+    </div>
+
+    <!-- Tabla de pines fallidos (no actualizados) -->
+    <div class="card p-4 shadow-custom border flex-1 flex flex-col h-full">
+        <div class="font-semibold text-xl mb-4">Failed pins</div>
+        <DataTable :value="nonUpdatedPins" class="p-datatable-sm" :paginator="true" rows="10"
+            :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple" :rowHover="true">
+            <template #empty> No failed pins found. </template>
+            <template #loading> Loading failed pins data. Please wait. </template>
+
+            <Column field="pinId" header="Pin ID" sortable />
+            <Column header="Status">
+                <template #body="slotProps">
+                    <span :class="{ 'text-red': slotProps.data.status === 'Failed' }">
+                        {{ slotProps.data.status }}
+                    </span>
+                </template>
+            </Column>
+
+            <!-- Columna que contiene el botón para ver detalles -->
+            <Column header="Details">
+                <template #body="slotProps">
+                    <Button icon="pi pi-eye" class="p-button-rounded p-button-success p-button-text"
+                        @click="showErrorDetails(slotProps.data)" />
+                </template>
+            </Column>
+        </DataTable>
+    </div>
+</div>
 
 
         <Dialog v-model:visible="modalVisibleError" modal header="Error details">
@@ -612,16 +609,16 @@ export default {
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="ticketNumber" class="block">Ticket:</label>
                             <InputText id="ticketNumber" v-model="ticketNumber" class="input-with-line"
-                                placeholder="Ticket Number" required />
+                                placeholder="Ticket number" required />
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
-                            <label for="authorizedBy" class="block">Authorized By:</label>
+                            <label for="authorizedBy" class="block">Authorized by:</label>
                             <InputText id="authorizedBy" v-model="authorizedBy" class="input-with-line"
-                                placeholder="Authorized By" required />
+                                placeholder="Authorized by" required />
                         </div>
                     </div>
                     <div class="flex flex-col grow basis-0 gap-2">
-                        <label for="fileUpload" class="block">Upload File:</label>
+                        <label for="fileUpload" class="block">Upload file:</label>
                         <input type="file" id="fileUpload" @change="handleFileUpload" class="p-inputtext-sm" />
                     </div>
                 </div>
@@ -639,7 +636,7 @@ export default {
                 <div class="flex justify-end mt-6">
                     <Button label="Recycled pins" id="Boton1" icon="pi pi-sync" type="button"
                         @click.prevent="confirmUpload('recycled')" />
-                    <Button label="Quarantine Pins" id="Boton2" icon="pi pi-exclamation-triangle" type="button"
+                    <Button label="Quarantine pins" id="Boton2" icon="pi pi-exclamation-triangle" type="button"
                         @click.prevent="confirmUpload('quarantine')" />
                 </div>
             </form>
@@ -669,7 +666,7 @@ export default {
                 <label for="pin" class="block font-semibold mb-2 ml-2">PIN</label>
                 <div class="flex items-start gap-4">
                     <InputText id="pin" v-model="selectedPin" placeholder="Enter PIN" class="w-2/4 input-with-line" />
-                    <Button @click="listPin" label="Check Status" class="mt-0" id="Boton1" />
+                    <Button @click="listPin" label="Check status" class="mt-0" id="Boton1" />
                 </div>
             </div>
 
@@ -679,8 +676,8 @@ export default {
                     <InputText id="ticket" v-model="ticket" placeholder="Ticket" class="w-full input-with-line" />
                 </div>
                 <div>
-                    <label for="approvedBy" class="block font-semibold mb-2 ml-2">Approved By</label>
-                    <InputText id="approvedBy" v-model="approvedBy" placeholder="Approved By"
+                    <label for="approvedBy" class="block font-semibold mb-2 ml-2">Approved by</label>
+                    <InputText id="approvedBy" v-model="approvedBy" placeholder="Approved by"
                         class="w-full input-with-line" />
                 </div>
             </div>
@@ -690,7 +687,7 @@ export default {
                 <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
                 <Column field="productId" header="ProductId/SKU"></Column>
                 <Column field="pin" header="Pin"></Column>
-                <Column field="controlNo" header="ControlNo"></Column>
+                <Column field="controlNo" header="Control no"></Column>
                 <Column field="state" header="State"></Column>
                 <Column field="amount" header="Amount"></Column>
                 <Column field="recycleDate" header="Recycle date"></Column>

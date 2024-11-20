@@ -33,19 +33,19 @@ export default {
         statusPinAfter: { value: null, matchMode: FilterMatchMode.CONTAINS },
         descriptionError: { value: null, matchMode: FilterMatchMode.CONTAINS },
         authorizationFor: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        recycleDate: { value: null, matchMode: FilterMatchMode.BETWEEN},
+        recycleDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
       },
       columnOptions: [
-        { field: 'username', header: 'username', visible: true },
+        { field: 'username', header: 'User name', visible: true },
         { field: 'pin', header: 'Pin', visible: true },
-        { field: 'filename', header: 'Filename', visible: true },
+        { field: 'filename', header: 'File name', visible: true },
         { field: 'ticket', header: 'Ticket', visible: true },
         { field: 'controlNo', header: 'Control No', visible: true },
         { field: 'statusPinBefore', header: 'Status pin before', visible: true },
         { field: 'statusPinAfter', header: 'Status pin after', visible: true },
-        { field: 'descriptionError', header: 'Description Error', visible: true },
+        { field: 'descriptionError', header: 'Description error', visible: true },
         { field: 'authorizationFor', header: 'Authorization For', visible: true },
-        { field: 'recycleDate', header: 'RecycleDate', visible: true }
+        { field: 'recycleDate', header: 'Recycle date', visible: true }
       ],
       selectedColumns: ['pin', 'filename', 'username'],
       home: {
@@ -141,39 +141,82 @@ export default {
         <!-- Contenedor de búsqueda alineado a la derecha -->
 
 
-        <DataTable :value="filteredAudits" class="p-datatable-sm" :paginator="true" :rows="10" :rowHover="true"
-          :rowsPerPageOptions="[5, 10, 20]" :totalRecords="audits.length" sortMode="multiple"
-          v-model:filters="filterAuditDatabase" filterDisplay="menu"
-          :global-filter-fields="columnsToShow.map(column => column.field)">
+        <DataTable 
+  :value="filteredAudits" 
+  class="p-datatable-sm" 
+  :paginator="true" 
+  :rows="10" 
+  :rowHover="true"
+  :rowsPerPageOptions="[5, 10, 20]" 
+  :totalRecords="audits.length" 
+  sortMode="multiple"
+  v-model:filters="filterAuditDatabase" 
+  filterDisplay="menu"
+  :global-filter-fields="columnsToShow.map(column => column.field)"
+>
+  <!-- Template del encabezado -->
+  <template #header>
+    <div class="flex justify-between items-center flex-wrap gap-2">
+       <!-- Selector de columnas -->
+       <div class="flex items-center gap-2">
+        <label for="column-select" class="font-medium">Select columns:</label>
+        <MultiSelect 
+          v-model="selectedColumns" 
+          :options="columnOptions" 
+          optionLabel="header" 
+          optionValue="field"
+          display="chip" 
+          placeholder="Select columns" 
+        />
+      </div>
+      <!-- Filtro global -->
+      <div class="flex items-center gap-2">
+        <InputText 
+          v-model="searchQuery" 
+          placeholder="Global search..." 
+          class="p-inputtext p-component" 
+        />
+        <Button 
+          type="button" 
+          icon="pi pi-filter-slash" 
+          label="Clear" 
+          outlined 
+          @click="clearFilter()" 
+        />
+      </div>
 
-          <template #empty> No  audits found. </template>
-          
-          <div class="flex justify-end items-center mb-2">
-            <InputText v-model="searchQuery" placeholder="Global search..." class="p-inputtext p-component mr-2" />
-            <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click=" clearFilter()" />
-          </div>
-          
-          <div class="column-selector mb-2">
-            <label for="column-select">Select Columns:</label>
-            <MultiSelect v-model="selectedColumns" :options="columnOptions" optionLabel="header" optionValue="field"
-              display="chip" placeholder="Select columns" />
-          </div>
+     
+    </div>
+  </template>
 
-          <Column v-for="column in columnsToShow" :key="column.field" :field="column.field" :header="column.header"
-            sortable :showFilterMatchModes="false">
-            
-            <!-- Personalización del cuerpo para la columna recycleDate -->
-            <template v-if="column.field === 'recycleDate'" #body="{ data }">
-              {{ formatDateTime(data.recycleDate) }}
-            </template>
-            
-            <!-- Filtro para las columnas -->
-            <template #filter="{ filterModel }">
-              <InputText v-model="filterModel.value" :placeholder="'Search by data'" />
-            </template>
-          </Column>
+  <!-- Configuración de columnas -->
+  <Column 
+    v-for="column in columnsToShow" 
+    :key="column.field" 
+    :field="column.field" 
+    :header="column.header"
+    sortable 
+    :showFilterMatchModes="false"
+  >
+    <!-- Personalización del cuerpo para la columna recycleDate -->
+    <template v-if="column.field === 'recycleDate'" #body="{ data }">
+      {{ formatDateTime(data.recycleDate) }}
+    </template>
 
-        </DataTable>
+    <!-- Filtro para las columnas -->
+    <template #filter="{ filterModel }">
+      <InputText 
+        v-model="filterModel.value" 
+        :placeholder="'Search by data'" 
+      />
+    </template>
+  </Column>
+
+  <template #empty>
+    No audits found.
+  </template>
+</DataTable>
+
       </div>
     </div>
   </div>

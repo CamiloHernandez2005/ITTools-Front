@@ -195,8 +195,8 @@ export default {
                 <div class="w-1/6">
                     <label for="region" class="block text-sm font-medium mb-2">Region</label>
                     <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
-                        option-value="id" placeholder="Select Region" class="w-full mb-4" filter
-                        filterPlaceholder="Search Region" />
+                        option-value="id" placeholder="Select region" class="w-full mb-4" filter
+                        filterPlaceholder="Search region" />
                 </div>
 
                 <!-- Sección de ServersDB (alineada a la derecha de Region) -->
@@ -243,12 +243,12 @@ export default {
                         </div>
                     </template>
 
-                    <template #empty> No schedued jobs found. </template>
+                    <template #empty> No scheduled jobs found. </template>
                     <template #loading> Loading scheduled jobs data. Please wait. </template>
 
                     <Column field="jobName" header="Job name" sortable :showFilterMatchModes="false">
                         <template #filter="{ filterModel }">
-                            <InputText v-model="filterModel.value" type="text" placeholder="Search by jobName" />
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by job name" />
                         </template>
                     </Column>
                     <Column field="scheduledDate" header="Scheduled date" sortable :showFilterMatchModes="false">
@@ -256,15 +256,15 @@ export default {
                             {{ formatDateTime(slotProps.data.scheduledDate) }}
                         </template>
                         <template #filter="{ filterModel }">
-                            <InputText v-model="filterModel.value" type="text" placeholder="Search by scheduledDate " />
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by scheduled date " />
                         </template>
                     </Column>
-                    <Column field="startDate" header="Start date" sortable>
+                    <Column field="startDate" header="Start date" :showFilterMatchModes="false" sortable>
                         <template #body="slotProps">
                             {{ formatDateTime(slotProps.data.startDate) }}
                         </template>
                         <template #filter="{ filterModel }">
-                            <InputText v-model="filterModel.value" type="text" placeholder="Search by Start Date" />
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by start date" />
                         </template>
 
                     </Column>
@@ -273,13 +273,13 @@ export default {
                             {{ formatDateTime(slotProps.data.stopDate) }}
                         </template>
                         <template #filter="{ filterModel }">
-                            <InputText v-model="filterModel.value" type="text" placeholder="Search by StopDate" />
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by stop date" />
                         </template>
                     </Column>
-                    <Column field="executionTime" header="ExecutionTime" sortable :showFilterMatchModes="false">
+                    <Column field="executionTime" header="Execution time" sortable :showFilterMatchModes="false">
 
                         <template #filter="{ filterModel }">
-                            <InputText v-model="filterModel.value" type="text" placeholder="Search by execution Time" />
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by execution time" />
                         </template>
                     </Column>
                 </DataTable>
@@ -311,28 +311,28 @@ export default {
                     <template #empty> No running jobs found. </template>
                     <template #loading> Loading running jobs data. Please wait. </template>
 
-                    <Column field="jobName" header="Job Name" sortable :showFilterMatchModes="false">
+                    <Column field="jobName" header="Job name" sortable :showFilterMatchModes="false">
                         <template #body="slotProps">
                             {{ formatDateTime(slotProps.data.scheduledDate) }}
                         </template>
                         <template #filter="{ filterModel }">
-                            <InputText v-model="filterModel.value" type="text" placeholder="Search by  jobName " />
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by job name " />
                         </template>
                     </Column>
-                    <Column field="startDate" header="Start Date" sortable :showFilterMatchModes="false">
+                    <Column field="startDate" header="Start date" sortable :showFilterMatchModes="false">
                         <template #body="slotProps">
                             {{ formatDateTime(slotProps.data.scheduledDate) }}
                         </template>
                         <template #filter="{ filterModel }">
-                            <InputText v-model="filterModel.value" type="text" placeholder="Search by startDate " />
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by start date " />
                         </template>
                     </Column>
-                    <Column field="stepName" header="Step Name" :showFilterMatchModes="false" sortable>
+                    <Column field="stepName" header="Step name" :showFilterMatchModes="false" sortable>
                         <template #body="slotProps">
                             {{ formatDateTime(slotProps.data.scheduledDate) }}
                         </template>
                         <template #filter="{ filterModel }">
-                            <InputText v-model="filterModel.value" type="text" placeholder="Search by stepName " />
+                            <InputText v-model="filterModel.value" type="text" placeholder="Search by step name " />
                         </template>
                     </Column>
                 </DataTable>

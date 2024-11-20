@@ -199,7 +199,7 @@ export default {
                         <label for="region" class="block text-sm font-medium mb-2">Region</label>
                         <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
                             option-value="id" placeholder="Select region" class="w-full" filter
-                            filterPlaceholder="Search Region" style="width: 100%;" />
+                            filterPlaceholder="Search region" style="width: 100%;" />
                     </div>
 
                     <!-- ServersDB (a la derecha) -->
@@ -240,7 +240,7 @@ export default {
         </div>
 
         <!-- Tabla de propiedades -->
-        <div class="w-full card p-6 flex flex-col  shadow-custom border">
+        <div class="w-full card p-4 flex flex-col  shadow-custom border">
             <h2 class="font-semibold text-xl mb-2">Properties</h2>
             <DataTable :value="properties" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage"
                 :rowsPerPageOptions="[5, 10, 20]" :totalRecords="properties.length" :rowHover="true"
@@ -262,27 +262,27 @@ export default {
                 </Column>
                 <Column field="project" header="Project" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by ID" />
                     </template>
                 </Column>
                 <Column field="property" header="Property name" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by property name" />
                     </template>
                 </Column>
                 <Column field="module" header="Module" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by module " />
                     </template>
                 </Column>
                 <Column field="value" header="Value" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by value " />
                     </template>
                 </Column>
                 <Column field="instance" header="Instance" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search by data " />
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search by instance " />
                     </template>
                 </Column>
             </DataTable>
