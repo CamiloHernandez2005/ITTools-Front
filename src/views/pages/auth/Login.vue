@@ -48,7 +48,6 @@ const decodeJWT = (token) => {
 const callback = async (response) => {
   try {
     const googleToken = response.credential;
-    console.log(googleToken);
 
     // Decodifica el token de Google
     const decodedData = decodeJWT(googleToken);

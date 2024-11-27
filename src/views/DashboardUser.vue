@@ -28,6 +28,23 @@ import image21 from '@/assets/img/img21.jpg';
 import image22 from '@/assets/img/img22.jpg';
 import image23 from '@/assets/img/img23.jpg';
 import image24 from '@/assets/img/img24.jpg';
+import image25 from '@/assets/img/img25.jpg';
+import image26 from '@/assets/img/img26.jpg';
+import image27 from '@/assets/img/img27.jpg';
+import image28 from '@/assets/img/img28.jpg';
+import image29 from '@/assets/img/img29.jpg';
+import image30 from '@/assets/img/img30.jpg';
+import image31 from '@/assets/img/img31.jpg';
+import image32 from '@/assets/img/img32.jpg';
+import image33 from '@/assets/img/img33.jpg';
+import image34 from '@/assets/img/img34.jpg';
+import image35 from '@/assets/img/img35.jpg';
+import image36 from '@/assets/img/img36.jpg';
+import image37 from '@/assets/img/img37.jpg';
+import image38 from '@/assets/img/img38.jpg';
+import image39 from '@/assets/img/img39.jpg';
+import image40 from '@/assets/img/img40.jpg';
+import image41 from '@/assets/img/img41.jpg';
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 
 // Registro de componentes necesarios para Chart.js
@@ -62,7 +79,7 @@ export default {
         });
 
         function setRandomImage() {
-            const images = [image1, image2, image3, image4, image5, image6, image7, image8, image9, image10, image11, image12, image13, image14, image15, image16, image17, image18, image19, image20, image21, image22, image23, image24];
+            const images = [image1, image2, image3, image4, image5, image6, image7, image8, image9, image10, image11, image12, image13, image14, image15, image16, image17, image18, image19, image20, image21, image22, image23, image24, image25, image26, image27, image28, image29, image30, image31, image32, image33, image34, image35, image36, image37, image38, image39, image40, image41];
             const randomIndex = Math.floor(Math.random() * images.length);
             currentImage.value = images[randomIndex];
         };

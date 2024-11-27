@@ -192,7 +192,7 @@ export default {
             <!-- Panel de selección de región -->
             <div class="w-1/2 card p-4 h-full overflow-auto shadow-custom border">
                 <div class="font-semibold text-xl">Region details</div>
-                <div class="mt-2 ml-3 flex items-start gap-4">
+                <div class="mt-2 ml-2 flex items-start gap-4">
 
                     <!-- Región (a la izquierda) -->
                     <div class="w-1/2">
