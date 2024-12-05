@@ -39,6 +39,40 @@ export const authService = {
       throw new Error(error.response?.data || 'Google login failed');
     }
   },
+  
+  async sendAuthCodeToBackend(code) {
+    const codeVerifier = localStorage.getItem('codeVerifier');  // Recupera el code_verifier de localStorage
+    try {
+      // Enviar el código de autorización y el code_verifier al backend para obtener el access_token
+      const response = await axios.post('/jira/token', {
+        code: code,
+        code_verifier: codeVerifier
+      });
+  
+      // Asegúrate de que la respuesta contenga el access_token
+      if (response.data && response.data.access_token) {
+        const accessToken = response.data.access_token;
+        localStorage.setItem('jiraAccessToken', accessToken);
+        console.log('Access Token:', accessToken);  // Accede al token de respuesta
+      } else {
+        console.error('Access token not found in the response');
+      }
+    } catch (error) {
+      console.error('Error fetching access token:', error.response ? error.response.data : error.message);
+    }
+  },
+  
+  
+  
+  handleAuthCode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    if (code) {
+      this.sendAuthCodeToBackend(code);  // Envía el código al backend
+    }
+  },
+  
+  
 
   startInactivityTimer() {
     this.clearInactivityTimer();
@@ -100,7 +134,7 @@ export const authService = {
 
   
 };
-
+authService.handleAuthCode();
 
 export const registerUser = async (userData) => {
   try {

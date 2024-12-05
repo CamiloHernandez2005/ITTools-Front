@@ -6,26 +6,66 @@
             </button>
         </li>
         <template v-for="(item, i) in model" :key="item.label">
-            <app-menu-item v-if="!item.separator" :item="item" :index="i" />
+            <app-menu-item 
+                v-if="!item.separator" 
+                :item="item" 
+                :index="i" 
+                :class="item.class" 
+                @click="handleMenuClick(item.id)" 
+            />
             <li v-if="item.separator" class="menu-separator"></li>
         </template>
     </ul>
 </template>
 
-
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import AppMenuItem from './AppMenuItem.vue';
 
 const { onMenuToggle } = useLayout();
 
+const handleMenuClick = (id) => {
+    if (id === 'support') {
+        if (!jiraAccessTokenExists.value) {
+            handleJiraLogin();
+        }
+    }
+};
 
-const model = ref([
+// Verifica si el token existe en localStorage
+const jiraAccessTokenExists = computed(() => {
+    return !!localStorage.getItem('jiraAccessToken');
+});
 
+const generateCodeVerifier = () => {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    let codeVerifier = '';
+    for (let i = 0; i < 128; i++) {
+        codeVerifier += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return codeVerifier;
+};
+
+const handleJiraLogin = async () => {
+    const codeVerifier = generateCodeVerifier();
+    localStorage.setItem('codeVerifier', codeVerifier);
+
+    const clientId = 'WqIezgIRXTVMWie5sQpl0PZh1WcLxR9R';
+    const redirectUri = encodeURIComponent('http://localhost:5173/uikit/Support');
+    const state = 'randomState123';
+    const scope = 'read:jira-user write:jira-work read:me offline_access'; // Agregamos el scope read:me
+    const encodedScope = encodeURIComponent(scope); // Codificamos correctamente los scopes
+    const authUrl = `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=${state}&scope=${encodedScope}&prompt=consent`;
+
+    window.location.href = authUrl;
+};
+
+// Modelo del menú, con ruta dinámica para el ítem Support
+const model = computed(() => [
     {
-        label: 'Home',
-        icon: 'pi pi-fw pi-home',
+        label: 'Admin home',
+        icon: 'pi  pi-fw pi-prime',
         to: '/home'
     },
     {
@@ -40,10 +80,8 @@ const model = ref([
             { label: 'Users', icon: 'pi pi-fw pi-users', to: '/uikit/Users' },
             { label: 'Roles', icon: 'pi pi-fw pi-shield', to: '/uikit/Roles' },
             { label: 'Regions', icon: 'pi pi-fw pi-globe', to: '/uikit/RegionList' }
-
         ]
     },
-   
     {
         label: 'Servers',
         icon: 'pi pi-fw pi-server',
@@ -52,10 +90,9 @@ const model = ref([
             { label: 'Agents', icon: 'pi pi-fw pi-cloud', to: '/uikit/Agents' }
         ]
     },
-    
-{
+    {
         label: 'Logs',
-        icon: 'pi pi-fw pi-folder', // Icono actualizado para Logs
+        icon: 'pi pi-fw pi-folder',
         items: [
             { label: 'Find in a log file', icon: 'pi pi-fw pi-search-plus', to: '/uikit/FindLog' },
             { label: 'Multi find logs', icon: 'pi pi-fw pi-search', to: '/uikit/FindLogTran' },
@@ -63,7 +100,6 @@ const model = ref([
             { label: 'Archive logs', icon: 'pi pi-fw pi-clock', to: '/uikit/ArchiveLog' }
         ]
     },
-
     {
         label: 'DataBase',
         icon: ' pi pi-database',
@@ -73,26 +109,23 @@ const model = ref([
             { label: 'Recycling', icon: 'pi pi-fw pi-refresh', to: '/uikit/Recycling' },
             { label: 'Propierties', icon: 'pi pi-fw pi-cog', to: '/uikit/Propierties' },
             { label: 'Log shipping', icon: 'pi pi-fw pi-bookmark', to: '/uikit/shipping' }
-        ]// Icono actualizado para Audit
-
+        ]
     },
-
     {
         label: 'Audit',
         icon: 'pi pi-fw pi-chart-line',
-        // Icono actualizado para Audit
         items: [
             { label: 'Audit', icon: 'pi pi-fw pi-chart-line', to: '/uikit/Audit' },
-            { label: 'Audit database', icon: 'pi pi-database', to: '/uikit/AuditDatabase' },
-
+            { label: 'Audit database', icon: 'pi pi-database', to: '/uikit/AuditDatabase' }
         ]
-
     },
     {
         label: 'Support',
-        icon: 'pi pi-fw pi-user', 
-        to: '/uikit/Support'
-    },
+        icon: 'pi pi-fw pi-user',
+        id: 'support',
+        class: 'menu-support',
+        to: jiraAccessTokenExists.value ? '/uikit/Support' : null // Ruta condicional
+    }
 ]);
 </script>
 
@@ -106,7 +139,6 @@ const model = ref([
 }
 
 .layout-menu-item {
-    // Asegura que cada elemento de menú tenga el mismo estilo
     margin-bottom: 0.5rem;
 }
 
@@ -124,6 +156,10 @@ const model = ref([
 }
 
 .menu-icon {
-    font-size: 1.4rem; // Ajusta el tamaño del icono según sea necesario
+    font-size: 1.4rem;
+}
+
+.menu-support {
+    cursor: pointer; /* Cambia el cursor a 'pointer' */
 }
 </style>

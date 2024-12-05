@@ -11,6 +11,11 @@ const router = useRouter();
 
 const logout = () => {
   localStorage.removeItem('token');
+  localStorage.removeItem('jiraAccessToken');
+  localStorage.removeItem('codeVerifier');
+  localStorage.removeItem('userEmail');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('roles');
   router.push('/');
 };
 

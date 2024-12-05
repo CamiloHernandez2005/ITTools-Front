@@ -1,6 +1,8 @@
 <script>
 import ActuatorService from '@/services/ActuatorService';
+import axios from '../axios';
 import { ref, onMounted, computed, reactive } from 'vue';
+import { authService } from '@/services/AuthService';
 import { serverService } from '@/services/AgentService';
 import { regionService } from '@/services/RegionService';
 import dayjs from 'dayjs';
@@ -57,8 +59,13 @@ export default {
         const userName = ref(localStorage.getItem('userName') || '');
         const regions = ref([]);
         const agents = ref([]);
+        const showModal = ref(false);
+        const marqueeMessages = ref([]);
+        const newMessage = ref('');
+        const isAdmin = ref(false);
         const chartDataRegions = ref(null);
         const twitterProfile = ref(null); // Variable para almacenar información del perfil de Twitter
+        const currentUser = ref(null); // Usuario actual
         const username = '@ELTIEMPO';
         const calendarUrl = ref('');
         const currentImage = ref('');
@@ -89,6 +96,68 @@ export default {
                 calendarUrl.value = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(userEmail.value)}&ctz=America%2FBogota`;
             }
         };
+
+        // Verificar rol del usuario almacenado en localStorage
+        const checkUserRole = () => {
+            const role = localStorage.getItem('roles');
+            isAdmin.value = role === 'ADMIN';
+        };
+
+        // Fetch the marquee text
+        const fetchMessages = async () => {
+            try {
+                const response = await axios.get('/admin/marquee');
+                marqueeMessages.value = response.data;
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            }
+        };
+
+        const addMessage = async () => {
+            if (newMessage.value.trim() !== '') {
+                try {
+                    await axios.post('/admin/marquee', { text: newMessage.value });
+                    marqueeMessages.value.push(newMessage.value);
+                    newMessage.value = '';
+                } catch (error) {
+                    console.error('Error adding message:', error);
+                }
+            }
+        };
+
+        const deleteMessage = async (index) => {
+            try {
+                await axios.delete(`/admin/marquee/${index}`);
+                marqueeMessages.value.splice(index, 1);
+            } catch (error) {
+                console.error('Error deleting message:', error);
+            }
+        };
+
+
+
+        // Cargar usuarios desde la API
+        const loadUsers = async () => {
+            // Obtener el email del usuario logueado desde localStorage
+            const userEmail = localStorage.getItem('userEmail');
+            if (!userEmail) {
+                return;
+            }
+
+            // Obtener todos los usuarios
+            const allUsers = await authService.getUsers();
+
+            // Filtrar el usuario que coincide con el email logueado
+            currentUser.value = allUsers.find(user => user.email === userEmail);
+
+            if (currentUser.value) {
+                // Guardar el cargo del usuario en localStorage
+                localStorage.setItem('roles', currentUser.value.roles);
+            }
+
+        };
+
+
 
 
         // Función para activar el parpadeo en rojo al perder
@@ -481,6 +550,9 @@ export default {
             startSnakeGame();
             setRandomImage();
             setCalendarUrl();
+            loadUsers();
+            checkUserRole();
+            fetchMessages();
 
             setInterval(() => {
                 drawSnakeAndFood(context);
@@ -505,7 +577,14 @@ export default {
             changeDirection,
             username,
             currentImage,
-            calendarUrl
+            calendarUrl,
+            loadUsers,
+            isAdmin,
+            marqueeMessages,
+            newMessage,
+            showModal,
+            addMessage,
+            deleteMessage,
         };
     },
     data() {
@@ -596,7 +675,7 @@ export default {
                 <div class="flex flex-col lg:flex-row gap-4 justify-center items-center w-full">
                     <!-- Primera tabla de actividad (más pequeña) -->
                     <div class="w-full lg:w-1/3 flex flex-col items-center">
-                        <div class="font-semibold text-xl mb-2 text-center">Welcomee!</div>
+                        <div class="font-semibold text-xl mb-2 text-center">Welcome {{ userName }}!</div>
                         <img :src="currentImage" class="imgmeme" alt="Random Welcome Image">
                     </div>
 
@@ -604,7 +683,7 @@ export default {
                     <div class="w-full lg:w-3/3 flex flex-col">
                         <div class="font-semibold text-xl mb-2">Your activity</div>
                         <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto" :paginator="true"
-                            :rows="3" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1"
+                            :rows="4" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1"
                             :rowHover="true">
                             <template #empty> No user activity found. </template>
                             <template #loading> Loading user activity. Please wait. </template>
@@ -621,15 +700,50 @@ export default {
                 </div>
 
             </div>
-            <div class="card shadow-custom border">
-                <div class="overflow-hidden">
-                    <div class="whitespace-nowrap animate-marquee font-bold">
-                        "Welcome {{ userName }}! Every quest is a step towards improvement. Make the most of your time
-                        here and
-                        achieve your goals."
+
+            <div class="card shadow-custom border p-6">
+                <div class="flex items-center">
+                    <div class="marquee-container overflow-hidden flex-grow relative">
+                        <div class="animate-marquee whitespace-nowrap font-bold">
+                            <span v-for="(message, index) in marqueeMessages" :key="index" class="ml-80">
+                                {{ message }}
+                            </span>
+                        </div>
+                    </div>
+
+
+                    <!-- Botón para el admin -->
+                    <div v-if="isAdmin" class="admin-button-card ml-4">
+                        <Button icon="pi pi-plus" class="p-button-rounded p-button-outlined"
+                            @click="showModal = true" />
                     </div>
                 </div>
+
+                <!-- Modal para manejar mensajes -->
+                <Dialog header="Manage messages" v-model:visible="showModal" :modal="true" style="width: 23%;">
+                    <div>
+                        <ul>
+                            <li v-for="(message, index) in marqueeMessages" :key="index" class="mb-2">
+                                {{ message }}
+                                <Button icon="pi pi-trash" class="p-button-danger ml-2" @click="deleteMessage(index)" />
+                            </li>
+                        </ul>
+                        <div class="mt-4 flex justify-between items-center">
+                            <!-- Input alineado a la izquierda -->
+                            <InputText v-model="newMessage" placeholder="New message" class="w-80 mb-2" />
+
+                            <!-- Botón alineado a la derecha -->
+                            <Button label="Create" id="create-button" @click="addMessage" class="ml-2" />
+                        </div>
+                    </div>
+                </Dialog>
+
             </div>
+
+
+
+
+
             <div class="col-span-12 lg:col-span-4 flex gap-8">
                 <!-- Gráfico 1: Regions Usage -->
                 <div class="w-full lg:w-1/2">
@@ -641,7 +755,7 @@ export default {
 
                 <div class="w-full lg:w-1/2">
                     <div class="card shadow-custom border h-full">
-                        <div class="font-semibold text-xl mb-4">Calendar</div>
+                        <div class="font-semibold text-xl mb-4">Your calendar</div>
                         <div v-if="calendarUrl">
                             <iframe :src="calendarUrl" style="border: 0" width="100%" height="330px" frameborder="0"
                                 scrolling="no">
@@ -668,12 +782,11 @@ export default {
                             </Button>
                         </div>
                     </div>
-                    <p v-if="winner" class="winner-message text-center font-bold text-xl mt-2">{{ winner }} ha ganado!
-                    </p>
-                    <p v-else-if="isDraw" class="draw-message text-center font-bold text-xl mt-2">¡Es un empate!</p>
-                    <Button @click="resetTicTacToe" class="p-button mt-4 w-full" id="create-button"> Reiniciar
-                        Tic-Tac-Toe
-                    </Button>
+                    <p v-if="winner" class="winner-message text-center font-bold text-xl mt-2">{{ winner }} has won!</p>
+                    <p v-else-if="isDraw" class="draw-message text-center font-bold text-xl mt-2">It's a draw!</p>
+                    <Button @click="resetTicTacToe" class="p-button mt-4 w-full" id="create-button">Reset
+                        Tic-Tac-Toe</Button>
+
                 </div>
 
                 <!-- Contenedor de Snake Game -->
@@ -684,7 +797,7 @@ export default {
                         <p><strong>High score:</strong> {{ snakeGame.highScore }}</p>
                     </div>
                     <canvas id="snakeCanvas" width="300" height="300" class="border mx-auto snake"></canvas>
-                    <Button @click="startSnakeGame" class="mt-4 p-button w-full " id="create-button">Reiniciar
+                    <Button @click="startSnakeGame" class="mt-4 p-button w-full " id="create-button">Reset
                         snake</Button>
                 </div>
             </div>
@@ -742,6 +855,7 @@ export default {
     border-color: #64c4ac;
 }
 
+
 @keyframes marquee {
     0% {
         transform: translateX(100%);
@@ -751,7 +865,6 @@ export default {
         transform: translateX(-100%);
     }
 }
-
 
 .animate-marquee {
     animation: marquee 20s linear infinite;
