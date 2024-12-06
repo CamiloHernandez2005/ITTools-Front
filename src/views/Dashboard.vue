@@ -25,7 +25,6 @@ const uptime = ref(0);
 const audits = ref([]);
 const topUsers = ref([]);
 const filteredAudits = ref([]);
-// Variables para los gráficos
 const regionCounts = ref({});
 const agentCounts = ref({});
 const regions = ref([]);
@@ -50,8 +49,6 @@ function setCalendarUrl() {
         calendarUrl.value = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(userEmail.value)}&ctz=America%2FBogota`;
     }
 };
-
-
 
 // Función para obtener regiones y agentes
 async function fetchRegionAndAgentData() {
@@ -614,7 +611,7 @@ function getStatusIcon(statusCode) {
         </div>
         <div class="col-span-12 lg:col-span-6">
             <div class="card shadow-custom border h-full">
-                <div class="font-semibold text-xl mb-4">Calendar</div>
+                <div class="font-semibold text-xl mb-4">Your calendar</div>
                 <div v-if="calendarUrl">
                     <iframe :src="calendarUrl" style="border: 0" width="100%" height="330px" frameborder="0"
                         scrolling="no">
@@ -622,6 +619,8 @@ function getStatusIcon(statusCode) {
                 </div>
             </div>
         </div>
+
+        
     </div>
 </template>
 
