@@ -16,7 +16,7 @@ const logout = () => {
 
 const audits = ref([]);
 const currentLogo = computed(() => (isDarkTheme.value ? logo2 : logo));
-const logoWidth = computed(() => (isDarkTheme.value ? '126px' : '180px'));
+const logoWidth = computed(() => (isDarkTheme.value ? '130px' : '190px'));
 const logoStyle = computed(() => (isDarkTheme.value ? { marginLeft: '12px' } : {}));
 
 const currentTime = ref('');
@@ -120,6 +120,13 @@ const goToAuditPage = () => {
         <a href="https://www.zoho.com/" target="_blank" class="external-logo">
           <img src="../assets/zoho2.png" alt="Zoho Logo" width="70" />
         </a>
+        <a href="https://mail.google.com/chat/" target="_blank" class="external-logo">
+          <img src="../assets/logochat.png" alt="chat Logo" width="70" />
+        </a>
+        <a href="https://intrnet.emida.com" target="_blank" class="external-logo">
+          <img src="../assets/IT.jpg" alt="chat Logo" width="50" />
+        </a>
+     
       </div>
     </div>
 
@@ -223,7 +230,7 @@ const goToAuditPage = () => {
 .layout-topbar-logo-container {
   display: flex;
   align-items: center;
-  margin-right: 20px;
+  margin-right: 30px;
   /* Espacio entre el logo y otros elementos */
 }
 
@@ -259,7 +266,7 @@ const goToAuditPage = () => {
 
 .external-logos {
   display: flex;
-  gap: 20px;
+  gap: 8px;
   /* Espacio entre los logos */
   align-items: center;
   margin-left: 10%;

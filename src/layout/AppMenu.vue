@@ -43,7 +43,7 @@ const model = ref([
 
         ]
     },
-   
+
     {
         label: 'Servers',
         icon: 'pi pi-fw pi-server',
@@ -52,8 +52,8 @@ const model = ref([
             { label: 'Agents', icon: 'pi pi-fw pi-cloud', to: '/uikit/Agents' }
         ]
     },
-    
-{
+
+    {
         label: 'Logs',
         icon: 'pi pi-fw pi-folder', // Icono actualizado para Logs
         items: [
@@ -72,9 +72,12 @@ const model = ref([
             { label: 'Running queries', icon: 'pi pi-fw  pi-spinner', to: '/uikit/Running' },
             { label: 'Recycling', icon: 'pi pi-fw pi-refresh', to: '/uikit/Recycling' },
             { label: 'Propierties', icon: 'pi pi-fw pi-cog', to: '/uikit/Propierties' },
-            { label: 'Log shipping', icon: 'pi pi-fw pi-bookmark', to: '/uikit/shipping' }
-        ]// Icono actualizado para Audit
-
+            { label: 'Log shipping', icon: 'pi pi-fw pi-bookmark', to: '/uikit/shipping' },
+            { label: 'AlwaysOn', icon: 'pi pi-fw pi-check-circle', to: '/uikit/AlwaysOn' },
+            { label: 'Status Disk', icon: 'pi pi-fw pi-desktop', to: '/uikit/StatusDisk' },
+            { label: 'Status Backup', icon: 'pi pi-fw pi-refresh', to: '/uikit/StatusBackup' },
+            { label: 'Jobs Failed', icon: 'pi pi-fw pi-times-circle', to: '/uikit/JobsFailed' }
+        ]
     },
 
     {
@@ -90,7 +93,7 @@ const model = ref([
     },
     {
         label: 'Support',
-        icon: 'pi pi-fw pi-user', 
+        icon: 'pi pi-fw pi-user',
         to: '/uikit/Support'
     },
 ]);

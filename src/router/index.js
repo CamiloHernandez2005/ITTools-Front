@@ -127,6 +127,30 @@ const routes = [
                 name: 'shipping',
                 component: () => import('@/views/uikit/shipping.vue'),
                 meta: { requiresAuth: true }
+            },
+            {
+                path: '/uikit/JobsFailed',
+                name: 'JobsFailed',
+                component: () => import('@/views/uikit/JobsFailed.vue'),
+                meta: { requiresAuth: true }
+            },
+            {
+                path: '/uikit/AlwaysOn',
+                name: 'AlwaysOn',
+                component: () => import('@/views/uikit/AlwaysOn.vue'),
+                meta: { requiresAuth: true }
+            },
+            {
+                path: '/uikit/StatusDisk',
+                name: 'StatusDisk',
+                component: () => import('@/views/uikit/StatusDisk.vue'),
+                meta: { requiresAuth: true }
+            }, 
+            {
+                path: '/uikit/StatusBackup',
+                name: 'StatusBackup',
+                component: () => import('@/views/uikit/StatusBackup.vue'),
+                meta: { requiresAuth: true }
             }
         ]
     },

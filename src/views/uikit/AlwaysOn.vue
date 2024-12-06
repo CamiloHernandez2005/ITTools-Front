@@ -1,12 +1,14 @@
 <script>
-import { LogShipping } from '@/services/LogShipping';
+
 import dayjs from 'dayjs';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import { FilterMatchMode } from '@primevue/core/api';
+import axios from 'axios';
 import pdfMake from 'pdfmake/build/pdfmake';
 import 'pdfmake/build/vfs_fonts';
+import { FilterMatchMode } from '@primevue/core/api';
 import * as XLSX from "xlsx";
+
 
 export default {
     components: {
@@ -15,7 +17,7 @@ export default {
     },
     data() {
         return {
-            backups: [], // Almacena la información de respaldo
+            backups: [], // Almacena la información de AlwaysOn
             searchQuery: '', // Búsqueda global
             sortOrder: 'desc', // Orden descendente
             sortColumn: 'lastBackupDate', // Columna de ordenación
@@ -25,15 +27,14 @@ export default {
                 url: '/'
             },
             filters: {
-                ip: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                primaryServer: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                secondaryServer: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                primaryDatabase: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                lastRestoredDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
-                region: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                lastBackupDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
-                lastCopiedDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
-                status: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                availabilityGroupName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                availabilityReplicaServerName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                availabilityDatabaseName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                replicaRole: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                synchronizationState: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                lastRedoneTime: { value: null, matchMode: FilterMatchMode.BETWEEN },
+                lastSentTime: { value: null, matchMode: FilterMatchMode.BETWEEN },
+                lastCommitTime: { value: null, matchMode: FilterMatchMode.BETWEEN },
                 global: { value: null, matchMode: FilterMatchMode.CONTAINS },
             },
             items: [
@@ -43,14 +44,12 @@ export default {
                     route: { name: 'Database' }
                 },
                 {
-                    icon: 'pi pi-fw  pi-bookmark',
-                    label: 'Log Shipping',
-                    route: { name: 'Shipping' }
+                    icon: 'pi pi-fw p pi-check-circle',
+                    label: 'AlwaysOn',
+                    route: { name: 'AlwaysOn' }
                 },
-
             ]
         };
-
     },
     computed: {
         filteredBackups() {
@@ -63,28 +62,30 @@ export default {
 
             return sortedBackups.filter((backup) => {
                 const matchesSearchQuery =
-                    (backup.region?.toLowerCase() || '').includes(this.searchQuery.toLowerCase()) ||
-                    (backup.ip?.toLowerCase() || '').includes(this.searchQuery.toLowerCase()) ||
-                    (backup.primaryServer?.toLowerCase() || '').includes(this.searchQuery.toLowerCase());
+                    backup.availabilityDatabaseName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    backup.availabilityReplicaServerName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    backup.availabilityGroupName.toLowerCase().includes(this.searchQuery.toLowerCase());
 
                 return matchesSearchQuery;
             });
-
         }
-
     },
     methods: {
+
         clearFilter() {
             this.searchQuery = '';  // Limpia la búsqueda global
             Object.keys(this.filters).forEach((key) => {
                 this.filters[key].value = null;  // Limpia los filtros individuales
             });
         },
-        async fetchBackupInfo() {
+        async fetchAlwaysOn() {
             try {
-                this.backups = await LogShipping.getAllBackupInfo();
+                const response = await axios.get('/statusAlways/status');
+                // Almacena los datos en la propiedad de estado correcta
+                this.backups = response.data; // Cambiado a backups
+                console.log("Datos de AlwaysOn obtenidos:", this.backups);
             } catch (error) {
-                console.error("Error fetching backup info:", error);
+                console.error("Error fetching AlwaysOn status:", error);
             }
         },
         clearFilter() {
@@ -95,105 +96,110 @@ export default {
         },
         PDF() {
             const headers = [
-                { text: 'IP', style: 'tableHeader' },
-                { text: 'Primary Server', style: 'tableHeader' },
-                { text: 'Secondary Server', style: 'tableHeader' },
-                { text: 'Primary Database', style: 'tableHeader' },
-                { text: 'Last Restored Date', style: 'tableHeader' },
-                { text: 'Last Backup Date', style: 'tableHeader' },
-                { text: 'Last Copied Date', style: 'tableHeader' },
-                { text: 'Region', style: 'tableHeader' },
-                { text: 'Status', style: 'tableHeader' },
+                { text: 'Availability Group Name', style: 'tableHeader' },
+                { text: 'Availability Replica Server Name', style: 'tableHeader' },
+                { text: 'Availability Database Name', style: 'tableHeader' },
+                { text: 'Replica Role', style: 'tableHeader' },
+                { text: 'Synchronization State', style: 'tableHeader' },
+                { text: 'Last Redone Time', style: 'tableHeader' },
+                { text: 'Last Sent Time', style: 'tableHeader' },
+                { text: 'Last Commit Time', style: 'tableHeader' },
             ];
 
             const body = this.filteredBackups.map(backup => [
-                backup.ip || '-',
-                backup.primaryServer || '-',
-                backup.secondaryServer || '-',
-                backup.primaryDatabase || '-',
-                this.formatDateTime(backup.lastRestoredDate) || '-',
-                this.formatDateTime(backup.lastBackupDate) || '-',
-                this.formatDateTime(backup.lastCopiedDate) || '-',
-                backup.region || '-',
-                backup.status || '-',
+                backup.availabilityGroupName || '-',
+                backup.availabilityReplicaServerName || '-',
+                backup.availabilityDatabaseName || '-',
+                backup.replicaRole || '-',
+                backup.synchronizationState || '-',
+                this.formatDateTime(backup.lastRedoneTime) || '-',
+                this.formatDateTime(backup.lastSentTime) || '-',
+                this.formatDateTime(backup.lastCommitTime) || '-',
             ]);
 
-            body.unshift(headers);
+            body.unshift(headers); // Añade encabezados al inicio
 
             const docDefinition = {
-                pageSize: 'A4', // Cambia el tamaño de la página a A3
-                pageOrientation: 'landscape', // Orientación horizontal
                 content: [
-                    { text: 'Log Shipping Report', style: 'header', alignment: 'center' }, // Centrar el encabezado
+                    { text: 'Status AlwaysOn Report', style: 'header' },
                     {
                         table: {
                             headerRows: 1,
-                            widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'], // Ajusta los anchos de las columnas
+                            widths: ['12%', '12%', '12%', '12%', '12%', '12%', '12%', '12%'], // Ajusta los anchos de las columnas
                             body: body,
                         },
                         layout: {
-                            fillColor(rowIndex, node, columnIndex) {
-                                return (rowIndex === 0) ? '#eeeeee' : null; // Color de fondo solo para encabezados
+                            hLineWidth: function (i, node) {
+                                return (i === 0 || i === node.table.body.length) ? 2 : 1; // Líneas más gruesas en la parte superior e inferior
+                            },
+                            vLineWidth: function () {
+                                return 0; // Sin líneas verticales
+                            },
+                            hLineColor: function (i) {
+                                return (i === 0) ? '#000000' : '#cccccc'; // Color de línea
                             }
                         }
-                    }
+                    },
                 ],
                 styles: {
                     header: {
                         fontSize: 18,
                         bold: true,
                         margin: [0, 0, 0, 10],
-                        alignment: 'center'
                     },
                     tableHeader: {
                         bold: true,
-                        fontSize: 12,
+                        fontSize: 10, // Tamaño de fuente más pequeño para los encabezados
                         fillColor: '#eeeeee',
-                        alignment: 'center'
+                        alignment: 'center',
                     },
                     tableCell: {
-                        fontSize: 10,
+                        fontSize: 9, // Tamaño de fuente más pequeño para las celdas
                         margin: [5, 5, 5, 5],
-                        alignment: 'center'
-                    }
-                }
+                    },
+                },
             };
 
-            // Crear el PDF y descargarlo
-            pdfMake.createPdf(docDefinition).download('log_shipping_report.pdf');
+            pdfMake.createPdf(docDefinition).download('status_AlwaysOn_report.pdf');
         },
         exportToExcel() {
+
+
             const data = this.filteredBackups.map(backup => ({
-                IP: backup.ip || '-',
-                'Primary Server': backup.primaryServer || '-',
-                'Secondary Server': backup.secondaryServer || '-',
-                'Primary Database': backup.primaryDatabase || '-',
-                'Last Restored Date': this.formatDateTime(backup.lastRestoredDate) || '-',
-                'Last Backup Date': this.formatDateTime(backup.lastBackupDate) || '-',
-                'Last Copied Date': this.formatDateTime(backup.lastCopiedDate) || '-',
-                Region: backup.region || '-',
-                Status: backup.status || '-',
+                'Availability Group Name': backup.availabilityGroupName || '-',
+                'Vailability Replica ServerName': backup.vailabilityReplicaServerName || '-',
+                'Availability Database Name': backup.availabilityDatabaseName || '-',
+                'ReplicaRole': backup.replicaRole || '-',
+                'SynchronizationState': backup.synchronizationState || '-',
+                'LastRedoneTime': this.formatDateTime(backup.lastRedoneTime) || '-',
+                'LastSentTime': this.formatDateTime(backup.lastSentTime) || '-',
+                'LastCommitTime': this.formatDateTime(backup.lastCommitTime) || '-',
+
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Log Shipping');
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Status Backup');
 
-            XLSX.writeFile(workbook, 'log_shipping_report.xlsx');
+            XLSX.writeFile(workbook, 'status_AlwaysOn_report.xlsx');
         }
 
     },
     mounted() {
-        this.fetchBackupInfo(); // Llama al método para cargar datos automáticamente al montar el componente
+        this.fetchAlwaysOn(); // Llama al método para cargar datos automáticamente al montar el componente
     }
+
+
+
 };
 </script>
 
 <template>
     <div class="flex flex-col grid p-4">
+
         <div class="card p-6 flex flex-col gap-2 h-full shadow-custom border">
             <div class="header-container">
-                <div class="title font-semibold text-xl">Log Shipping</div>
+                <div class="title font-semibold text-xl">AlwaysOn</div>
                 <Breadcrumb :home="home" :model="items" />
                 <!-- Botón eliminado -->
             </div>
@@ -201,73 +207,68 @@ export default {
                 dataKey="id" :rowHover="true" v-model:filters="filters" filterDisplay="menu">
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
-                        <!-- Botón para descargar en Excel -->
-                        <Button class="p-button-success  icon-button" @click="exportToExcel" title="Exportar a Excel"
-                            icon="pi pi-file-excel" label="Excel" />
-                        <!-- Botón para descargar en PDF -->
-                        <Button class="p-button-danger icon-button" @click="PDF" title="Exportar a PDF"
-                            icon="pi pi-file-pdf" label="PDF" />
+
+                        <Button icon="pi pi-file-excel" class="p-button-success  icon-button" label="Excel"
+                            @click="exportToExcel" />
+                        <Button icon="pi pi-file-pdf" class="p-button-danger icon-button" label="PDF" @click="PDF" />
                     </div>
-
-
                     <div class="flex gap-2">
                         <InputText v-model="filters.global.value" placeholder="Global search..."
                             class="p-inputtext p-component" />
                         <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter" />
                     </div>
                 </div>
-                <Column field="region" header="Region" sortable :showFilterMatchModes="false">
+                <Column field="availabilityGroupName" header="Availability group name" sortable
+                    :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
                     </template>
                 </Column>
-                <Column field="ip" header="IP" sortable :showFilterMatchModes="false">
+                <Column field="availabilityReplicaServerName" header="Availability replica server name" sortable
+                    :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
                     </template>
                 </Column>
-                <Column field="primaryServer" header="Primary server" sortable :showFilterMatchModes="false">
+                <Column field="availabilityDatabaseName" header="Availability database name" sortable
+                    :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
                     </template>
                 </Column>
-                <Column field="secondaryServer" header="Secondary server" sortable :showFilterMatchModes="false">
+                <Column field="replicaRole" header="Replica role" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
                     </template>
                 </Column>
-                <Column field="primaryDatabase" header="Primary database" sortable :showFilterMatchModes="false">
+                <Column field="synchronizationState" header="Synchronization state" sortable
+                    :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
                     </template>
                 </Column>
-                <Column field="lastRestoredDate" header="Last restored date" sortable :showFilterMatchModes="false">
+                <Column field="lastRedoneTime" header="Last redone time" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
                     </template>
                     <template #body="slotProps">
-                        {{ formatDateTime(slotProps.data.lastRestoredDate) }}
+                        {{ formatDateTime(slotProps.data.lastRedoneTime) }}
                     </template>
                 </Column>
-                <Column field="lastBackupDate" header="Last backup date" sortable :showFilterMatchModes="false">
+                <Column field="lastSentTime" header="Last sent time" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
                     </template>
                     <template #body="slotProps">
-                        {{ formatDateTime(slotProps.data.lastBackupDate) }}
+                        {{ formatDateTime(slotProps.data.lastSentTime) }}
                     </template>
                 </Column>
-                <Column field="lastCopiedDate" header="Last copied date" sortable :showFilterMatchModes="false">
+                <Column field="lastCommitTime" header="Last commit time" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
                     </template>
                     <template #body="slotProps">
-                        {{ formatDateTime(slotProps.data.lastCopiedDate) }}
-                    </template>
-                </Column>
-                <Column field="status" header="Status" sortable :showFilterMatchModes="false">
-                    <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
+                        {{ formatDateTime(slotProps.data.lastCommitTime) }}
                     </template>
                 </Column>
             </DataTable>
@@ -291,7 +292,6 @@ export default {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
 }
-
 
 
 </style>

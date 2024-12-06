@@ -1,24 +1,26 @@
 <script>
-import { LogShipping } from '@/services/LogShipping';
-import dayjs from 'dayjs';
+import axios from 'axios';
+import * as XLSX from "xlsx";
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import Button from 'primevue/button'; // Importamos el componente Button
 import { FilterMatchMode } from '@primevue/core/api';
 import pdfMake from 'pdfmake/build/pdfmake';
-import 'pdfmake/build/vfs_fonts';
-import * as XLSX from "xlsx";
+import 'pdfmake/build/vfs_fonts'; // Asegúrate de que esta línea esté presente
+
 
 export default {
     components: {
         DataTable,
-        Column
+        Column,
+        Button // Registramos el componente Button
     },
     data() {
         return {
             backups: [], // Almacena la información de respaldo
             searchQuery: '', // Búsqueda global
             sortOrder: 'desc', // Orden descendente
-            sortColumn: 'lastBackupDate', // Columna de ordenación
+            sortColumn: 'lastBackupDate',// Columna de ordenación
             home: {
                 label: 'Home',
                 icon: 'pi pi-home',
@@ -26,13 +28,12 @@ export default {
             },
             filters: {
                 ip: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                primaryServer: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                secondaryServer: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                primaryDatabase: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                lastRestoredDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
+                serverName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                disk: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                totalSpace: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                freeSpace: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                percentAvailable: { value: null, matchMode: FilterMatchMode.CONTAINS },
                 region: { value: null, matchMode: FilterMatchMode.CONTAINS },
-                lastBackupDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
-                lastCopiedDate: { value: null, matchMode: FilterMatchMode.BETWEEN },
                 status: { value: null, matchMode: FilterMatchMode.CONTAINS },
                 global: { value: null, matchMode: FilterMatchMode.CONTAINS },
             },
@@ -43,9 +44,9 @@ export default {
                     route: { name: 'Database' }
                 },
                 {
-                    icon: 'pi pi-fw  pi-bookmark',
-                    label: 'Log Shipping',
-                    route: { name: 'Shipping' }
+                    icon: 'pi pi-fw pi-desktop',
+                    label: 'Status Disk',
+                    route: { name: 'Status Disk' }
                 },
 
             ]
@@ -63,57 +64,51 @@ export default {
 
             return sortedBackups.filter((backup) => {
                 const matchesSearchQuery =
-                    (backup.region?.toLowerCase() || '').includes(this.searchQuery.toLowerCase()) ||
-                    (backup.ip?.toLowerCase() || '').includes(this.searchQuery.toLowerCase()) ||
-                    (backup.primaryServer?.toLowerCase() || '').includes(this.searchQuery.toLowerCase());
+                    backup.region.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    backup.ip.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                    backup.serverName.toLowerCase().includes(this.searchQuery.toLowerCase());
 
                 return matchesSearchQuery;
             });
-
         }
-
     },
     methods: {
+
+
         clearFilter() {
             this.searchQuery = '';  // Limpia la búsqueda global
             Object.keys(this.filters).forEach((key) => {
                 this.filters[key].value = null;  // Limpia los filtros individuales
             });
         },
-        async fetchBackupInfo() {
+        async fetchStatusDisk() {
             try {
-                this.backups = await LogShipping.getAllBackupInfo();
+                const response = await axios.get('/statusDisk/status');
+                this.backups = response.data;
+                console.log("Datos de estado del disco obtenidos:", this.backups);
             } catch (error) {
-                console.error("Error fetching backup info:", error);
+                console.error("Error fetching disk status:", error);
             }
-        },
-        clearFilter() {
-            this.searchQuery = '';
-        },
-        formatDateTime(value) {
-            return value ? dayjs(value).format('DD/MMM/YYYY HH:mm:ss') : '';
         },
         PDF() {
             const headers = [
                 { text: 'IP', style: 'tableHeader' },
-                { text: 'Primary Server', style: 'tableHeader' },
-                { text: 'Secondary Server', style: 'tableHeader' },
-                { text: 'Primary Database', style: 'tableHeader' },
-                { text: 'Last Restored Date', style: 'tableHeader' },
-                { text: 'Last Backup Date', style: 'tableHeader' },
-                { text: 'Last Copied Date', style: 'tableHeader' },
+                { text: 'Server Name', style: 'tableHeader' },
+                { text: 'Disk', style: 'tableHeader' },
+                { text: 'Total Space GB', style: 'tableHeader' },
+                { text: 'Free Space GB', style: 'tableHeader' },
+                { text: 'Percent Available', style: 'tableHeader' },
                 { text: 'Region', style: 'tableHeader' },
                 { text: 'Status', style: 'tableHeader' },
             ];
 
             const body = this.filteredBackups.map(backup => [
                 backup.ip || '-',
-                backup.primaryServer || '-',
-                backup.secondaryServer || '-',
-                backup.primaryDatabase || '-',
-                this.formatDateTime(backup.lastRestoredDate) || '-',
-                this.formatDateTime(backup.lastBackupDate) || '-',
-                this.formatDateTime(backup.lastCopiedDate) || '-',
+                backup.serverName || '-',
+                backup.disk || '-',
+                backup.totalSpace || '-',
+                backup.freeSpace || '-',
+                backup.percentAvailable || '-',
                 backup.region || '-',
                 backup.status || '-',
             ]);
@@ -121,84 +116,72 @@ export default {
             body.unshift(headers);
 
             const docDefinition = {
-                pageSize: 'A4', // Cambia el tamaño de la página a A3
-                pageOrientation: 'landscape', // Orientación horizontal
                 content: [
-                    { text: 'Log Shipping Report', style: 'header', alignment: 'center' }, // Centrar el encabezado
+                    { text: 'Status Disk Report', style: 'header' },
                     {
                         table: {
                             headerRows: 1,
-                            widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'], // Ajusta los anchos de las columnas
+                            widths: ['auto', '*', 'auto', 'auto', 'auto', '*', 'auto', 'auto'],
                             body: body,
                         },
-                        layout: {
-                            fillColor(rowIndex, node, columnIndex) {
-                                return (rowIndex === 0) ? '#eeeeee' : null; // Color de fondo solo para encabezados
-                            }
-                        }
-                    }
+                    },
                 ],
                 styles: {
                     header: {
                         fontSize: 18,
                         bold: true,
                         margin: [0, 0, 0, 10],
-                        alignment: 'center'
                     },
                     tableHeader: {
                         bold: true,
                         fontSize: 12,
                         fillColor: '#eeeeee',
-                        alignment: 'center'
                     },
-                    tableCell: {
-                        fontSize: 10,
-                        margin: [5, 5, 5, 5],
-                        alignment: 'center'
-                    }
-                }
+                },
             };
 
-            // Crear el PDF y descargarlo
-            pdfMake.createPdf(docDefinition).download('log_shipping_report.pdf');
+            pdfMake.createPdf(docDefinition).download('status_disk_report.pdf');
         },
         exportToExcel() {
             const data = this.filteredBackups.map(backup => ({
                 IP: backup.ip || '-',
-                'Primary Server': backup.primaryServer || '-',
-                'Secondary Server': backup.secondaryServer || '-',
-                'Primary Database': backup.primaryDatabase || '-',
-                'Last Restored Date': this.formatDateTime(backup.lastRestoredDate) || '-',
-                'Last Backup Date': this.formatDateTime(backup.lastBackupDate) || '-',
-                'Last Copied Date': this.formatDateTime(backup.lastCopiedDate) || '-',
+                'Server Name': backup.serverName || '-',
+                Disk: backup.disk || '-',
+                'Total Space GB': backup.totalSpace || '-',
+                'Free Space GB': backup.freeSpace || '-',
+                'Percent Available': backup.percentAvailable || '-',
                 Region: backup.region || '-',
                 Status: backup.status || '-',
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Log Shipping');
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Status Disk');
 
-            XLSX.writeFile(workbook, 'log_shipping_report.xlsx');
+            XLSX.writeFile(workbook, 'status_disk_report.xlsx');
         }
-
     },
+
     mounted() {
-        this.fetchBackupInfo(); // Llama al método para cargar datos automáticamente al montar el componente
+        this.fetchStatusDisk();
     }
 };
 </script>
+
 
 <template>
     <div class="flex flex-col grid p-4">
         <div class="card p-6 flex flex-col gap-2 h-full shadow-custom border">
             <div class="header-container">
-                <div class="title font-semibold text-xl">Log Shipping</div>
+                <div class="title font-semibold text-xl">Status Disk</div>
                 <Breadcrumb :home="home" :model="items" />
-                <!-- Botón eliminado -->
             </div>
+
+            <!-- Tabla de datos -->
             <DataTable :value="filteredBackups" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 20]"
-                dataKey="id" :rowHover="true" v-model:filters="filters" filterDisplay="menu">
+                dataKey="id" :rowHover="true" class="p-datatable-sm" v-model:filters="filters" filterDisplay="menu"
+                id="pdf">
+
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
                         <!-- Botón para descargar en Excel -->
@@ -215,54 +198,43 @@ export default {
                             class="p-inputtext p-component" />
                         <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter" />
                     </div>
+
                 </div>
+                <Column field="ip" header="IP" :showFilterMatchModes="false" sortable>
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
+                    </template>
+                </Column>
+                <Column field="serverName" header="Server Name" :showFilterMatchModes="false" sortable>
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" :showFilterMatchModes="false"
+                            placeholder="Search..." />
+                    </template>
+                </Column>
+
+                <Column field="disk" header="Disk" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
+                    </template>
+                </Column>
+                <Column field="totalSpace" header="Total Space GB" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
+                    </template>
+                </Column>
+                <Column field="freeSpace" header="Free Space GB" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
+                    </template>
+                </Column>
+                <Column field="percentAvailable" header="Percent Available" :showFilterMatchModes="false" sortable>
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
+                    </template>
+                </Column>
                 <Column field="region" header="Region" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
-                    </template>
-                </Column>
-                <Column field="ip" header="IP" sortable :showFilterMatchModes="false">
-                    <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
-                    </template>
-                </Column>
-                <Column field="primaryServer" header="Primary server" sortable :showFilterMatchModes="false">
-                    <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
-                    </template>
-                </Column>
-                <Column field="secondaryServer" header="Secondary server" sortable :showFilterMatchModes="false">
-                    <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
-                    </template>
-                </Column>
-                <Column field="primaryDatabase" header="Primary database" sortable :showFilterMatchModes="false">
-                    <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
-                    </template>
-                </Column>
-                <Column field="lastRestoredDate" header="Last restored date" sortable :showFilterMatchModes="false">
-                    <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
-                    </template>
-                    <template #body="slotProps">
-                        {{ formatDateTime(slotProps.data.lastRestoredDate) }}
-                    </template>
-                </Column>
-                <Column field="lastBackupDate" header="Last backup date" sortable :showFilterMatchModes="false">
-                    <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
-                    </template>
-                    <template #body="slotProps">
-                        {{ formatDateTime(slotProps.data.lastBackupDate) }}
-                    </template>
-                </Column>
-                <Column field="lastCopiedDate" header="Last copied date" sortable :showFilterMatchModes="false">
-                    <template #filter="{ filterModel }">
-                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
-                    </template>
-                    <template #body="slotProps">
-                        {{ formatDateTime(slotProps.data.lastCopiedDate) }}
                     </template>
                 </Column>
                 <Column field="status" header="Status" sortable :showFilterMatchModes="false">
@@ -272,12 +244,12 @@ export default {
                 </Column>
             </DataTable>
 
+            <!-- Botones de exportación -->
 
-            <!-- El modal de carga ha sido eliminado -->
         </div>
-
     </div>
 </template>
+
 
 <style>
 .header-container {
@@ -287,11 +259,9 @@ export default {
     margin-top: -1rem;
 }
 
+
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
 }
-
-
-
 </style>
