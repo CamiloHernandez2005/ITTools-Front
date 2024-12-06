@@ -1,6 +1,7 @@
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import axios from '../../axios';
+import { authService } from '@/services/AuthService';  // Importar correctamente el objeto authService
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
@@ -23,28 +24,45 @@ export default {
     const summary = ref('');
     const description = ref('');
     const projectKey = ref('');
-    const issueType = ref(null); // Inicializado como null para el dropdown
+    const issueType = ref(null);
     const issueTypes = ref([
       { label: 'Task', value: 'Task', icon: 'pi pi-check' },
       { label: 'Bug', value: 'Bug', icon: 'pi pi-exclamation-circle' },
       { label: 'History', value: 'History', icon: 'pi pi-bookmark' }
     ]);
 
+    const accessToken = ref(localStorage.getItem('jiraAccessToken'));
 
-    const accessToken = localStorage.getItem('jiraAccessToken'); // Obtener el token de Jira desde localStorage
+    // Función para verificar y refrescar el token si es necesario
+    const checkAndRefreshToken = async () => {
+      if (!accessToken.value) {
+        return;
+      }
+
+      // Si existe el token, verifica si es necesario refrescarlo
+      await authService.refreshAccessToken();
+
+      // Después de refrescar el token, actualizamos el valor
+      accessToken.value = localStorage.getItem('jiraAccessToken');
+    };
+
+
+    // Llamar a la función al montar el componente
+    onMounted(async () => {
+      await checkAndRefreshToken(); // Verificar y refrescar el token al ingresar a la página
+    });
 
     const createIssue = async () => {
       try {
         const issueDetails = {
-          authorizationToken: `Bearer ${accessToken}`, // Concatenar "Bearer " con el token
+          authorizationToken: `Bearer ${accessToken.value}`,
           projectKey: projectKey.value,
           summary: summary.value,
           description: description.value,
-          issueType: issueType.value, // Enviar el valor del dropdown
+          issueType: issueType.value,
         };
 
         const response = await axios.post('/jira/createIssue', issueDetails);
-
         console.log('Issue created successfully:', response.data);
         alert('Issue created successfully!');
       } catch (error) {
@@ -66,6 +84,8 @@ export default {
   }
 };
 </script>
+
+
 
 
 <template>

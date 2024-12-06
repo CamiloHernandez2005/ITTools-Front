@@ -100,7 +100,17 @@ export default {
         // Verificar rol del usuario almacenado en localStorage
         const checkUserRole = () => {
             const role = localStorage.getItem('roles');
-            isAdmin.value = role === 'ADMIN';
+
+            // Si el rol es una cadena 'ADMIN'
+            if (role === 'ADMIN') {
+                isAdmin.value = true;
+            }
+            // Si el rol es un arreglo que contiene 'ADMIN'
+            else if (Array.isArray(JSON.parse(role)) && JSON.parse(role).includes('ADMIN')) {
+                isAdmin.value = true;
+            } else {
+                isAdmin.value = false;
+            }
         };
 
         // Fetch the marquee text
@@ -133,31 +143,6 @@ export default {
                 console.error('Error deleting message:', error);
             }
         };
-
-
-
-        // Cargar usuarios desde la API
-        const loadUsers = async () => {
-            // Obtener el email del usuario logueado desde localStorage
-            const userEmail = localStorage.getItem('userEmail');
-            if (!userEmail) {
-                return;
-            }
-
-            // Obtener todos los usuarios
-            const allUsers = await authService.getUsers();
-
-            // Filtrar el usuario que coincide con el email logueado
-            currentUser.value = allUsers.find(user => user.email === userEmail);
-
-            if (currentUser.value) {
-                // Guardar el cargo del usuario en localStorage
-                localStorage.setItem('roles', currentUser.value.roles);
-            }
-
-        };
-
-
 
 
         // Función para activar el parpadeo en rojo al perder
@@ -550,7 +535,6 @@ export default {
             startSnakeGame();
             setRandomImage();
             setCalendarUrl();
-            loadUsers();
             checkUserRole();
             fetchMessages();
 
@@ -578,7 +562,6 @@ export default {
             username,
             currentImage,
             calendarUrl,
-            loadUsers,
             isAdmin,
             marqueeMessages,
             newMessage,

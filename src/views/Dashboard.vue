@@ -2,7 +2,6 @@
 import ActuatorService from '@/services/ActuatorService';
 import { serverService } from '@/services/AgentService';
 import { regionService } from '@/services/RegionService';
-import { authService } from '@/services/AuthService';
 import dayjs from 'dayjs'; // Importa dayjs
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import { onMounted, onUnmounted, ref } from 'vue';
@@ -26,7 +25,6 @@ const uptime = ref(0);
 const audits = ref([]);
 const topUsers = ref([]);
 const filteredAudits = ref([]);
-const currentUser = ref(null); // Usuario actual
 const regionCounts = ref({});
 const agentCounts = ref({});
 const regions = ref([]);
@@ -51,31 +49,6 @@ function setCalendarUrl() {
         calendarUrl.value = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(userEmail.value)}&ctz=America%2FBogota`;
     }
 };
-
-   // Cargar usuarios desde la API
-   const loadUsers = async () => {
-            // Obtener el email del usuario logueado desde localStorage
-            const userEmail = localStorage.getItem('userEmail');
-            if (!userEmail) {
-                return;
-            }
-
-            // Obtener todos los usuarios
-            const allUsers = await authService.getUsers();
-
-
-            // Filtrar el usuario que coincide con el email logueado
-            currentUser.value = allUsers.find(user => user.email === userEmail);
-
-            if (currentUser.value) {
-                // Guardar el cargo del usuario en localStorage
-                localStorage.setItem('roles', currentUser.value.roles);
-            }
-
-        };
-
-
-
 
 // Función para obtener regiones y agentes
 async function fetchRegionAndAgentData() {
@@ -120,7 +93,6 @@ onMounted(async () => {
 
     await fetchAuditData();
     setCalendarUrl();
-    loadUsers();
 
 });
 

@@ -61,46 +61,68 @@ const handleJiraLogin = async () => {
     window.location.href = authUrl;
 };
 
+
+// Verificar rol del usuario almacenado en localStorage
+const isAdmin = ref(false);
+const checkUserRole = () => {
+    const role = localStorage.getItem('roles');
+
+    // Si el rol es una cadena 'ADMIN'
+    if (role === 'ADMIN') {
+        isAdmin.value = true;
+    }
+    // Si el rol es un arreglo que contiene 'ADMIN'
+    else if (Array.isArray(JSON.parse(role)) && JSON.parse(role).includes('ADMIN')) {
+        isAdmin.value = true;
+    } else {
+        isAdmin.value = false;
+    }
+};
+
+checkUserRole();
+
+
 // Modelo del menú, con ruta dinámica para el ítem Support
-const model = computed(() => [
-    {
-        label: 'Admin home',
-        icon: 'pi  pi-fw pi-prime',
-        to: '/home'
-    },
-    {
-        label: 'Home',
-        icon: 'pi pi-fw pi-home',
-        to: '/homeusers'
-    },
-    {
-        label: 'Tools',
-        icon: 'pi pi-fw pi-cog',
-        items: [
-            { label: 'Users', icon: 'pi pi-fw pi-users', to: '/uikit/Users' },
-            { label: 'Roles', icon: 'pi pi-fw pi-shield', to: '/uikit/Roles' },
-            { label: 'Regions', icon: 'pi pi-fw pi-globe', to: '/uikit/RegionList' }
-        ]
-    },
-    {
-        label: 'Servers',
-        icon: 'pi pi-fw pi-server',
-        items: [
-            { label: 'ServersDB', icon: 'pi pi-fw pi-database', to: '/uikit/ServersDB' },
-            { label: 'Agents', icon: 'pi pi-fw pi-cloud', to: '/uikit/Agents' }
-        ]
-    },
-    {
-        label: 'Logs',
-        icon: 'pi pi-fw pi-folder',
-        items: [
-            { label: 'Find in a log file', icon: 'pi pi-fw pi-search-plus', to: '/uikit/FindLog' },
-            { label: 'Multi find logs', icon: 'pi pi-fw pi-search', to: '/uikit/FindLogTran' },
-            { label: 'Logs', icon: 'pi pi-fw pi-share-alt', to: '/uikit/LogTran' },
-            { label: 'Archive logs', icon: 'pi pi-fw pi-clock', to: '/uikit/ArchiveLog' }
-        ]
-    },
-    {
+const model = computed(() => {
+    const menu = [
+        {
+            label: 'Admin home',
+            icon: 'pi  pi-fw pi-prime',
+            to: '/home'
+        },
+        {
+            label: 'Home',
+            icon: 'pi pi-fw pi-home',
+            to: '/homeusers'
+        },
+        {
+            label: 'Tools',
+            icon: 'pi pi-fw pi-cog',
+            items: [
+                { label: 'Users', icon: 'pi pi-fw pi-users', to: '/uikit/Users' },
+                { label: 'Roles', icon: 'pi pi-fw pi-shield', to: '/uikit/Roles' },
+                { label: 'Regions', icon: 'pi pi-fw pi-globe', to: '/uikit/RegionList' }
+            ]
+        },
+        {
+            label: 'Servers',
+            icon: 'pi pi-fw pi-server',
+            items: [
+                { label: 'ServersDB', icon: 'pi pi-fw pi-database', to: '/uikit/ServersDB' },
+                { label: 'Agents', icon: 'pi pi-fw pi-cloud', to: '/uikit/Agents' }
+            ]
+        },
+        {
+            label: 'Logs',
+            icon: 'pi pi-fw pi-folder',
+            items: [
+                { label: 'Find in a log file', icon: 'pi pi-fw pi-search-plus', to: '/uikit/FindLog' },
+                { label: 'Multi find logs', icon: 'pi pi-fw pi-search', to: '/uikit/FindLogTran' },
+                { label: 'Logs', icon: 'pi pi-fw pi-share-alt', to: '/uikit/LogTran' },
+                { label: 'Archive logs', icon: 'pi pi-fw pi-clock', to: '/uikit/ArchiveLog' }
+            ]
+        },
+        {
         label: 'DataBase',
         icon: ' pi pi-database',
         items: [
@@ -111,23 +133,34 @@ const model = computed(() => [
             { label: 'Log shipping', icon: 'pi pi-fw pi-bookmark', to: '/uikit/shipping' }
         ]
     },
-    {
-        label: 'Audit',
-        icon: 'pi pi-fw pi-chart-line',
-        items: [
-            { label: 'Audit', icon: 'pi pi-fw pi-chart-line', to: '/uikit/Audit' },
-            { label: 'Audit database', icon: 'pi pi-database', to: '/uikit/AuditDatabase' }
-        ]
-    },
-    {
-        label: 'Support',
-        icon: 'pi pi-fw pi-user',
-        id: 'support',
-        class: 'menu-support',
-        to: jiraAccessTokenExists.value ? '/uikit/Support' : null // Ruta condicional
-    }
-]);
+        {
+            label: 'Audit',
+            icon: 'pi pi-fw pi-chart-line',
+            items: [
+                { label: 'Audit', icon: 'pi pi-fw pi-chart-line', to: '/uikit/Audit' },
+                { label: 'Audit database', icon: 'pi pi-database', to: '/uikit/AuditDatabase' }
+            ]
+        },
+        {
+            label: 'Support',
+            icon: 'pi pi-fw pi-user',
+            id: 'support',
+            class: 'menu-support',
+            to: jiraAccessTokenExists.value ? '/uikit/Support' : null // Ruta condicional
+        }
+        
+    ];
+
+    // Filtrar las secciones según el rol
+    return isAdmin.value
+        ? menu
+        : menu.filter(
+              (item) =>
+                  !['Admin home', 'Tools', 'Servers', 'Audit'].includes(item.label)
+          );
+});
 </script>
+
 
 <style lang="scss" scoped>
 .layout-menu {

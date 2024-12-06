@@ -19,14 +19,32 @@ const logoMargins = computed(() => ({
   marginBottom: isDarkTheme.value ? '2rem' : '-2rem'
 }));
 
-
 const handleLogin = async () => {
   try {
     const { token } = await authService.login(email.value, password.value);
-    if (token) {
-      router.push('/home');
-    } else {
+    if (!token) {
       throw new Error('Token not found');
+    }
+
+    // Guardar el token en el localStorage
+    localStorage.setItem('token', token);
+    localStorage.setItem('userEmail', email.value); // Usar el email del formulario
+
+    // Cargar roles del usuario
+    const allUsers = await authService.getUsers();
+    const currentUser = allUsers.find(user => user.email === email.value); // Buscar por el email ingresado
+    if (currentUser) {
+      const roles = currentUser.roles;
+      localStorage.setItem('roles', JSON.stringify(roles));
+
+      // Redirigir según el rol
+      if (roles.includes('ADMIN')) {
+        router.push('/home');
+      } else {
+        router.push('/homeusers');
+      }
+    } else {
+      throw new Error('User not found');
     }
   } catch (error) {
     console.error('Login failed:', error);
@@ -53,10 +71,24 @@ const callback = async (response) => {
     localStorage.setItem('userName', given_name);
 
     const { token } = await authService.loginWithGoogle(googleToken);
-    if (token) {
-      router.push('/home');
-    } else {
+    if (!token) {
       throw new Error('Token not found');
+    }
+
+    // Cargar roles del usuario y redirigir
+    const allUsers = await authService.getUsers();
+    const currentUser = allUsers.find(user => user.email === email);
+    if (currentUser) {
+      const roles = currentUser.roles;
+      localStorage.setItem('roles', JSON.stringify(roles));
+
+      if (roles.includes('ADMIN')) {
+        router.push('/home');
+      } else {
+        router.push('/homeusers');
+      }
+    } else {
+      throw new Error('User not found');
     }
   } catch (error) {
     console.error('Google login failed:', error);
@@ -64,6 +96,7 @@ const callback = async (response) => {
   }
 };
 </script>
+
 
 
 <template>

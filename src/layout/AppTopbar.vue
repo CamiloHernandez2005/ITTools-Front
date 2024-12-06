@@ -16,6 +16,7 @@ const logout = () => {
   localStorage.removeItem('userEmail');
   localStorage.removeItem('userName');
   localStorage.removeItem('roles');
+  localStorage.removeItem('jiraRefreshToken');
   router.push('/');
 };
 
@@ -64,10 +65,29 @@ const filteredAudits = computed(() => {
   return sorted.slice(0, 5);
 });
 
+// Verificar rol del usuario almacenado en localStorage
+const isAdmin = ref(false);
+const checkUserRole = () => {
+  const role = localStorage.getItem('roles');
+
+  // Si el rol es una cadena 'ADMIN'
+  if (role === 'ADMIN') {
+    isAdmin.value = true;
+  }
+  // Si el rol es un arreglo que contiene 'ADMIN'
+  else if (Array.isArray(JSON.parse(role)) && JSON.parse(role).includes('ADMIN')) {
+    isAdmin.value = true;
+  } else {
+    isAdmin.value = false;
+  }
+};
+
+
 
 onMounted(() => {
   updateTime();
   fetchAuditData();
+  checkUserRole();
   const interval = setInterval(updateTime, 1000);
   onUnmounted(() => {
     clearInterval(interval);
@@ -82,6 +102,13 @@ const toggleNotifications = () => {
 const goToAudits = (notification) => {
   console.log('Redirecting based on notification:', notification); // Agregar esta línea para depuración
   showNotifications.value = false;
+
+  // Verifica si el usuario tiene el rol de ADMIN
+  if (!isAdmin.value) {
+    // Si no es administrador, redirigir a homeusers (o cualquier otra página)
+    router.push('/homeusers');
+    return; // Termina la ejecución de la función para evitar redirigir más
+  }
 
   // Verifica si hay una notificación específica para redirigir a un módulo
   if (notification) {
@@ -140,49 +167,51 @@ const goToAuditPage = () => {
         </button>
       </div>
 
-<!-- Botón de Notificaciones -->
-<div class="relative">
-  <button type="button" class="layout-topbar-action flex items-center relative" @click="toggleNotifications">
-    <i class="pi pi-bell text-2xl"></i>
-    <span v-if="filteredAudits.length > 0"
-      class="absolute top-0 right-0 bg-red-500 text-white text-sm font-semibold rounded-full h-6 w-6 flex items-center justify-center -mt-3 -mr-3">
-      {{ filteredAudits.length }}
-    </span>
-  </button>
+      <!-- Botón de Notificaciones -->
+      <div class="relative">
+        <button type="button" class="layout-topbar-action flex items-center relative" @click="toggleNotifications">
+          <i class="pi pi-bell text-2xl"></i>
+          <span v-if="filteredAudits.length > 0"
+            class="absolute top-0 right-0 bg-red-500 text-white text-sm font-semibold rounded-full h-6 w-6 flex items-center justify-center -mt-3 -mr-3">
+            {{ filteredAudits.length }}
+          </span>
+        </button>
 
-  <!-- Panel de Notificaciones -->
-  <div v-if="showNotifications"
-    class="notifications-panel absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-    <!-- Encabezado -->
-    <header class="text-gray-800 font-semibold text-center py-3 rounded-t-lg">
-      Notifications
-    </header>
+        <!-- Panel de Notificaciones -->
+        <div v-if="showNotifications"
+          class="notifications-panel absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <!-- Encabezado -->
+          <header class="text-gray-800 font-semibold text-center py-3 rounded-t-lg">
+            Notifications
+          </header>
 
-    <!-- Lista de Notificaciones -->
-    <div class="notifications-list max-h-52 overflow-y-auto">
-      <!-- Mostrar mensaje si no hay notificaciones -->
-      <p v-if="filteredAudits.length === 0" class="text-gray-500  ml-4 mr-4  py-4">
-        No notifications for today
-      </p>
-      
-      <ul v-else>
-        <li v-for="(audit, index) in filteredAudits" :key="index"
-          class="notification-item p-3 border-b last:border-b-0 text-sm text-gray-700 cursor-pointer flex items-center ml-4 mr-4"
-          @click="goToAudits(audit.userAction)">
-          <i class="pi pi-check mr-2 text-green-500"></i>
-          {{ audit.userAction }}
-        </li>
-      </ul>
-    </div>
+          <!-- Lista de Notificaciones -->
+          <div class="notifications-list max-h-52 overflow-y-auto">
+            <!-- Mostrar mensaje si no hay notificaciones -->
+            <p v-if="filteredAudits.length === 0" class="text-gray-500  ml-4 mr-4  py-4">
+              No notifications for today
+            </p>
 
-    <!-- Pie de página -->
-    <footer class="p-2 rounded-b-lg flex justify-end border-t border-gray-200">
-      <button @click="goToAuditPage" class="p-button p-button-sm mt-2" id="create-button">
-        See all activities
-      </button>
-    </footer>
-  </div>
-</div>
+            <ul v-else>
+              <li v-for="(audit, index) in filteredAudits" :key="index"
+                class="notification-item p-3 border-b last:border-b-0 text-sm text-gray-700 cursor-pointer flex items-center ml-4 mr-4"
+                @click="goToAudits(audit.userAction)">
+                <i class="pi pi-check mr-2 text-green-500"></i>
+                {{ audit.userAction }}
+              </li>
+            </ul>
+          </div>
+
+          <!-- Pie de página -->
+          <footer class="p-2 rounded-b-lg flex justify-end border-t border-gray-200">
+            <!-- Mostrar el botón solo si el usuario es administrador -->
+            <button v-if="isAdmin" @click="goToAuditPage" class="p-button p-button-sm mt-2" id="create-button">
+              See all activities
+            </button>
+          </footer>
+
+        </div>
+      </div>
 
 
 
