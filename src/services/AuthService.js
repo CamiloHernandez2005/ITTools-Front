@@ -66,31 +66,43 @@ export const authService = {
       }
   },
   
-    async sendAuthCodeToBackend(code) {
-        const codeVerifier = localStorage.getItem('codeVerifier'); // Recupera el code_verifier de localStorage
-        try {
-            // Enviar el código de autorización y el code_verifier al backend para obtener los tokens
-            const response = await axios.post('/jira/token', {
-                code: code,
-                code_verifier: codeVerifier
-            });
+  async sendAuthCodeToBackend(code) {
+    const existingAccessToken = localStorage.getItem('jiraAccessToken'); // Verifica si ya existe un token de acceso
+    if (existingAccessToken) {
+        console.log('Access token already exists. Skipping request to /jira/token.');
+        return; // No haces nada si ya existe un token
+    }
 
-            // Asegúrate de que la respuesta contenga tanto el access_token como el refresh_token
-            if (response.data && response.data.access_token && response.data.refresh_token) {
-                const accessToken = response.data.access_token;
-                const refreshToken = response.data.refresh_token;
+    const codeVerifier = localStorage.getItem('codeVerifier'); // Recupera el code_verifier de localStorage
+    if (!codeVerifier) {
+        console.error('Code verifier is missing.');
+        return;
+    }
 
-                // Guardar ambos tokens en localStorage
-                localStorage.setItem('jiraAccessToken', accessToken);
-                localStorage.setItem('jiraRefreshToken', refreshToken);
+    try {
+        // Enviar el código de autorización y el code_verifier al backend para obtener los tokens
+        const response = await axios.post('/jira/token', {
+            code: code,
+            code_verifier: codeVerifier
+        });
 
-            } else {
-                console.error('Access token or refresh token not found in the response');
-            }
-        } catch (error) {
-            console.error('Error fetching access token:', error.response ? error.response.data : error.message);
+        // Asegúrate de que la respuesta contenga tanto el access_token como el refresh_token
+        if (response.data && response.data.access_token && response.data.refresh_token) {
+            const accessToken = response.data.access_token;
+            const refreshToken = response.data.refresh_token;
+
+            // Guardar ambos tokens en localStorage
+            localStorage.setItem('jiraAccessToken', accessToken);
+            localStorage.setItem('jiraRefreshToken', refreshToken);
+
+            console.log('Access Token and Refresh Token saved.');
+        } else {
+            console.error('Access token or refresh token not found in the response');
         }
-    },
+    } catch (error) {
+        console.error('Error fetching access token:', error.response ? error.response.data : error.message);
+    }
+},
 
     handleAuthCode() {
         const urlParams = new URLSearchParams(window.location.search);

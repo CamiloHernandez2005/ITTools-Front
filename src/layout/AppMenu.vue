@@ -138,16 +138,6 @@ const model = computed(() => {
         ]
     },
 
-    {
-        label: 'Audit',
-        icon: 'pi pi-fw pi-chart-line',
-        // Icono actualizado para Audit
-        items: [
-            { label: 'Audit', icon: 'pi pi-fw pi-chart-line', to: '/uikit/Audit' },
-            { label: 'Audit database', icon: 'pi pi-database', to: '/uikit/AuditDatabase' },
-
-        ]
-    },
         {
             label: 'Audit',
             icon: 'pi pi-fw pi-chart-line',
