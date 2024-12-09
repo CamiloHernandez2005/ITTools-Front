@@ -23,7 +23,7 @@ const logout = () => {
 const audits = ref([]);
 const currentLogo = computed(() => (isDarkTheme.value ? logo2 : logo));
 const logoWidth = computed(() => (isDarkTheme.value ? '130px' : '190px'));
-const logoStyle = computed(() => (isDarkTheme.value ? { marginLeft: '12px' } : {}));
+const logoStyle = computed(() => (isDarkTheme.value ? { marginLeft: '9px' } : {}));
 
 const currentTime = ref('');
 const updateTime = () => {
@@ -142,21 +142,21 @@ const goToAuditPage = () => {
 <template>
   <div class="layout-topbar border">
     <div class="layout-topbar-logo-container">
-      <router-link to="/home" class="layout-topbar-logo">
-        <img :src="currentLogo" :width="logoWidth" :style="logoStyle" alt="Logo" />
-      </router-link>
+      <router-link :to="isAdmin ? '/home' : '/homeusers'" class="layout-topbar-logo">
+    <img :src="currentLogo" :width="logoWidth" :style="logoStyle" alt="Logo" />
+  </router-link>
       <div class="external-logos">
         <a href="https://www.atlassian.com/software/jira" target="_blank" class="external-logo">
-          <img src="../assets/jira.png" alt="Jira Logo" width="70" />
+          <img src="../assets/jira.png" alt="Jira Logo" width="100" />
         </a>
         <a href="https://www.zoho.com/" target="_blank" class="external-logo">
-          <img src="../assets/zoho2.png" alt="Zoho Logo" width="70" />
+          <img src="../assets/zoho2.png" alt="Zoho Logo" width="100" />
         </a>
         <a href="https://mail.google.com/chat/" target="_blank" class="external-logo">
-          <img src="../assets/logochat.png" alt="chat Logo" width="70" />
+          <img src="../assets/logochat.png" alt="chat Logo" width="100" />
         </a>
         <a href="https://intrnet.emida.com" target="_blank" class="external-logo">
-          <img src="../assets/IT.jpg" alt="chat Logo" width="50" />
+          <img src="../assets/IT.jpg" alt="chat Logo" width="60" />
         </a>
      
       </div>
@@ -253,55 +253,19 @@ const goToAuditPage = () => {
   border-color: #64c4ac;
 }
 
-.layout-topbar {
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.layout-topbar-logo-container {
-  display: flex;
-  align-items: center;
-  margin-right: 30px;
-  /* Espacio entre el logo y otros elementos */
-}
-
-.layout-topbar-logo {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
 .layout-topbar-time {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   color: var(--text-color);
-  /* Ajusta según el color del tema */
   font-size: 16px;
   font-weight: bold;
-}
-
-
-.layout-topbar-logo-container:first-child {
-  margin-right: 30px;
-  /* Ajusta el margen si es necesario para más separación */
-}
-
-.layout-topbar-actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  width: 100%;
-
 }
 
 .external-logos {
   display: flex;
   gap: 8px;
-  /* Espacio entre los logos */
   align-items: center;
   margin-left: 10%;
 }
