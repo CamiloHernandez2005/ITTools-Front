@@ -633,26 +633,28 @@ export default {
     <div class="grid grid-cols-12 gap-8">
         <!-- Fila superior con la bienvenida y la tabla de actividad -->
         <div class="lg:col-span-8">
-            <div class="lg:col-span-4 flex gap-8">
-                <!-- Card de Welcome -->
-                <div class="card shadow-custom border w-full lg:w-1/3 h-full flex flex-col justify-center items-center">
-                    <div class="font-semibold text-xl mb-2 text-center">Welcome {{ userName }}!</div>
-                    <img :src="currentImage" class="imgmeme w-full h-auto object-cover" alt="Random Welcome Image" />
-                </div>
+            <div class="card shadow-custom border flex flex-col justify-center items-center">
+                <div class="flex flex-col lg:flex-row gap-4 justify-center items-center w-full">
+                    <!-- Primera tabla de actividad (más pequeña) -->
+                    <div class="w-full lg:w-1/3 flex flex-col items-center">
+                        <div class="font-semibold text-xl mb-2 text-center">Welcome {{ userName }}!</div>
+                        <img :src="currentImage" class="imgmeme" alt="Random Welcome Image" />
+                    </div>
 
-                <!-- Card de Activity (con altura ajustada a la imagen) -->
-                <div class="card shadow-custom border w-full lg:w-2/3 h-full flex flex-col">
-                    <div class="font-semibold text-xl mb-2">Your activity</div>
-                    <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto h-full" :paginator="true" :rows="4" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :rowHover="true">
-                        <template #empty> No user activity found. </template>
-                        <template #loading> Loading user activity. Please wait. </template>
-                        <Column field="userAction" header="Action" sortable />
-                        <Column field="dateTime" header="Date & time " sortable>
-                            <template #body="slotProps">
-                                {{ formatDateTime(slotProps.data.dateTime) }}
-                            </template>
-                        </Column>
-                    </DataTable>
+                    <!-- Segunda tabla de actividad (más grande) -->
+                    <div class="w-full lg:w-3/3 flex flex-col">
+                        <div class="font-semibold text-xl mb-2">Your activity</div>
+                        <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto" :paginator="true" :rows="4" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :rowHover="true">
+                            <template #empty> No user activity found. </template>
+                            <template #loading> Loading user activity. Please wait. </template>
+                            <Column field="userAction" header="Action" sortable />
+                            <Column field="dateTime" header="Date & time " sortable>
+                                <template #body="slotProps">
+                                    {{ formatDateTime(slotProps.data.dateTime) }}
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </div>
                 </div>
             </div>
 

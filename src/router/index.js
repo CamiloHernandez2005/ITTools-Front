@@ -6,30 +6,18 @@ import { authService } from '@/services/AuthService'; // Asegúrate de importar 
 const isAdmin = ref(false); // Para verificar si el usuario es admin
 
 const loadUserRole = async () => {
-    // Eliminar roles almacenados en localStorage si existen
-    localStorage.removeItem('roles');
-
-    // Obtener el email del usuario del localStorage
-    const userEmail = localStorage.getItem('userEmail');
-    if (!userEmail) {
-        console.error('No se encontró userEmail en el localStorage');
-        return;
-    }
+    const userEmail = localStorage.getItem('userEmail'); // Obtener el email del usuario
+    if (!userEmail) return; // Si no hay usuario, no continuar
 
     try {
-        // Llamar a getUsers para obtener los datos del usuario
         const users = await authService.getUsers();
         const user = users.find((u) => u.email === userEmail);
 
         if (user && user.roles) {
-            // Guardar el rol en localStorage
-            // Verificar si el usuario es ADMIN
-            isAdmin.value = user.roles.includes('ADMIN');
-        } else {
-            console.error('No se encontró el usuario o los roles no están definidos');
+            isAdmin.value = user.roles.includes('ADMIN'); // Verificar si el usuario es ADMIN
         }
     } catch (error) {
-        console.error('Error al obtener los roles del usuario:', error);
+        console.log('Error al obtener los roles del usuario:', error);
     }
 };
 
@@ -190,6 +178,7 @@ const routes = [
     },
 ];
 
+
 const router = createRouter({
     history: createWebHistory(),
     routes,
@@ -197,6 +186,7 @@ const router = createRouter({
 
 let rolesLoaded = false;
 
+// Asegurarse de cargar roles solo una vez
 const ensureRolesLoaded = async () => {
     if (!rolesLoaded) {
         await loadUserRole();
@@ -204,28 +194,35 @@ const ensureRolesLoaded = async () => {
     }
 };
 
+
 // Route guard to check authentication and roles
 router.beforeEach(async (to, from, next) => {
-    await ensureRolesLoaded(); // Asegura que los roles estén cargados
+    const isAuthenticated = !!authService.getToken(); // Verificar si hay token
+    const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+    const requiredRole = to.meta.requiredRole; // Rol requerido para la ruta
+    const isGuestRoute = to.matched.some((record) => record.meta.guest);
 
-    const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-    const requiredRole = to.meta.requiredRole; // Obtener el rol requerido para la ruta
-    const isAuthenticated = !!authService.getToken(); // Check if token exists
-    const isGuestRoute = to.matched.some(record => record.meta.guest);
-
-    if (requiresAuth && !isAuthenticated) {
-        // Redirigir al login si no está autenticado y la ruta requiere autenticación
-        next('/');
-    } else if (isAuthenticated && to.path === '/') {
-        // Redirigir al home si está autenticado e intenta acceder al login
-        next('/homeusers');
-    } else if (requiredRole && requiredRole === 'ADMIN' && !isAdmin.value) {
-        // Redirigir si la ruta requiere rol de ADMIN y el usuario no es admin
-        next('/homeusers'); // O redirigir a una página de acceso denegado
-    } else {
-        // Proceder a la ruta
-        next();
+    // Asegurar que los roles estén cargados si está autenticado
+    if (isAuthenticated) {
+        await ensureRolesLoaded();
     }
+
+    // Si la ruta requiere autenticación pero el usuario no está autenticado
+    if (requiresAuth && !isAuthenticated) {
+        return next('/'); // Redirigir al login
+    }
+
+    // Si la ruta requiere un rol específico y el usuario no lo tiene
+    if (requiredRole && requiredRole === 'ADMIN' && !isAdmin.value) {
+        return next('/homeusers'); // Redirigir a una vista de usuario normal
+    }
+
+    // Si es una ruta de invitado y el usuario está autenticado
+    if (isGuestRoute && isAuthenticated) {
+        return next('/homeusers'); // Redirigir al home
+    }
+
+    next(); // Permitir acceso a la ruta
 });
 
 
