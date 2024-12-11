@@ -51,7 +51,7 @@ export default {
         const fileUploadMessage = ref('');
         // Rastro de navegación
         const breadcrumbItems = ref([
-            { label: 'Home', icon: 'pi pi-home', url: '/' },
+            { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
             { label: 'Database', icon: 'pi pi-database' },
             { label: 'Recycling pins', icon: 'pi pi-refresh', route: { name: 'RecyclingPins' } }
         ]);

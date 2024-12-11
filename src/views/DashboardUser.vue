@@ -2,9 +2,10 @@
 import ActuatorService from '@/services/ActuatorService';
 import axios from '../axios';
 import { ref, onMounted, computed, reactive } from 'vue';
-import { authService } from '@/services/AuthService';
 import { serverService } from '@/services/AgentService';
 import { regionService } from '@/services/RegionService';
+import { authService } from '@/services/AuthService';
+import Wordle from '@/views/uikit/Wordle.vue';
 import dayjs from 'dayjs';
 import image1 from '@/assets/img/img1.jpg';
 import image2 from '@/assets/img/img2.jpg';
@@ -53,6 +54,9 @@ import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
 export default {
+    components: {
+        Wordle
+    },
     setup() {
         const audits = ref([]);
         const userEmail = ref(localStorage.getItem('userEmail') || '');
@@ -65,7 +69,6 @@ export default {
         const isAdmin = ref(false);
         const chartDataRegions = ref(null);
         const twitterProfile = ref(null); // Variable para almacenar información del perfil de Twitter
-        const currentUser = ref(null); // Usuario actual
         const username = '@ELTIEMPO';
         const calendarUrl = ref('');
         const currentImage = ref('');
@@ -86,30 +89,85 @@ export default {
         });
 
         function setRandomImage() {
-            const images = [image1, image2, image3, image4, image5, image6, image7, image8, image9, image10, image11, image12, image13, image14, image15, image16, image17, image18, image19, image20, image21, image22, image23, image24, image25, image26, image27, image28, image29, image30, image31, image32, image33, image34, image35, image36, image37, image38, image39, image40, image41];
+            const images = [
+                image1,
+                image2,
+                image3,
+                image4,
+                image5,
+                image6,
+                image7,
+                image8,
+                image9,
+                image10,
+                image11,
+                image12,
+                image13,
+                image14,
+                image15,
+                image16,
+                image17,
+                image18,
+                image19,
+                image20,
+                image21,
+                image22,
+                image23,
+                image24,
+                image25,
+                image26,
+                image27,
+                image28,
+                image29,
+                image30,
+                image31,
+                image32,
+                image33,
+                image34,
+                image35,
+                image36,
+                image37,
+                image38,
+                image39,
+                image40,
+                image41
+            ];
             const randomIndex = Math.floor(Math.random() * images.length);
             currentImage.value = images[randomIndex];
-        };
+        }
 
         function setCalendarUrl() {
             if (userEmail.value) {
                 calendarUrl.value = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(userEmail.value)}&ctz=America%2FBogota`;
             }
-        };
+        }
 
         // Verificar rol del usuario almacenado en localStorage
-        const checkUserRole = () => {
-            const role = localStorage.getItem('roles');
+        const loadUserRole = async () => {
+            // Eliminar roles almacenados en localStorage si existen
+            localStorage.removeItem('roles');
 
-            // Si el rol es una cadena 'ADMIN'
-            if (role === 'ADMIN') {
-                isAdmin.value = true;
+            // Obtener el email del usuario del localStorage
+            const userEmail = localStorage.getItem('userEmail');
+            if (!userEmail) {
+                console.error('No se encontró userEmail en el localStorage');
+                return;
             }
-            // Si el rol es un arreglo que contiene 'ADMIN'
-            else if (Array.isArray(JSON.parse(role)) && JSON.parse(role).includes('ADMIN')) {
-                isAdmin.value = true;
-            } else {
-                isAdmin.value = false;
+
+            try {
+                // Llamar a getUsers para obtener los datos del usuario
+                const users = await authService.getUsers();
+                const user = users.find((u) => u.email === userEmail);
+
+                if (user && user.roles) {
+                    // Guardar el rol en localStorage
+                    // Verificar si el usuario es ADMIN
+                    isAdmin.value = user.roles.includes('ADMIN');
+                } else {
+                    console.error('No se encontró el usuario o los roles no están definidos');
+                }
+            } catch (error) {
+                console.error('Error al obtener los roles del usuario:', error);
             }
         };
 
@@ -143,7 +201,6 @@ export default {
                 console.error('Error deleting message:', error);
             }
         };
-
 
         // Función para activar el parpadeo en rojo al perder
         function triggerBlink() {
@@ -535,8 +592,8 @@ export default {
             startSnakeGame();
             setRandomImage();
             setCalendarUrl();
-            checkUserRole();
             fetchMessages();
+            loadUserRole();
 
             setInterval(() => {
                 drawSnakeAndFood(context);
@@ -567,124 +624,39 @@ export default {
             newMessage,
             showModal,
             addMessage,
-            deleteMessage,
+            deleteMessage
         };
-    },
-    data() {
-        return {
-            board: Array(9).fill(''),
-            currentPlayer: 'X',
-            winner: null,
-            isDraw: false
-        };
-    },
-    methods: {
-        makeMove(index) {
-            if (this.board[index] === '' && !this.winner) {
-                this.board[index] = 'X';
-                if (!this.checkWinner()) {
-                    this.autoMove();
-                    this.checkWinner();
-                }
-            }
-        },
-        autoMove() {
-            const winningCombinations = [
-                [0, 1, 2],
-                [3, 4, 5],
-                [6, 7, 8],
-                [0, 3, 6],
-                [1, 4, 7],
-                [2, 5, 8],
-                [0, 4, 8],
-                [2, 4, 6]
-            ];
-            for (let combo of winningCombinations) {
-                const [a, b, c] = combo;
-                const cells = [this.board[a], this.board[b], this.board[c]];
-
-                if (cells.filter((cell) => cell === 'O').length === 2 && cells.includes('')) {
-                    this.board[combo[cells.indexOf('')]] = 'O';
-                    return;
-                }
-                if (cells.filter((cell) => cell === 'X').length === 2 && cells.includes('')) {
-                    this.board[combo[cells.indexOf('')]] = 'O';
-                    return;
-                }
-            }
-            const emptyCells = this.board.map((cell, idx) => (cell === '' ? idx : null)).filter((idx) => idx !== null);
-            if (emptyCells.length > 0) {
-                const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                this.board[randomIndex] = 'O';
-            }
-        },
-        checkWinner() {
-            const winningCombinations = [
-                [0, 1, 2],
-                [3, 4, 5],
-                [6, 7, 8],
-                [0, 3, 6],
-                [1, 4, 7],
-                [2, 5, 8],
-                [0, 4, 8],
-                [2, 4, 6]
-            ];
-            for (let combo of winningCombinations) {
-                const [a, b, c] = combo;
-                if (this.board[a] && this.board[a] === this.board[b] && this.board[a] === this.board[c]) {
-                    this.winner = this.board[a];
-                    return true;
-                }
-            }
-            if (!this.board.includes('')) {
-                this.isDraw = true;
-            }
-            return false;
-        },
-        resetTicTacToe() {
-            this.board = Array(9).fill('');
-            this.currentPlayer = 'X';
-            this.winner = null;
-            this.isDraw = false;
-        }
     }
 };
 </script>
 <template>
     <div class="grid grid-cols-12 gap-8">
         <!-- Fila superior con la bienvenida y la tabla de actividad -->
-        <div class="col-span-12 lg:col-span-8">
-            <div class="card shadow-custom border flex flex-col justify-center items-center">
-                <div class="flex flex-col lg:flex-row gap-4 justify-center items-center w-full">
-                    <!-- Primera tabla de actividad (más pequeña) -->
-                    <div class="w-full lg:w-1/3 flex flex-col items-center">
-                        <div class="font-semibold text-xl mb-2 text-center">Welcome {{ userName }}!</div>
-                        <img :src="currentImage" class="imgmeme" alt="Random Welcome Image">
-                    </div>
-
-                    <!-- Segunda tabla de actividad (más grande) -->
-                    <div class="w-full lg:w-3/3 flex flex-col">
-                        <div class="font-semibold text-xl mb-2">Your activity</div>
-                        <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto" :paginator="true"
-                            :rows="4" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1"
-                            :rowHover="true">
-                            <template #empty> No user activity found. </template>
-                            <template #loading> Loading user activity. Please wait. </template>
-                            <Column field="userAction" header="Action" sortable />
-                            <Column field="dateTime" header="Date & time " sortable>
-                                <template #body="slotProps">
-                                    {{ formatDateTime(slotProps.data.dateTime) }}
-                                </template>
-                            </Column>
-                        </DataTable>
-                    </div>
-
-
+        <div class="lg:col-span-8">
+            <div class="lg:col-span-4 flex gap-8">
+                <!-- Card de Welcome -->
+                <div class="card shadow-custom border w-full lg:w-1/3 h-full flex flex-col justify-center items-center">
+                    <div class="font-semibold text-xl mb-2 text-center">Welcome {{ userName }}!</div>
+                    <img :src="currentImage" class="imgmeme w-full h-auto object-cover" alt="Random Welcome Image" />
                 </div>
 
+                <!-- Card de Activity (con altura ajustada a la imagen) -->
+                <div class="card shadow-custom border w-full lg:w-2/3 h-full flex flex-col">
+                    <div class="font-semibold text-xl mb-2">Your activity</div>
+                    <DataTable :value="filteredAudits" class="p-datatable-sm w-full lg:w-auto h-full" :paginator="true" :rows="4" :totalRecords="filteredAudits.length" :sortField="'dateTime'" :sortOrder="-1" :rowHover="true">
+                        <template #empty> No user activity found. </template>
+                        <template #loading> Loading user activity. Please wait. </template>
+                        <Column field="userAction" header="Action" sortable />
+                        <Column field="dateTime" header="Date & time " sortable>
+                            <template #body="slotProps">
+                                {{ formatDateTime(slotProps.data.dateTime) }}
+                            </template>
+                        </Column>
+                    </DataTable>
+                </div>
             </div>
 
-            <div class="card shadow-custom border p-6">
+            <div class="card shadow-custom border">
                 <div class="flex items-center">
                     <div class="marquee-container overflow-hidden flex-grow relative">
                         <div class="animate-marquee whitespace-nowrap font-bold">
@@ -694,16 +666,14 @@ export default {
                         </div>
                     </div>
 
-
                     <!-- Botón para el admin -->
                     <div v-if="isAdmin" class="admin-button-card ml-4">
-                        <Button icon="pi pi-plus" class="p-button-rounded p-button-outlined"
-                            @click="showModal = true" />
+                        <Button icon="pi pi-plus" class="p-button-rounded p-button-outlined" @click="showModal = true" />
                     </div>
                 </div>
 
                 <!-- Modal para manejar mensajes -->
-                <Dialog header="Manage messages" v-model:visible="showModal" :modal="true" style="width: 23%;">
+                <Dialog header="Manage messages" v-model:visible="showModal" :modal="true" style="width: 23%">
                     <div>
                         <ul>
                             <li v-for="(message, index) in marqueeMessages" :key="index" class="mb-2">
@@ -720,12 +690,7 @@ export default {
                         </div>
                     </div>
                 </Dialog>
-
             </div>
-
-
-
-
 
             <div class="col-span-12 lg:col-span-4 flex gap-8">
                 <!-- Gráfico 1: Regions Usage -->
@@ -740,9 +705,7 @@ export default {
                     <div class="card shadow-custom border h-full">
                         <div class="font-semibold text-xl mb-4">Your calendar</div>
                         <div v-if="calendarUrl">
-                            <iframe :src="calendarUrl" style="border: 0" width="100%" height="330px" frameborder="0"
-                                scrolling="no">
-                            </iframe>
+                            <iframe :src="calendarUrl" style="border: 0" width="100%" height="330px" frameborder="0" scrolling="no"> </iframe>
                         </div>
                     </div>
                 </div>
@@ -751,25 +714,12 @@ export default {
 
         <!-- Fila derecha con el Playground -->
         <div class="col-span-12 lg:col-span-4">
-            <div class="card  shadow-custom border h-full flex flex-col justify-center items-center">
+            <div class="card shadow-custom border h-full flex flex-col justify-center items-center">
                 <h2 class="text-center font-semibold text-xl">Playground</h2>
 
-                <!-- Contenedor de Tic-Tac-Toe -->
+                <!-- Contenedor de wordle -->
                 <div class="w-full p-4 h-full flex flex-col justify-center items-center">
-                    <h2 class="text-center mb-4">Tic-Tac-Toe</h2>
-                    <div class="tic-tac-toe-board mb-4">
-                        <div v-for="(cell, index) in board" :key="index" class="tic-tac-toe-cell border">
-                            <Button @click="makeMove(index)" :disabled="cell !== '' || winner"
-                                class="tic-tac-toe-button p-component p-button-outlined">
-                                {{ cell }}
-                            </Button>
-                        </div>
-                    </div>
-                    <p v-if="winner" class="winner-message text-center font-bold text-xl mt-2">{{ winner }} has won!</p>
-                    <p v-else-if="isDraw" class="draw-message text-center font-bold text-xl mt-2">It's a draw!</p>
-                    <Button @click="resetTicTacToe" class="p-button mt-4 w-full" id="create-button">Reset
-                        Tic-Tac-Toe</Button>
-
+                    <Wordle />
                 </div>
 
                 <!-- Contenedor de Snake Game -->
@@ -780,8 +730,7 @@ export default {
                         <p><strong>High score:</strong> {{ snakeGame.highScore }}</p>
                     </div>
                     <canvas id="snakeCanvas" width="300" height="300" class="border mx-auto snake"></canvas>
-                    <Button @click="startSnakeGame" class="mt-4 p-button w-full " id="create-button">Reset
-                        snake</Button>
+                    <Button @click="startSnakeGame" class="mt-4 p-button w-full" id="create-button">Reset snake</Button>
                 </div>
             </div>
         </div>
@@ -825,7 +774,6 @@ export default {
     width: 15rem;
 }
 
-
 #create-button {
     background: #64c4ac;
     color: white;
@@ -837,7 +785,6 @@ export default {
     color: #64c4ac;
     border-color: #64c4ac;
 }
-
 
 @keyframes marquee {
     0% {

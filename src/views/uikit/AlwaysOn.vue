@@ -24,7 +24,7 @@ export default {
             home: {
                 label: 'Home',
                 icon: 'pi pi-home',
-                url: '/'
+                url: '/homeusers'
             },
             filters: {
                 availabilityGroupName: { value: null, matchMode: FilterMatchMode.CONTAINS },

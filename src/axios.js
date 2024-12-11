@@ -17,12 +17,12 @@ axios.interceptors.request.use(
   }
 );
 
+
 // Response interceptor to handle token expiration
 axios.interceptors.response.use(
   response => response,
   error => {
-    if (error.response && (error.response.status === 401)) {
-      localStorage.removeItem('token');
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       window.location.href = '/';
   }
   

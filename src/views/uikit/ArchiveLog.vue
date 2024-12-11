@@ -29,7 +29,7 @@ export default {
     setup() {
         const toast = useToast(); // Inicializar el sistema de notificaciones toast
         const breadcrumbItems = ref([
-            { label: 'Home', icon: 'pi pi-home', url: '/' },
+            { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
             { label: 'Logs', icon: 'pi pi-folder' },
             { label: 'Archive logs', icon: 'pi pi-clock', route: { name: 'ArchiveLog' } }
         ]);

@@ -17,7 +17,7 @@ export default {
   },
   setup() {
     const breadcrumbItems = ref([
-      { label: 'Home', icon: 'pi pi-home', url: '/' },
+      { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
       { label: 'Support', icon: 'pi pi-user', route: { name: 'Support' } }
     ]);
 

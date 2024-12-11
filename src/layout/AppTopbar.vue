@@ -3,6 +3,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useLayout } from '@/layout/composables/layout';
 import { useRouter } from 'vue-router';
 import ActuatorService from '@/services/ActuatorService';
+import { authService } from '@/services/AuthService';
 import logo from '@/assets/emida-logo-square.png';
 import logo2 from '@/assets/emida-logo-white.png';
 
@@ -15,7 +16,6 @@ const logout = () => {
   localStorage.removeItem('codeVerifier');
   localStorage.removeItem('userEmail');
   localStorage.removeItem('userName');
-  localStorage.removeItem('roles');
   localStorage.removeItem('jiraRefreshToken');
   router.push('/');
 };
@@ -49,7 +49,6 @@ const today = new Date();
 today.setHours(0, 0, 0, 0);
 
 const filteredAudits = computed(() => {
-  // Filtra las auditorías relevantes (hoy y con acción relevante)
   const filtered = audits.value.filter(audit => {
     const auditDate = new Date(audit.dateTime);
     auditDate.setHours(0, 0, 0, 0);
@@ -58,36 +57,38 @@ const filteredAudits = computed(() => {
     return isToday && isRelevantAction;
   });
 
-  // Ordena las auditorías de la más reciente a la más antigua (por fecha)
   const sorted = filtered.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
-
-  // Devuelve solo las 5 más recientes
   return sorted.slice(0, 5);
 });
 
-// Verificar rol del usuario almacenado en localStorage
 const isAdmin = ref(false);
-const checkUserRole = () => {
-  const role = localStorage.getItem('roles');
-
-  // Si el rol es una cadena 'ADMIN'
-  if (role === 'ADMIN') {
-    isAdmin.value = true;
+const checkUserRole = async () => {
+  const userEmail = localStorage.getItem('userEmail');
+  if (!userEmail) {
+    console.error('No se encontró userEmail en el localStorage');
+    return;
   }
-  // Si el rol es un arreglo que contiene 'ADMIN'
-  else if (Array.isArray(JSON.parse(role)) && JSON.parse(role).includes('ADMIN')) {
-    isAdmin.value = true;
-  } else {
+
+  try {
+    const users = await authService.getUsers();
+    const user = users.find((u) => u.email === userEmail);
+
+    if (user && user.roles) {
+      isAdmin.value = user.roles.includes('ADMIN');
+    } else {
+      console.error('No se encontró el usuario o los roles no están definidos');
+      isAdmin.value = false;
+    }
+  } catch (error) {
+    console.error('Error al verificar roles del usuario:', error);
     isAdmin.value = false;
   }
 };
 
-
-
 onMounted(() => {
   updateTime();
   fetchAuditData();
-  checkUserRole();
+  checkUserRole(); // Verifica el rol del usuario usando `authService.getUsers`
   const interval = setInterval(updateTime, 1000);
   onUnmounted(() => {
     clearInterval(interval);
@@ -99,32 +100,29 @@ const showNotifications = ref(false);
 const toggleNotifications = () => {
   showNotifications.value = !showNotifications.value;
 };
+
 const goToAudits = (notification) => {
-  console.log('Redirecting based on notification:', notification); // Agregar esta línea para depuración
   showNotifications.value = false;
 
-  // Verifica si el usuario tiene el rol de ADMIN
   if (!isAdmin.value) {
-    // Si no es administrador, redirigir a homeusers (o cualquier otra página)
     router.push('/homeusers');
-    return; // Termina la ejecución de la función para evitar redirigir más
+    return;
   }
 
-  // Verifica si hay una notificación específica para redirigir a un módulo
   if (notification) {
     const lowerCaseNotification = notification.toLowerCase();
-    if (lowerCaseNotification.includes("user")) {
-      router.push({ name: "formlayout" });
-    } else if (lowerCaseNotification.includes("role")) {
-      router.push({ name: "Roles" });
-    } else if (lowerCaseNotification.includes("region")) {
-      router.push({ name: "RegionList" });
-    } else if (lowerCaseNotification.includes("agent")) {
-      router.push({ name: "Agents" });
-    } else if (lowerCaseNotification.includes("server")) {
-      router.push({ name: "ServersDB" });
+    if (lowerCaseNotification.includes('user')) {
+      router.push({ name: 'formlayout' });
+    } else if (lowerCaseNotification.includes('role')) {
+      router.push({ name: 'Roles' });
+    } else if (lowerCaseNotification.includes('region')) {
+      router.push({ name: 'RegionList' });
+    } else if (lowerCaseNotification.includes('agent')) {
+      router.push({ name: 'Agents' });
+    } else if (lowerCaseNotification.includes('server')) {
+      router.push({ name: 'ServersDB' });
     } else {
-      console.warn("No se encontró un módulo correspondiente para la notificación");
+      console.warn('No se encontró un módulo correspondiente para la notificación');
     }
   } else {
     router.push('/uikit/Audit');
@@ -135,14 +133,13 @@ const goToAuditPage = () => {
   showNotifications.value = false;
   router.push('/uikit/Audit');
 };
-
-
 </script>
+
 
 <template>
   <div class="layout-topbar border">
     <div class="layout-topbar-logo-container">
-      <router-link :to="isAdmin ? '/home' : '/homeusers'" class="layout-topbar-logo">
+      <router-link :to="isAdmin ? '/home' : '/homeusers'" class="layout-topbar-logo mr-4">
     <img :src="currentLogo" :width="logoWidth" :style="logoStyle" alt="Logo" />
   </router-link>
       <div class="external-logos">
@@ -253,7 +250,6 @@ const goToAuditPage = () => {
   border-color: #64c4ac;
 }
 
-
 .layout-topbar-time {
   position: absolute;
   left: 50%;
@@ -267,7 +263,6 @@ const goToAuditPage = () => {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-left: 10%;
 }
 
 .notification-item:hover {

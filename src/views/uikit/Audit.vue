@@ -48,7 +48,7 @@ export default {
             home: {
                 label: 'Home',
                 icon: 'pi pi-home',
-                url: '/'
+                url: '/homeusers'
             },
             items: [
                 {

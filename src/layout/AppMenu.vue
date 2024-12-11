@@ -21,9 +21,12 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
 import { ref, computed } from 'vue';
+import { authService } from '@/services/AuthService';
 import AppMenuItem from './AppMenuItem.vue';
 
 const { onMenuToggle } = useLayout();
+
+const isAdmin = ref(false); // Para verificar si el usuario es admin
 
 const handleMenuClick = (id) => {
     if (id === 'support') {
@@ -62,38 +65,50 @@ const handleJiraLogin = async () => {
 };
 
 
-// Verificar rol del usuario almacenado en localStorage
-const isAdmin = ref(false);
-const checkUserRole = () => {
-    const role = localStorage.getItem('roles');
+// Función para verificar y cargar el rol del usuario
+const loadUserRole = async () => {
+    // Eliminar roles almacenados en localStorage si existen
+    localStorage.removeItem('roles');
 
-    // Si el rol es una cadena 'ADMIN'
-    if (role === 'ADMIN') {
-        isAdmin.value = true;
+    // Obtener el email del usuario del localStorage
+    const userEmail = localStorage.getItem('userEmail');
+    if (!userEmail) {
+        console.error('No se encontró userEmail en el localStorage');
+        return;
     }
-    // Si el rol es un arreglo que contiene 'ADMIN'
-    else if (Array.isArray(JSON.parse(role)) && JSON.parse(role).includes('ADMIN')) {
-        isAdmin.value = true;
-    } else {
-        isAdmin.value = false;
+
+    try {
+        // Llamar a getUsers para obtener los datos del usuario
+        const users = await authService.getUsers();
+        const user = users.find((u) => u.email === userEmail);
+
+        if (user && user.roles) {
+            // Guardar el rol en localStorage
+            // Verificar si el usuario es ADMIN
+            isAdmin.value = user.roles.includes('ADMIN');
+        } else {
+            console.error('No se encontró el usuario o los roles no están definidos');
+        }
+    } catch (error) {
+        console.error('Error al obtener los roles del usuario:', error);
     }
 };
 
-checkUserRole();
+// Llamar a la función loadUserRole al montar el componente
+loadUserRole();
 
-
-// Modelo del menú, con ruta dinámica para el ítem Support
+// Modelo del menú, con lógica basada en los roles del usuario
 const model = computed(() => {
     const menu = [
         {
             label: 'Admin home',
             icon: 'pi  pi-fw pi-prime',
-            to: '/home'
+            to: '/home',
         },
         {
             label: 'Home',
             icon: 'pi pi-fw pi-home',
-            to: '/homeusers'
+            to: '/homeusers',
         },
         {
             label: 'Tools',
@@ -101,16 +116,16 @@ const model = computed(() => {
             items: [
                 { label: 'Users', icon: 'pi pi-fw pi-users', to: '/uikit/Users' },
                 { label: 'Roles', icon: 'pi pi-fw pi-shield', to: '/uikit/Roles' },
-                { label: 'Regions', icon: 'pi pi-fw pi-globe', to: '/uikit/RegionList' }
-            ]
+                { label: 'Regions', icon: 'pi pi-fw pi-globe', to: '/uikit/RegionList' },
+            ],
         },
         {
             label: 'Servers',
             icon: 'pi pi-fw pi-server',
             items: [
                 { label: 'ServersDB', icon: 'pi pi-fw pi-database', to: '/uikit/ServersDB' },
-                { label: 'Agents', icon: 'pi pi-fw pi-cloud', to: '/uikit/Agents' }
-            ]
+                { label: 'Agents', icon: 'pi pi-fw pi-cloud', to: '/uikit/Agents' },
+            ],
         },
         {
             label: 'Logs',
@@ -119,8 +134,8 @@ const model = computed(() => {
                 { label: 'Find in a log file', icon: 'pi pi-fw pi-search-plus', to: '/uikit/FindLog' },
                 { label: 'Multi find logs', icon: 'pi pi-fw pi-search', to: '/uikit/FindLogTran' },
                 { label: 'Logs', icon: 'pi pi-fw pi-share-alt', to: '/uikit/LogTran' },
-                { label: 'Archive logs', icon: 'pi pi-fw pi-clock', to: '/uikit/ArchiveLog' }
-            ]
+                { label: 'Archive logs', icon: 'pi pi-fw pi-clock', to: '/uikit/ArchiveLog' },
+            ],
         },
         {
         label: 'DataBase',
@@ -137,8 +152,7 @@ const model = computed(() => {
             { label: 'Jobs Failed', icon: 'pi pi-fw pi-times-circle', to: '/uikit/JobsFailed' }
         ]
     },
-
-        {
+    {
             label: 'Audit',
             icon: 'pi pi-fw pi-chart-line',
             items: [
@@ -152,8 +166,7 @@ const model = computed(() => {
             id: 'support',
             class: 'menu-support',
             to: jiraAccessTokenExists.value ? '/uikit/Support' : null // Ruta condicional
-        }
-        
+        },
     ];
 
     // Filtrar las secciones según el rol
@@ -165,6 +178,7 @@ const model = computed(() => {
           );
 });
 </script>
+
 
 
 <style lang="scss" scoped>

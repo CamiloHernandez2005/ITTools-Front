@@ -37,7 +37,7 @@ export default {
         const rowsPerPage = ref(5);
 
         const breadcrumbItems = ref([
-            { label: 'Home', icon: 'pi pi-home', url: '/' },
+            { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
             { label: 'Database', icon: 'pi pi-database' },
             { label: 'Propierties', icon: 'pi pi-cog', route: { name: 'Propierties' } }
         ]);

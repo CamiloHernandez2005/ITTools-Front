@@ -98,7 +98,7 @@ export default {
 
             // Definición del breadcrumb
             home: {
-                label: 'Home', icon: 'pi pi-home', url: '/'
+                label: 'Home', icon: 'pi pi-home', url: '/homeusers'
             },
             items: [
                 {

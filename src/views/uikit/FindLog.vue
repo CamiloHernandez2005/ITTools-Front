@@ -30,7 +30,7 @@ export default {
     setup() {
         const toast = useToast(); // Inicializar el sistema de toast
         const breadcrumbItems = ref([
-            { label: 'Home', icon: 'pi pi-home', url: '/' },
+            { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
             { label: 'Logs', icon: 'pi pi-folder' },
             { label: 'Find in a log file', icon: 'pi pi-search-plus', route: { name: 'FindLog' } }
         ]);

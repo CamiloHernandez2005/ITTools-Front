@@ -104,6 +104,8 @@ export const authService = {
     }
 },
 
+
+
     handleAuthCode() {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
@@ -183,4 +185,6 @@ export const registerUser = async (userData) => {
         const message = error.message || 'Registration failed';
         throw new Error(message);
     }
+
+    
 };

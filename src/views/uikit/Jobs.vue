@@ -58,7 +58,7 @@ export default {
         });
 
         const breadcrumbItems = ref([
-            { label: 'Home', icon: 'pi pi-home', url: '/' },
+            { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
             { label: 'Database', icon: 'pi pi-database' },
             { label: 'Jobs', icon: 'pi pi-briefcase', route: { name: 'Jobs' } }
         ]);
