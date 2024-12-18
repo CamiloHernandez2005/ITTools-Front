@@ -9,7 +9,8 @@ import Dropdown from 'primevue/dropdown';
 import MultiSelect from 'primevue/multiselect'; // Importar MultiSelect
 import ProgressSpinner from 'primevue/progressspinner';
 import { onMounted, ref, watch, computed } from 'vue';
-
+import { getCurrentInstance } from 'vue';
+import HelpTooltip from '@/components/Alertas.vue'
 
 
 export default {
@@ -20,7 +21,8 @@ export default {
         DataTable,
         Column,
         ProgressSpinner,
-        MultiSelect
+        MultiSelect,
+        HelpTooltip
     },
     data() {
         return {
@@ -57,6 +59,8 @@ export default {
         const isLoading = ref(false); // Nueva propiedad para controlar el diálogo de carga
         const rowsPerPage = ref(10);
 
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
 
         const filterRunning = ref({
             databaseName: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -205,7 +209,8 @@ export default {
             clearFilter,
             columnsToShow,
             columnOptions,
-            selectedColumns
+            selectedColumns,
+            showHelp
         };
     }
 };
@@ -226,7 +231,10 @@ export default {
             <div class="mb-6 ml-6 flex items-start gap-4">
                 <!-- Sección de Región -->
                 <div class="w-1/6">
+                    <div class="tooltip-wrapper">
+                        <HelpTooltip :message="'Select the region where the server is located'" :visible="showHelp" />
                     <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                    </div>
                     <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
                         option-value="id" placeholder="Select region" class="w-full mb-4" filter
                         filterPlaceholder="Search region" />
@@ -234,7 +242,11 @@ export default {
 
                 <!-- Sección de ServersDB (alineada a la derecha de Region) -->
                 <div class="flex-grow">
+                    <div class="tooltip-wrapper">
+                    <HelpTooltip :message="'Select the server where the database is located'" :visible="showHelp" />
                     <label class="block text-sm font-medium mb-2">ServersDB</label>
+                    </div>
+            
                     <div class="flex flex-col gap-2">
                         <div v-for="server in filteredDB" :key="server.idServer" class="flex items-center">
                             <div class="flex items-center gap-2 radio-margin">
@@ -258,10 +270,11 @@ export default {
         <!-- Lista de procesos en ejecución -->
         <div class="w-full card p-4 flex flex-col gap-4 shadow-custom border">
             <!-- Selector de columnas -->
-
+            <div class="tooltip-wrapper">
+                <HelpTooltip :message="'This table brings information about the active queries that are running on a specific server.'" :visible="showHelp" />
             <!-- Título de la tabla -->
             <h2 class="font-semibold text-xl mb-2">Running processes</h2>
-
+             </div>
             <!-- DataTable -->
             <DataTable :value="runningProcesses" class="p-datatable-sm" :paginator="true" :rows="5"
                 :rowsPerPageOptions="[5, 10, 20]" :rowHover="true" v-model:filters="filterRunning" filterDisplay="menu"
@@ -271,8 +284,11 @@ export default {
                          <!-- Selector de Columnas -->
                         <div class="column-selector flex items-center">
                             <label for="column-select" class="mr-2">Select columns:</label>
+                            <div class="tooltip-wrapper">
+                                <HelpTooltip :message="'Select the columns you want to view'" :visible="showHelp" />
                             <MultiSelect v-model="selectedColumns" :options="columnOptions" optionLabel="header"
                                 optionValue="field" display="chip" placeholder="Select columns" />
+                                </div>
                         </div>
                         <!-- Búsqueda Global y Botón -->
                         <div class="flex items-center gap-2">
@@ -308,9 +324,15 @@ export default {
 
             <!-- Botones de acción -->
             <div class="flex justify-end gap-2">
+                <div class="tooltip-wrapper">
+                    <HelpTooltip :message="'rerun query'" :visible="showHelp" />
                 <Button label="Load processes" icon="pi pi-refresh" @click="loadProcesses" id="boton1" />
+                </div>
+                <div class="tooltip-wrapper">
+                    <HelpTooltip :message="'button to cancel the query'" :visible="showHelp" />
                 <Button label="Kill process" icon="pi pi-times" @click.prevent="killProcess(selectedProcessSPID)"
                     id="boton2" />
+                    </div>
             </div>
         </div>
 

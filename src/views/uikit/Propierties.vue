@@ -11,6 +11,8 @@ import Dropdown from 'primevue/dropdown';
 import ProgressSpinner from 'primevue/progressspinner';
 import RadioButton from 'primevue/radiobutton';
 import { onMounted, ref, watch } from 'vue';
+import { getCurrentInstance } from 'vue';
+import HelpTooltip from '@/components/Alertas.vue'
 
 export default {
     components: {
@@ -22,7 +24,9 @@ export default {
         Button,
         Dialog,
         ProgressSpinner,
-        Breadcrumb
+        Breadcrumb,
+        HelpTooltip
+
     },
     setup() {
         const regions = ref([]);
@@ -35,7 +39,8 @@ export default {
         const selectedServerDB = ref(null);
         const selectedDatabase = ref(null);
         const rowsPerPage = ref(5);
-
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
         const breadcrumbItems = ref([
             { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
             { label: 'Database', icon: 'pi pi-database' },
@@ -170,7 +175,8 @@ export default {
             loadProperties,
             breadcrumbItems,
             filtersProperties,
-            clearFilter
+            clearFilter,
+            showHelp
         };
     },
 };
@@ -196,7 +202,10 @@ export default {
 
                     <!-- Región (a la izquierda) -->
                     <div class="w-1/2">
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the region where the server is located'" :visible="showHelp" />
                         <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                        </div>
                         <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
                             option-value="id" placeholder="Select region" class="w-full" filter
                             filterPlaceholder="Search region" style="width: 100%;" />
@@ -204,7 +213,10 @@ export default {
 
                     <!-- ServersDB (a la derecha) -->
                     <div class="w-1/2">
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the server where the database is located'" :visible="showHelp" />
                         <label class="block text-sm font-medium mb-2">ServersDB</label>
+                        </div>
                         <div class="flex flex-col gap-2">
                             <div v-for="server in filteredServers" :key="server.idServer" class="flex items-center">
                                 <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server"
@@ -226,13 +238,19 @@ export default {
 
             <!-- Panel de selección de base de datos -->
             <div class="w-1/2 card p-4 flex-1 h-full shadow-custom border">
+                <div class="tooltip-wrapper">
+                    <HelpTooltip :message="'List all databases available on a server'" :visible="showHelp" />
                 <h2 class="font-semibold text-xl">Database</h2>
+                </div>
                 <br>
                 <div class="flex flex-col gap-2">
                     <div class="flex items-center gap-4">
                         <Dropdown v-model="selectedDatabase" :options="databases" optionLabel="name" optionValue="name"
                             placeholder="Select a database" class="w-3/4" style="width: 40%;" />
+                            <div class="tooltip-wrapper">
+                                <HelpTooltip :message="'Select a database and click'" :visible="showHelp" />
                         <Button @click="loadProperties" id="boton1" label="View properties" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -241,7 +259,10 @@ export default {
 
         <!-- Tabla de propiedades -->
         <div class="w-full card p-4 flex flex-col  shadow-custom border">
+            <div class="tooltip-wrapper">
+                <HelpTooltip :message="'This table shows the specific properties of a database'" :visible="showHelp" />
             <h2 class="font-semibold text-xl mb-2">Properties</h2>
+            </div>
             <DataTable :value="properties" class="p-datatable-sm" :paginator="true" :rows="rowsPerPage"
                 :rowsPerPageOptions="[5, 10, 20]" :totalRecords="properties.length" :rowHover="true"
                 v-model:filters="filtersProperties" filterDisplay="menu"

@@ -14,7 +14,8 @@ import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
 import { useToast } from 'primevue/usetoast'; // Importar useToast
 import SnakeGame from '@/views/uikit/snakeGame.vue';
-
+import HelpTooltip from '@/components/Alertas.vue'
+import { getCurrentInstance } from 'vue';
 export default {
     components: {
         Dropdown,
@@ -25,7 +26,8 @@ export default {
         Dialog,
         ProgressSpinner,
         Breadcrumb,
-        SnakeGame
+        SnakeGame,
+        HelpTooltip
     },
     setup() {
         const toast = useToast(); // Inicializar toast
@@ -301,7 +303,8 @@ export default {
                 showAdditionalMessage5.value = false;
             }
         }
-
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
         onMounted(() => {
             loadRegions();
             loadAgents();
@@ -335,7 +338,8 @@ export default {
             showAdditionalMessage2,
             showAdditionalMessage3,
             showAdditionalMessage4,
-            showAdditionalMessage5
+            showAdditionalMessage5,
+            showHelp
         };
     }
 };
@@ -353,44 +357,63 @@ export default {
         </div>
         <div class="flex gap-6">
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-              
-                    <div class="font-semibold text-xl">Region details</div>
 
-                    <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <div class="flex-1">
+                <div class="font-semibold text-xl">Region details</div>
+
+                <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the region where the server is located'"
+                                :visible="showHelp" />
                             <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search region" />
-
-                            <label for="transaction-date" class="block text-sm font-medium mb-2 mt-4">Transaction date</label>
-                            <Calendar id="transaction-date" v-model="transactionDate" dateFormat="mm/dd/yy" placeholder="Select date" class="w-full" />
                         </div>
+                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                            option-value="id" placeholder="Select region" class="w-full" filter
+                            filterPlaceholder="Search region" />
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the date corresponding to the logs'" :visible="showHelp" />
+                            <label for="transaction-date" class="block text-sm font-medium mb-2 mt-4">Transaction
+                                date</label>
+                        </div>
+                        <Calendar id="transaction-date" v-model="transactionDate" dateFormat="mm/dd/yy"
+                            placeholder="Select date" class="w-full" />
+                    </div>
 
-                        <div class="flex-1">
+                    <div class="flex-1">
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the server where the logs are located'"
+                                :visible="showHelp" />
                             <label class="block text-sm font-medium mb-2">Agents</label>
-                            <div class="flex flex-col gap-2 ml-2">
-                                <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
-                                    <div class="flex items-center gap-2 checkbox-margin">
-                                        <Checkbox v-model="selectedAgents" :value="agent.idAgent" />
-                                        <span class="text-sm">{{ agent.agentName }}</span>
-                                        <span class="text-sm">||</span>
-                                        <span class="text-sm">{{ agent.ipagent }}</span>
-                                    </div>
+                        </div>
+                        <div class="flex flex-col gap-2 ml-2">
+                            <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
+                                <div class="flex items-center gap-2 checkbox-margin">
+                                    <Checkbox v-model="selectedAgents" :value="agent.idAgent" />
+                                    <span class="text-sm">{{ agent.agentName }}</span>
+                                    <span class="text-sm">||</span>
+                                    <span class="text-sm">{{ agent.ipagent }}</span>
                                 </div>
-                                <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500 mt-1 ml-2">No agents found for the selected region</div>
                             </div>
+                            <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500 mt-1 ml-2">No agents
+                                found for the selected region</div>
                         </div>
                     </div>
-              
+                </div>
+
             </div>
 
-            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border"  >
+            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
                 <div class="font-semibold text-xl  ">Transaction details</div>
 
                 <div class="flex items-center">
                     <!-- Contenedor para el input y label -->
-                    <label for="transaction-id" class="block text-sm font-medium mb-0 mr-4">Transaction ID</label>
-                    <InputText id="transaction-id" v-model="transactionId" type="text" class="border input-with-line " placeholder="Enter transaction ID" />
+                    <div class="tooltip-wrapper">
+                        <HelpTooltip :message="'Enter the transaction id from the log'" :visible="showHelp" />
+                        <label for="transaction-id" class="block text-sm font-medium mb-0 mr-4">Transaction ID</label>
+                    </div>
+                    <InputText id="transaction-id" v-model="transactionId" type="text" class="border input-with-line "
+                        placeholder="Enter transaction ID" />
                     <!-- Ajuste del tamaño -->
                 </div>
 
@@ -401,7 +424,8 @@ export default {
             </div>
         </div>
 
-        <Dialog v-model:visible="isDialogVisible" header="Transaction logs" modal :style="{ 'max-width': '80vw', width: 'auto' }">
+        <Dialog v-model:visible="isDialogVisible" header="Transaction logs" modal
+            :style="{ 'max-width': '80vw', width: 'auto' }">
             <template #footer>
                 <div class="flex mt-2 justify-between items-center w-full">
                     <div class="flex items-center">
@@ -409,7 +433,8 @@ export default {
                         <span>For more information, please download the logs.</span>
                     </div>
                     <div class="flex">
-                        <Button label="Download logs" icon="pi pi-download" id="create-button" @click="downloadLogs" class="mr-2 ml-4" />
+                        <Button label="Download logs" icon="pi pi-download" id="create-button" @click="downloadLogs"
+                            class="mr-2 ml-4" />
                         <Button label="Close" id="close-button" @click="isDialogVisible = false" />
                     </div>
                 </div>
@@ -422,16 +447,19 @@ export default {
                         <li v-for="(log, logIndex) in agentGroup" :key="logIndex">
                             <div class="font-bold flex items-center log-header mt-2 mb-2">
                                 <!-- Icon for collapsing and expanding logs -->
-                                <span class="cursor-pointer mr-2" style="margin-top: 4px" @click="toggleLogVisibility(agentName, logIndex)">
+                                <span class="cursor-pointer mr-2" style="margin-top: 4px"
+                                    @click="toggleLogVisibility(agentName, logIndex)">
                                     <span v-if="isLogVisible(agentName, logIndex)" class="pi pi-minus text-sm"></span>
                                     <span v-else class="pi pi-plus text-sm"></span>
                                 </span>
                                 <!-- Clickable filename to toggle logs -->
-                                <span class="font-bold cursor-pointer" @click="toggleLogVisibility(agentName, logIndex)">
+                                <span class="font-bold cursor-pointer"
+                                    @click="toggleLogVisibility(agentName, logIndex)">
                                     {{ log.filename }}
                                 </span>
                                 <!-- Botón de descarga individual -->
-                                <Button label="Download" icon="pi pi-download" @click="downloadSingleLog(log)" class="p-button-sm ml-2" id="create-button" />
+                                <Button label="Download" icon="pi pi-download" @click="downloadSingleLog(log)"
+                                    class="p-button-sm ml-2" id="create-button" />
                             </div>
                             <ul v-show="isLogVisible(agentName, logIndex)">
                                 <li v-for="(message, messageIndex) in log.logs" :key="messageIndex" class="mb-2 ml-3">
@@ -449,45 +477,58 @@ export default {
         </Dialog>
 
         <!-- Loading Modal -->
-        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
+        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false"
+            style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
             <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
                 <p class="mt-4">Searching for transaction...</p>
             </div>
         </Dialog>
 
-      
-       <!-- Modal de carga -->
- <Dialog v-model:visible="isDowload" header="Dowloading..." modal :dismissableMask="false" :closable="false"  :style="{ 'max-width': '80vw', width: '40vw' }"  >
-        
-        <div class="flex w-full h-full justify-center items-center">
-            
-            <!-- Sección izquierda para el juego Snake -->
-            <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
-                <SnakeGame />
-            </div>
 
-            <!-- Sección derecha para el Progress Spinner y mensajes -->
-            <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
-                <ProgressSpinner />
-                <p class="mt-4">Downloading logs...</p>
+        <!-- Modal de carga -->
+        <Dialog v-model:visible="isDowload" header="Dowloading..." modal :dismissableMask="false" :closable="false"
+            :style="{ 'max-width': '80vw', width: '40vw' }">
 
-                <!-- Mensajes adicionales que aparecen en intervalos -->
-                <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
-                <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
-                <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
-                <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
-                <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
+            <div class="flex w-full h-full justify-center items-center">
+
+                <!-- Sección izquierda para el juego Snake -->
+                <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
+                    <SnakeGame />
+                </div>
+
+                <!-- Sección derecha para el Progress Spinner y mensajes -->
+                <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
+                    <ProgressSpinner />
+                    <p class="mt-4">Downloading logs...</p>
+
+                    <!-- Mensajes adicionales que aparecen en intervalos -->
+                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your
+                        download is
+                        being processed...</p>
+                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some
+                        water, your
+                        body will thank you!</p>
+                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working
+                        on your
+                        file...</p>
+                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only
+                        take a
+                        moment longer.</p>
+                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you
+                        for
+                        your patience.</p>
+                </div>
             </div>
-        </div>
-    </Dialog>
+        </Dialog>
 
 
 
         <div class="mt-4 ml-4">
             <div class="flex items-center">
                 <i class="pi pi-info-circle mr-2"></i>
-                <span>In this module you can search for a transaction on several agents, this may take some time..</span>
+                <span>In this module you can search for a transaction on several agents, this may take some
+                    time..</span>
             </div>
         </div>
     </div>
@@ -536,22 +577,32 @@ export default {
 
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Opcional: redondear bordes */
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
 }
 
 .log-header {
     background-color: #614d56;
     color: #fff;
-    padding: 5px; /* Espaciado interno */
-    position: sticky; /* Mantener el encabezado sticky */
-    top: 0; /* Pegado a la parte superior */
+    padding: 5px;
+    /* Espaciado interno */
+    position: sticky;
+    /* Mantener el encabezado sticky */
+    top: 0;
+    /* Pegado a la parte superior */
 }
+
 .input-with-line {
     border: none;
-    border-bottom: 1px solid #d1d5db; /* Línea de color gris claro */
-    padding: 0.5rem 0.4rem; /* Ajustar el padding vertical */
-    background: transparent; /* Fondo transparente */
-    outline: none; /* Eliminar el borde de enfoque predeterminado */
-    box-shadow: none; /* Eliminar la sombra del campo de entrada */
+    border-bottom: 1px solid #d1d5db;
+    /* Línea de color gris claro */
+    padding: 0.5rem 0.4rem;
+    /* Ajustar el padding vertical */
+    background: transparent;
+    /* Fondo transparente */
+    outline: none;
+    /* Eliminar el borde de enfoque predeterminado */
+    box-shadow: none;
+    /* Eliminar la sombra del campo de entrada */
 }
 </style>

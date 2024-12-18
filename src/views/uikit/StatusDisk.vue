@@ -185,11 +185,11 @@ export default {
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
                         <!-- Botón para descargar en Excel -->
-                        <Button class="p-button-success  icon-button" @click="exportToExcel" title="Exportar a Excel"
-                            icon="pi pi-file-excel" label="Excel" />
+                        <Button class="p-button-success  icon-button2" @click="exportToExcel" 
+                            icon="pi pi-file-excel"  />
                         <!-- Botón para descargar en PDF -->
-                        <Button class="p-button-danger icon-button" @click="PDF" title="Exportar a PDF"
-                            icon="pi pi-file-pdf" label="PDF" />
+                        <Button class="p-button-danger icon-button" @click="PDF" 
+                            icon="pi pi-file-pdf"  />
                     </div>
 
 
@@ -263,5 +263,21 @@ export default {
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
+}
+.icon-button {
+    background-color: white !important; /* Fondo blanco */
+    border: 1px solid red !important; /* Borde rojo */
+}
+
+.icon-button .p-button-icon {
+    color: red !important; /* Color del ícono rojo */
+}
+.icon-button2 {
+    background-color: white !important; /* Fondo blanco */
+    border: 1px solid rgb(10, 177, 10) !important; /* Borde rojo */
+}
+
+.icon-button2 .p-button-icon {
+    color: rgb(8, 168, 8) !important; /* Color del ícono rojo */
 }
 </style>

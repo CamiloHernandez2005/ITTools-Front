@@ -12,7 +12,8 @@ import { serverService } from '@/services/AgentService';
 import Checkbox from 'primevue/checkbox'; // Asegúrate de importar Checkbox
 import { useToast } from 'primevue/usetoast'; // Importar useToast para las notificaciones
 import SnakeGame from '@/views/uikit/snakeGame.vue';
-
+import HelpTooltip from '@/components/Alertas.vue'
+import { getCurrentInstance } from 'vue';
 export default {
     components: {
         Dropdown,
@@ -22,7 +23,8 @@ export default {
         ProgressSpinner,
         Dialog,
         Checkbox,// Registra el componente Checkbox
-        SnakeGame
+        SnakeGame,
+        HelpTooltip
     },
     setup() {
         const toast = useToast(); // Inicializar el sistema de toast
@@ -46,6 +48,9 @@ export default {
         const showAdditionalMessage3 = ref(false);
         const showAdditionalMessage4 = ref(false);
         const showAdditionalMessage5 = ref(false);
+
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
 
         const showSuccess = (message) => {
             toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
@@ -200,6 +205,7 @@ export default {
             showAdditionalMessage3,
             showAdditionalMessage4,
             showAdditionalMessage5,
+            showHelp
         };
     }
 };
@@ -218,39 +224,49 @@ export default {
         <div class="flex gap-6">
             <!-- Div for the first half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col h-full shadow-custom border">
-            
-                    <div class="font-semibold text-xl mb-4">Region details</div>
 
-                    <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <div class="flex-1">
+                <div class="font-semibold text-xl mb-4">Region details</div>
+
+                <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the region where the server is located'"
+                                :visible="showHelp" />
                             <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
-                                option-value="id" placeholder="Select region" class="w-full" filter
-                                filterPlaceholder="Search region" />
-
+                        </div>
+                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                            option-value="id" placeholder="Select region" class="w-full" filter
+                            filterPlaceholder="Search region" />
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the date corresponding to the logs'" :visible="showHelp" />
                             <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transaction
                                 date</label>
-                            <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
                         </div>
+                        <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
+                    </div>
 
-                        <div class="flex-1">
+                    <div class="flex-1">
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the server where the logs are located'"
+                                :visible="showHelp" />
                             <label class="block text-sm font-medium mb-3">Agents</label>
-                            <div class="flex flex-col gap-2 ml-4">
-                                <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
-                                    <div class="flex items-center gap-2 radio-margin">
-                                        <RadioButton v-model="selectedAgent" :value="agent.idAgent" name="agent" />
-                                        <span class="text-sm">{{ agent.agentName }}</span>
-                                        <span class="text-sm">||</span>
-                                        <span class="text-sm">{{ agent.ipagent }}</span>
-                                    </div>
+                        </div>
+                        <div class="flex flex-col gap-2 ml-4">
+                            <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
+                                <div class="flex items-center gap-2 radio-margin">
+                                    <RadioButton v-model="selectedAgent" :value="agent.idAgent" name="agent" />
+                                    <span class="text-sm">{{ agent.agentName }}</span>
+                                    <span class="text-sm">||</span>
+                                    <span class="text-sm">{{ agent.ipagent }}</span>
                                 </div>
-                                <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500 ">No agents found
-                                    for the selected region</div>
                             </div>
+                            <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500 ">No agents found
+                                for the selected region</div>
                         </div>
                     </div>
-             
+                </div>
+
             </div>
 
 

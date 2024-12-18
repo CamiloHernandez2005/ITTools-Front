@@ -13,6 +13,8 @@ import { FilterMatchMode } from '@primevue/core/api';
 import dayjs from 'dayjs';
 import InputText from 'primevue/inputtext';
 import { resolveFieldData } from '@primevue/core';
+import { getCurrentInstance } from 'vue';
+import HelpTooltip from '@/components/Alertas.vue'
 
 export default {
     components: {
@@ -24,7 +26,8 @@ export default {
         Column,
         Breadcrumb,
         ProgressSpinner,
-        InputText
+        InputText,
+        HelpTooltip
     },
     setup() {
         const regions = ref([]);
@@ -38,7 +41,8 @@ export default {
         const selectedJob = ref({}); // Para almacenar el trabajo seleccionado
 
         // Dentro del setup() de tu componente
-
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
         // Computed property para filtrar trabajos programados
         const filtersScheduledJobs = ref({
             jobName: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -49,7 +53,7 @@ export default {
             global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 
 
-        }); 
+        });
 
         const filtersRunningJobs = ref({
             jobName: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -172,7 +176,8 @@ export default {
             formatDateTime,
             filtersScheduledJobs,
             filtersRunningJobs,
-            clearFilter
+            clearFilter,
+            showHelp
 
         };
     }
@@ -193,7 +198,10 @@ export default {
             <div class="mb-6 ml-6 flex items-start gap-4">
                 <!-- Sección de Región -->
                 <div class="w-1/6">
-                    <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                    <div class="tooltip-wrapper">
+                        <HelpTooltip :message="'Select the region where the server is located'" :visible="showHelp" />
+                        <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                    </div>
                     <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
                         option-value="id" placeholder="Select region" class="w-full mb-4" filter
                         filterPlaceholder="Search region" />
@@ -201,7 +209,10 @@ export default {
 
                 <!-- Sección de ServersDB (alineada a la derecha de Region) -->
                 <div class="flex-grow">
-                    <label class="block text-sm font-medium mb-2">ServersDB</label>
+                    <div class="tooltip-wrapper">
+                        <HelpTooltip :message="'Select the server where the database is located'" :visible="showHelp" />
+                        <label class="block text-sm font-medium mb-2">ServersDB</label>
+                    </div>
                     <div class="flex flex-col gap-2">
                         <div v-for="server in filteredDB" :key="server.idServer" class="flex items-center">
                             <div class="flex items-center gap-2 radio-margin">
@@ -213,7 +224,8 @@ export default {
                                 <span class="text-sm">{{ server.description }}</span>
                             </div>
                         </div>
-                        <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for the
+                        <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for
+                            the
                             selected region</div>
                     </div>
                 </div>
@@ -226,7 +238,12 @@ export default {
         <div class="flex gap-6 mb-2">
 
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-2 h-full shadow-custom border">
-                <h2 class="font-semibold text-lg ">Scheduled jobs</h2>
+                <div class="tooltip-wrapper">
+                    <HelpTooltip
+                        :message="'This table gets a list of scheduled jobs on a server that start with the prefix maintenance'"
+                        :visible="showHelp" />
+                    <h2 class="font-semibold text-lg ">Scheduled jobs</h2>
+                </div>
                 <DataTable :value="scheduledJobs" :filters="filtersScheduledJobs" filterDisplay="menu"
                     class="p-datatable-sm" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]"
                     :totalRecords="scheduledJobs.length" :rowHover="true" v-model:filters="filtersScheduledJobs"
@@ -256,7 +273,8 @@ export default {
                             {{ formatDateTime(slotProps.data.scheduledDate) }}
                         </template>
                         <template #filter="{ filterModel }">
-                            <InputText v-model="filterModel.value" type="text" placeholder="Search by scheduled date " />
+                            <InputText v-model="filterModel.value" type="text"
+                                placeholder="Search by scheduled date " />
                         </template>
                     </Column>
                     <Column field="startDate" header="Start date" :showFilterMatchModes="false" sortable>
@@ -291,8 +309,10 @@ export default {
             </div>
             <!-- Div para mostrar trabajos en ejecución -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-2 h-full shadow-custom border">
-
-                <h2 class="font-semibold text-lg ">Running jobs</h2>
+                <div class="tooltip-wrapper">
+                    <HelpTooltip :message="'This table gets a list of running jobs'" :visible="showHelp" />
+                    <h2 class="font-semibold text-lg ">Running jobs</h2>
+                </div>
                 <DataTable :value="runningJobs" :filters="filtersRunningJobs" filterDisplay="menu"
                     class="p-datatable-sm" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]"
                     :totalRecords="runningJobs.length" :rowHover="true"
@@ -344,8 +364,10 @@ export default {
 
         </div>
 
-
-        <Button label="Refresh" id="Boton1" icon="pi pi-sync" @click="loadJobs" />
+        <div class="tooltip-wrapper">
+            <HelpTooltip :message="'rerun queries'" :visible="showHelp" />
+            <Button label="Refresh" id="Boton1" icon="pi pi-sync" @click="loadJobs" />
+        </div>
         <!-- Modal para mostrar detalles adicionales -->
         <Dialog v-model:visible.sync="modalVisible">
             <template #footer>

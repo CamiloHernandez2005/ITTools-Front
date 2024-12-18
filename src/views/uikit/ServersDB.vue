@@ -12,6 +12,8 @@ import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import FloatLabel from 'primevue/floatlabel';
 import Breadcrumb from 'primevue/breadcrumb';
+import { getCurrentInstance } from 'vue';
+import HelpTooltip from '@/components/Alertas.vue'
 
 export default {
     components: {
@@ -22,11 +24,15 @@ export default {
         Column,
         Dialog,
         FloatLabel,
-        Breadcrumb
+        Breadcrumb,
+        HelpTooltip
     },
     setup() {
         const toast = useToast();
         const error = ref('');
+
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
 
         const showSuccess = (detail) => {
             toast.add({ severity: 'success', summary: 'Success', detail, life: 3000 });
@@ -40,7 +46,8 @@ export default {
             toast,
             showSuccess,
             showError,
-            error
+            error,
+            showHelp
         };
     },
     data() {
@@ -50,14 +57,16 @@ export default {
                 description: null,
                 ipServer: null,
                 portServer: null,
-                ipServerSecondary: null,
+                
                 instance: null,
                 serverDB: null,
                 userLogin: null,
                 password: null,
                 repeatPassword: null,
                 recyclingDB: null,
-                regionId: null
+                regionId: null,
+                logShipping: null,
+                serverType: null
             },
             regions: [],
             servers: [],
@@ -68,6 +77,14 @@ export default {
             isActivating: false,
             isShowDialogVisible: false,
             displayDeleteConfirmation: false,
+            serverTypeOptions: [
+                { label: "Master", value: 1 },
+                { label: "Slave", value: 0 },
+            ],
+            logShippingOptions: [
+                { label: "LogShipping", value: 1 },
+                { label: "Always On", value: 0 },
+            ],
             selectedServer: null,
             filters: {
                 global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -83,13 +100,16 @@ export default {
                 description: '',
                 ipServer: '',
                 portServer: '',
-                ipServerSecondary: '',
+                
                 instance: '',
                 serverDB: '',
                 userLogin: '',
                 password: '',
                 repeatPassword: '',
                 recyclingDB: '',
+                logShipping: '',
+                serverType: '',
+
                 regionId: null
             },
             showCreateModal: false,
@@ -161,11 +181,13 @@ export default {
                     ipServer: this.server.ipServer,
                     portServer: this.server.portServer,
                     recyclingDB: this.server.recyclingDB,
-                    ipServerSecondary: this.server.ipServerSecondary,
+                
                     instance: this.server.instance,
                     serverDB: this.server.serverDB,
                     userLogin: this.server.userLogin,
                     password: this.server.password,
+                    logShipping: this.server.logShipping,
+                    serverType: this.server.serverType,
                     regionId: this.server.regionId ? Number(this.server.regionId) : null
                 };
                 await serverService.createServer(serverData);
@@ -209,7 +231,7 @@ export default {
                 console.error('Error toggling server status:', error);
                 this.showError('Failed to change status');
             }
-        },
+        }, 
         clearFilter() {
             // Limpiar el filtro global
             this.filters.global.value = null;
@@ -231,7 +253,7 @@ export default {
 
         validateIP(ip) {
             const ipPattern = /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
-            return ipPattern.test(ip, ipServerSecondary);
+            return ipPattern.test(ip);
         },
         showServerDetails(server) {
             this.detailServerData = { ...server };
@@ -247,13 +269,15 @@ export default {
                 description: '',
                 ipServer: '',
                 portServer: '',
-                ipServerSecondary: '',
+             
                 instance: '',
                 serverDB: '',
                 userLogin: '',
                 password: '',
                 repeatPassword: '',
                 recyclingDB: '',
+                logShipping: '',
+                serverType: '',
                 regionId: null
             };
         },
@@ -332,15 +356,23 @@ export default {
                         <template #header>
                             <div class="flex justify-between">
                                 <div class="flex gap-2">
+
                                     <Button label="Create server DB" icon="pi pi-plus" id="create-button"
                                         @click="openCreateModal" />
-                                    <Button label="Filter all" icon="pi pi-filter" id="close-button"
-                                        @click="toggleFilter" />
+
+                                    <div class="tooltip-wrapper">
+                                        <HelpTooltip :message="'filter inactive serverDB'" :visible="showHelp" />
+                                        <Button label="Filter all" icon="pi pi-filter" id="close-button"
+                                            @click="toggleFilter" />
+                                    </div>
                                 </div>
                                 <div class="flex gap-2">
-                                    <InputText v-model="filters.global.value" placeholder="Global search" /> <Button
-                                        type="button" icon="pi pi-filter-slash" label="Clear" outlined
-                                        @click="clearFilter()" />
+                                    <InputText v-model="filters.global.value" placeholder="Global search" />
+                                    <div class="tooltip-wrapper">
+                                        <HelpTooltip :message="'Close all filters'" :visible="showHelp" />
+                                        <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined
+                                            @click="clearFilter()" />
+                                    </div>
                                 </div>
                             </div>
                         </template>
@@ -397,7 +429,14 @@ export default {
                                     1 ? 'Active' : 'Inactive' }}</span>
                             </template>
                         </Column>
-                        <Column header="Actions">
+                        <Column>
+                            <template #header>
+                                <div class="tooltip-wrapper1">
+                                    Actions
+                                    <HelpTooltip :message="'Edit section, disable and delete serverDB'"
+                                        :visible="showHelp" />
+                                </div>
+                            </template>
                             <template #body="{ data }">
                                 <Button icon="pi pi-eye" class="p-button-rounded p-button-success p-button-text"
                                     @click="showServerDetails(data)" />
@@ -418,8 +457,23 @@ export default {
         <!-- Sección de creación de servidor -->
         <div>
             <!-- Modal -->
-            <Dialog header="Create server" v-model:visible="showCreateModal" modal @hide="closeCreateModal"
+            <Dialog v-model:visible="showCreateModal" modal :closable="false" @hide="closeCreateModal"
                 style="width: 70vw; max-width: auto; height: auto; max-height: auto" class="custom-dialog">
+                <template #header>
+                    <div class="flex items-center justify-between w-full">
+                        <h3 class="text-xl font-semibold">Create Server</h3>
+                        <div class="flex items-center gap-4">
+                            <!-- Botón de ayuda -->
+                            <button @click="showHelp = !showHelp" class="help-button ">
+                                <i class="pi pi-question-circle "></i>
+                            </button>
+                            <!-- Botón de cerrar -->
+                            <button @click="closeCreateModal" class="close-button text-gray-500 hover:text-gray-700">
+                                <i class="pi pi-times text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                </template>
                 <form @submit.prevent="createServer">
                     <!-- Contenedor principal en grid -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -428,7 +482,10 @@ export default {
                             <div class="font-semibold text-lg mb-2">Network details</div>
                             <div class="flex flex-wrap gap-8">
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
+
+
                                     <label for="ipServer">IP server</label>
+
                                     <InputText id="ipServer" v-model="server.ipServer"
                                         class="p-inputtext-sm input-with-line" placeholder="Enter ip server" required />
                                 </div>
@@ -438,10 +495,18 @@ export default {
                                         class="p-inputtext-sm input-with-line" placeholder="Enter port server" />
                                 </div>
                                 <div class="flex flex-col grow basis-0 gap-2 w-full">
-                                    <label for="ipServerSecondary">IP server secondary</label>
-                                    <InputText id="ipServerSecondary" v-model="server.ipServerSecondary"
-                                        class="p-inputtext-sm input-with-line" placeholder="Enter IP sever Secondary" />
+                                    <label for="serverTypeDropdown">Server Type:</label>
+                                    <Dropdown id="serverTypeDropdown" v-model="server.serverType"
+                                        :options="serverTypeOptions" optionLabel="label" optionValue="value"
+                                        class="custom-dropdown p-dropdown-sm" />
                                 </div>
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="logShippingDropdown">Log Shipping or Always On:</label>
+                                    <Dropdown id="logShippingDropdown" v-model="server.logShipping"
+                                        :options="logShippingOptions" optionLabel="label" optionValue="value"
+                                        class="custom-dropdown p-dropdown-sm" />
+                                </div>
+
                             </div>
                         </div>
 
@@ -543,10 +608,18 @@ export default {
                                     class="p-inputtext-sm input-with-line" placeholder="Enter port server" />
                             </div>
                             <div class="flex flex-col grow basis-0 gap-2 w-full">
-                                <label for="ipServerSecondary">IP server secondary</label>
-                                <InputText id="ipServerSecondary" v-model="editServerData.ipServerSecondary"
-                                    class="p-inputtext-sm input-with-line" placeholder="Enter IP sever Secondary" />
-                            </div>
+                                    <label for="serverTypeDropdown">Server Type:</label>
+                                    <Dropdown id="serverTypeDropdown" v-model="editServerData.serverType"
+                                        :options="serverTypeOptions" optionLabel="label" optionValue="value"
+                                        class="custom-dropdown p-dropdown-sm" />
+                                </div>
+                                <div class="flex flex-col grow basis-0 gap-2 w-full">
+                                    <label for="logShippingDropdown">Log Shipping or Always On:</label>
+                                    <Dropdown id="logShippingDropdown" v-model="editServerData.logShipping"
+                                        :options="logShippingOptions" optionLabel="label" optionValue="value"
+                                        class="custom-dropdown p-dropdown-sm" />
+                                </div>
+                            
                         </div>
                     </div>
 
@@ -634,7 +707,7 @@ export default {
                 <p><strong>Server name:</strong> {{ detailServerData.serverName }}</p>
                 <p><strong>Description:</strong> {{ detailServerData.description }}</p>
                 <p><strong>IP server:</strong> {{ detailServerData.ipServer }}</p>
-                <p><strong>IP server secondary::</strong> {{ detailServerData.ipServerSecondary }}</p>
+               
                 <p><strong>Port server:</strong> {{ detailServerData.portServer }}</p>
                 <p><strong>Instance:</strong> {{ detailServerData.instance }}</p>
                 <p><strong>Database server:</strong> {{ detailServerData.serverDB }}</p>
@@ -790,3 +863,4 @@ export default {
     /* Opcional: redondear bordes */
 }
 </style>
+

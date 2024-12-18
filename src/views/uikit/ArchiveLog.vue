@@ -12,7 +12,8 @@ import { serverService } from '@/services/AgentService';
 import Checkbox from 'primevue/checkbox'; // Asegúrate de importar Checkbox
 import { useToast } from 'primevue/usetoast'; // Importar useToast para las notificaciones
 import SnakeGame from '@/views/uikit/snakeGame.vue';
-
+import HelpTooltip from '@/components/Alertas.vue'
+import { getCurrentInstance } from 'vue';
 
 export default {
     components: {
@@ -23,10 +24,15 @@ export default {
         ProgressSpinner,
         Dialog,
         Checkbox ,// Registra el componente Checkbox
-        SnakeGame
+        SnakeGame,
+        HelpTooltip
 
     },
     setup() {
+
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
+
         const toast = useToast(); // Inicializar el sistema de notificaciones toast
         const breadcrumbItems = ref([
             { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
@@ -201,7 +207,8 @@ export default {
             showAdditionalMessage5,
             errorMessage,
             isLoading,
-            breadcrumbItems
+            breadcrumbItems,
+            showHelp
         };
     }
 };
@@ -226,15 +233,25 @@ export default {
                     <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
                     <div class="flex flex-col md:flex-row gap-4">
                         <div class="flex-1">
+                            <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the region where the server is located'"
+                                :visible="showHelp" />
                             <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                            </div>
                             <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search region" />
-
+                            <div class="tooltip-wrapper">
+                                <HelpTooltip :message="'Select the date corresponding to the logs'" :visible="showHelp" />
                             <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transaction date</label>
+                            </div>
                             <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
                         </div>
 
                         <div class="flex-1">
+                            <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the server where the logs are located'"
+                                :visible="showHelp" />
                             <label class="block text-sm font-medium mb-3">Agents</label>
+                            </div>
                             <div class="flex flex-col gap-2 ml-4">
                                 <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
                                     <div class="flex items-center gap-2 radio-margin">

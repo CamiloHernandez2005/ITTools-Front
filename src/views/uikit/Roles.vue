@@ -9,6 +9,8 @@ import Breadcrumb from 'primevue/breadcrumb';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
+import { getCurrentInstance } from 'vue';
+import HelpTooltip from '@/components/Alertas.vue'
 
 export default {
     components: {
@@ -17,7 +19,8 @@ export default {
         DataTable,
         Column,
         Dialog,
-        Breadcrumb
+        Breadcrumb,
+        HelpTooltip
     },
     setup() {
         const toast = useToast();
@@ -30,12 +33,17 @@ export default {
         const showError = (detail) => {
             toast.add({ severity: 'error', summary: 'Error', detail, life: 3000 });
         };
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
+
 
         return {
             toast,
             showSuccess,
             showError,
-            error
+            error,
+            showHelp
+
         };
     },
     data() {
@@ -236,27 +244,37 @@ export default {
 
 
                 <div class="overflow-x-auto">
-                    <DataTable
-                        :value="filteredRoles"
-                        class="p-datatable-sm"
-                        :paginator="true"
-                        :rows="10"
-                        :rowsPerPageOptions="[5, 10, 20]"
-                        :totalRecords="filteredRoles.length"
-                        dataKey="id"
-                        :rowHover="true"
-                        v-model:filters="filters"
-                        filterDisplay="menu"
-                        :globalFilterFields="['authority', 'description']"
-                    >
+                    <DataTable :value="filteredRoles" class="p-datatable-sm" :paginator="true" :rows="10"
+                        :rowsPerPageOptions="[5, 10, 20]" :totalRecords="filteredRoles.length" dataKey="id"
+                        :rowHover="true" v-model:filters="filters" filterDisplay="menu"
+                        :globalFilterFields="['authority', 'description']">
 
-                    <template #header>
+                        <template #header>
                             <div class="flex justify-between">
                                 <div class="flex gap-2">
-                                    <Button label="Create role" icon="pi pi-plus" id="create-button" @click="openCreateRoleDialog" />
-                                    <Button label="Filter all" icon="pi pi-filter" id="close-button" @click="toggleFilter" />
+
+                                    <div class="tooltip-wrapper">
+
+                                        <Button label="Create role" icon="pi pi-plus" id="create-button"
+                                            @click="openCreateRoleDialog" />
+                                    </div>
+                                    <div class="tooltip-wrapper">
+
+                                        <HelpTooltip :message="'Filter inactive roles'" :visible="showHelp" />
+                                        <Button label="Filter all" icon="pi pi-filter" id="close-button"
+                                            @click="toggleFilter" />
+                                    </div>
                                 </div>
-                                <div class="flex gap-2"><InputText v-model="filters['global'].value" placeholder="Global search" /> <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" /></div>
+                                <div class="flex gap-2">
+
+                                    <InputText v-model="filters['global'].value" placeholder="Global search" />
+
+                                    <div class="tooltip-wrapper">
+                                        <HelpTooltip :message="'Close all filters'" :visible="showHelp" />
+                                        <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined
+                                            @click="clearFilter()" />
+                                    </div>
+                                </div>
                             </div>
                         </template>
 
@@ -268,7 +286,9 @@ export default {
                                 {{ data.authority }}
                             </template>
                             <template #filter="{ filterModel }">
+
                                 <InputText v-model="filterModel.value" type="text" placeholder="Search by name" />
+
                             </template>
                         </Column>
 
@@ -277,26 +297,38 @@ export default {
                                 {{ data.description }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by description" />
+                                <InputText v-model="filterModel.value" type="text"
+                                    placeholder="Search by description" />
                             </template>
                         </Column>
-                        
+
                         <Column field="status" header="Status" sortable>
                             <template #body="{ data }">
-                                <span :class="data.status ? 'text-green-500' : 'text-red-500'">{{ data.status ? 'Active' : 'Inactive' }}</span>
+                                <span :class="data.status ? 'text-green-500' : 'text-red-500'">{{ data.status ? 'Active'
+                                    : 'Inactive' }}</span>
                             </template>
                         </Column>
-                        <Column header="Actions">
+
+                        <Column>
+                            <template #header>
+                                <div class="tooltip-wrapper1">
+                                    Actions
+                                    <HelpTooltip :message="'Edit section, disable and delete roles'"
+                                        :visible="showHelp" />
+                                </div>
+                            </template>
+
                             <template #body="{ data }">
-                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text" @click="editRole(data)" />
-                                <Button
-                                    :icon="data.status ? 'pi pi-power-off' : 'pi pi-power-off'"
+                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text"
+                                    @click="editRole(data)" />
+                                <Button :icon="data.status ? 'pi pi-power-off' : 'pi pi-power-off'"
                                     :class="data.status ? 'p-button-rounded p-button-danger p-button-text' : 'p-button-rounded p-button-success p-button-text'"
-                                    @click="openConfirmation(data, !data.status)"
-                                />
-                                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text" @click="confirmDeleteRole(data.id)" />
+                                    @click="openConfirmation(data, !data.status)" />
+                                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text"
+                                    @click="confirmDeleteRole(data.id)" />
                             </template>
                         </Column>
+
                     </DataTable>
                 </div>
             </div>
@@ -309,11 +341,13 @@ export default {
                     <div class="flex flex-wrap gap-4">
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="nameCreate">Name</label>
-                            <InputText id="nameCreate" type="text" v-model="role.authority" class="p-inputtext-sm input-with-line" placeholder="Enter role name" required />
+                            <InputText id="nameCreate" type="text" v-model="role.authority"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter role name" required />
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="descriptionCreate">Description</label>
-                            <InputText id="descriptionCreate" type="text" v-model="role.description" class="p-inputtext-sm input-with-line" placeholder="Enter role description" required />
+                            <InputText id="descriptionCreate" type="text" v-model="role.description"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter role description" required />
                         </div>
                     </div>
                 </div>
@@ -330,11 +364,13 @@ export default {
                     <div class="flex flex-wrap gap-4">
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="nameEdit">Name</label>
-                            <InputText id="nameEdit" type="text" v-model="editRoleData.authority" class="p-inputtext-sm input-with-line" placeholder="Enter role name" required />
+                            <InputText id="nameEdit" type="text" v-model="editRoleData.authority"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter role name" required />
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="descriptionEdit">Description</label>
-                            <InputText id="descriptionEdit" type="text" v-model="editRoleData.description" class="p-inputtext-sm input-with-line" placeholder="Enter role description" required />
+                            <InputText id="descriptionEdit" type="text" v-model="editRoleData.description"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter role description" required />
                         </div>
                     </div>
                 </div>
@@ -349,7 +385,8 @@ export default {
             <p>Are you sure you want to delete this role?</p>
             <template #footer>
                 <div class="flex justify-end gap-2">
-                    <Button label="No" icon="pi pi-times" @click="closeDeleteConfirmation" class="p-button-text p-button-secondary" />
+                    <Button label="No" icon="pi pi-times" @click="closeDeleteConfirmation"
+                        class="p-button-text p-button-secondary" />
                     <Button label="Yes" icon="pi pi-check" @click="deleteRole" class="p-button-text p-button-danger" />
                 </div>
             </template>
@@ -359,8 +396,10 @@ export default {
             <p>Are you sure you want to proceed with this action?</p>
             <template #footer>
                 <div class="flex justify-end gap-2">
-                    <Button label="No" icon="pi pi-times" @click="closeConfirmation" class="p-button-text p-button-secondary" />
-                    <Button label="Yes" icon="pi pi-check" @click="changeRoleStatus" class="p-button-text p-button-danger" />
+                    <Button label="No" icon="pi pi-times" @click="closeConfirmation"
+                        class="p-button-text p-button-secondary" />
+                    <Button label="Yes" icon="pi pi-check" @click="changeRoleStatus"
+                        class="p-button-text p-button-danger" />
                 </div>
             </template>
         </Dialog>
@@ -411,8 +450,16 @@ export default {
     align-items: center;
     margin-top: -1rem;
 }
+
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Opcional: redondear bordes */
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
 }
+
+
+
+
+
+
 </style>

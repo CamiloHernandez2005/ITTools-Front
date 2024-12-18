@@ -13,7 +13,8 @@ import { regionService } from '@/services/RegionService';
 import { serverService } from '@/services/AgentService';
 import { useToast } from 'primevue/usetoast'; // Importar useToast para las notificacionesmport SnakeGame from '@/components/SnakeGame.vue';
 import SnakeGame from '@/views/uikit/snakeGame.vue';
-
+import HelpTooltip from '@/components/Alertas.vue'
+import { getCurrentInstance } from 'vue';
 
 export default {
     components: {
@@ -25,7 +26,8 @@ export default {
         Dialog,
         InputText,
         RadioButton, // Agregar el componente RadioButton
-        SnakeGame
+        SnakeGame,
+        HelpTooltip
     },
     setup() {
         const toast = useToast(); // Inicializar el sistema de toast
@@ -54,6 +56,9 @@ export default {
         const showResultsModal = ref(false); // Modal visibility
         const searchResults = ref([]); // Store search results
         const visibleLogs = ref([]);
+
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
 
 
         const showSuccess = (message) => {
@@ -364,6 +369,7 @@ export default {
             toggleLogVisibility,
             isLogVisible,
             downloadSingleLog,
+            showHelp
 
         };
     }
@@ -389,17 +395,29 @@ export default {
                 <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
                 <div class="flex flex-col md:flex-row gap-4">
                     <div class="flex-1">
-                        <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the region where the server is located'"
+                                :visible="showHelp" />
+                            <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                        </div>
+
                         <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
                             option-value="id" placeholder="Select region" class="w-full" filter
                             filterPlaceholder="Search region" />
-
-                        <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transation date</label>
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the date corresponding to the logs'" :visible="showHelp" />
+                            <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transation
+                                date</label>
+                        </div>
                         <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
                     </div>
 
                     <div class="flex-1">
-                        <label class="block text-sm font-medium mb-3">Agents</label>
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the server where the logs are located'"
+                                :visible="showHelp" />
+                            <label class="block text-sm font-medium mb-3">Agents</label>
+                        </div>
                         <div class="flex flex-col gap-2 ml-4">
                             <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
                                 <div class="flex items-center gap-2 radio-margin">
@@ -425,11 +443,15 @@ export default {
 
                 <div v-if="logs.length > 0" class="mb-2 ml-2">
                     <table class="w-full table-auto border-collapse border border-gray-200">
+
                         <thead>
+
                             <tr class="text-white" style="background-color: #614d56">
                                 <th class="text-left p-2">Log files</th>
                             </tr>
                         </thead>
+
+
                         <tbody>
                             <tr v-for="log in logs" :key="log" class="border-b border-gray-200">
                                 <td class="p-2">
@@ -447,10 +469,13 @@ export default {
 
                 <div class="mb-4 flex justify-end items-center">
                     <div class="flex items-center">
-                        <label for="transaction-id" class="block text-sm font-medium mb-0 mr-4">Transaction ID</label>
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Enter the transaction id from the log'" :visible="showHelp" />
+                            <label for="transaction-id" class="block text-sm font-medium mb-0 mr-4">Transaction
+                                ID</label>
+                        </div>
                         <InputText id="transaction-id" v-model="transactionId" type="text"
-                            class="border input-with-line "
-                            placeholder="Enter transaction ID" />
+                            class="border input-with-line " placeholder="Enter transaction ID" />
                     </div>
                 </div>
 
@@ -667,10 +692,15 @@ button {
 
 .input-with-line {
     border: none;
-    border-bottom: 1px solid #d1d5db; /* Línea de color gris claro */
-    padding: 0.5rem 0.4rem; /* Ajustar el padding vertical */
-    background: transparent; /* Fondo transparente */
-    outline: none; /* Eliminar el borde de enfoque predeterminado */
-    box-shadow: none; /* Eliminar la sombra del campo de entrada */
+    border-bottom: 1px solid #d1d5db;
+    /* Línea de color gris claro */
+    padding: 0.5rem 0.4rem;
+    /* Ajustar el padding vertical */
+    background: transparent;
+    /* Fondo transparente */
+    outline: none;
+    /* Eliminar el borde de enfoque predeterminado */
+    box-shadow: none;
+    /* Eliminar la sombra del campo de entrada */
 }
 </style>

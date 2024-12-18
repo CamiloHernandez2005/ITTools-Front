@@ -31,6 +31,8 @@ export default {
                 availabilityReplicaServerName: { value: null, matchMode: FilterMatchMode.CONTAINS },
                 availabilityDatabaseName: { value: null, matchMode: FilterMatchMode.CONTAINS },
                 replicaRole: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                availabilityMode: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                suspendReason: { value: null, matchMode: FilterMatchMode.CONTAINS },
                 synchronizationState: { value: null, matchMode: FilterMatchMode.CONTAINS },
                 lastRedoneTime: { value: null, matchMode: FilterMatchMode.BETWEEN },
                 lastSentTime: { value: null, matchMode: FilterMatchMode.BETWEEN },
@@ -100,6 +102,8 @@ export default {
                 { text: 'Availability Replica Server Name', style: 'tableHeader' },
                 { text: 'Availability Database Name', style: 'tableHeader' },
                 { text: 'Replica Role', style: 'tableHeader' },
+                { text: 'Availability Mode', style: 'tableHeader' },
+                { text: 'SuspendReason', style: 'tableHeader' },
                 { text: 'Synchronization State', style: 'tableHeader' },
                 { text: 'Last Redone Time', style: 'tableHeader' },
                 { text: 'Last Sent Time', style: 'tableHeader' },
@@ -111,6 +115,8 @@ export default {
                 backup.availabilityReplicaServerName || '-',
                 backup.availabilityDatabaseName || '-',
                 backup.replicaRole || '-',
+                backup.availabilityMode || '-',
+                backup.suspendReason || '-',
                 backup.synchronizationState || '-',
                 this.formatDateTime(backup.lastRedoneTime) || '-',
                 this.formatDateTime(backup.lastSentTime) || '-',
@@ -120,45 +126,43 @@ export default {
             body.unshift(headers); // Añade encabezados al inicio
 
             const docDefinition = {
+                pageSize: 'A2',
                 content: [
-                    { text: 'Status AlwaysOn Report', style: 'header' },
+                    { text: 'Status Always On Report', style: 'header', alignment: 'center' }, // Centrar el encabezado
                     {
                         table: {
                             headerRows: 1,
-                            widths: ['12%', '12%', '12%', '12%', '12%', '12%', '12%', '12%'], // Ajusta los anchos de las columnas
+                            widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto','auto'], // Ajusta los anchos de las columnas
                             body: body,
                         },
                         layout: {
-                            hLineWidth: function (i, node) {
-                                return (i === 0 || i === node.table.body.length) ? 2 : 1; // Líneas más gruesas en la parte superior e inferior
-                            },
-                            vLineWidth: function () {
-                                return 0; // Sin líneas verticales
-                            },
-                            hLineColor: function (i) {
-                                return (i === 0) ? '#000000' : '#cccccc'; // Color de línea
+                            fillColor(rowIndex, node, columnIndex) {
+                                return (rowIndex === 0) ? '#eeeeee' : null; // Color de fondo solo para encabezados
                             }
                         }
-                    },
+                    }
                 ],
                 styles: {
                     header: {
                         fontSize: 18,
                         bold: true,
                         margin: [0, 0, 0, 10],
+                        alignment: 'center'
                     },
                     tableHeader: {
                         bold: true,
-                        fontSize: 10, // Tamaño de fuente más pequeño para los encabezados
+                        fontSize: 12,
                         fillColor: '#eeeeee',
-                        alignment: 'center',
+                        alignment: 'center'
                     },
                     tableCell: {
-                        fontSize: 9, // Tamaño de fuente más pequeño para las celdas
+                        fontSize: 10,
                         margin: [5, 5, 5, 5],
-                    },
-                },
+                        alignment: 'center'
+                    }
+                }
             };
+
 
             pdfMake.createPdf(docDefinition).download('status_AlwaysOn_report.pdf');
         },
@@ -170,6 +174,8 @@ export default {
                 'Vailability Replica ServerName': backup.vailabilityReplicaServerName || '-',
                 'Availability Database Name': backup.availabilityDatabaseName || '-',
                 'ReplicaRole': backup.replicaRole || '-',
+                'AvailabilityMode': backup.availabilityMode || '-',
+                'SuspendReason': backup.suspendReason || '-',
                 'SynchronizationState': backup.synchronizationState || '-',
                 'LastRedoneTime': this.formatDateTime(backup.lastRedoneTime) || '-',
                 'LastSentTime': this.formatDateTime(backup.lastSentTime) || '-',
@@ -208,9 +214,9 @@ export default {
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
 
-                        <Button icon="pi pi-file-excel" class="p-button-success  icon-button" label="Excel"
+                        <Button icon="pi pi-file-excel" class="p-button-success  icon-button2" 
                             @click="exportToExcel" />
-                        <Button icon="pi pi-file-pdf" class="p-button-danger icon-button" label="PDF" @click="PDF" />
+                        <Button icon="pi pi-file-pdf" class="p-button-danger icon-button"  @click="PDF" />
                     </div>
                     <div class="flex gap-2">
                         <InputText v-model="filters.global.value" placeholder="Global search..."
@@ -237,6 +243,16 @@ export default {
                     </template>
                 </Column>
                 <Column field="replicaRole" header="Replica role" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
+                    </template>
+                </Column>
+                <Column field="availabilityMode" header="Availability Mode" sortable :showFilterMatchModes="false">
+                    <template #filter="{ filterModel }">
+                        <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
+                    </template>
+                </Column>
+                <Column field="suspendReason" header="Suspend Reason" sortable :showFilterMatchModes="false">
                     <template #filter="{ filterModel }">
                         <InputText v-model="filterModel.value" type="text" placeholder="Search..." />
                     </template>
@@ -292,6 +308,23 @@ export default {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
 }
+.icon-button {
+    background-color: white !important; /* Fondo blanco */
+    border: 1px solid red !important; /* Borde rojo */
+}
+
+.icon-button .p-button-icon {
+    color: red !important; /* Color del ícono rojo */
+}
+.icon-button2 {
+    background-color: white !important; /* Fondo blanco */
+    border: 1px solid rgb(10, 177, 10) !important; /* Borde rojo */
+}
+
+.icon-button2 .p-button-icon {
+    color: rgb(8, 168, 8) !important; /* Color del ícono rojo */
+}
+
 
 
 </style>

@@ -195,8 +195,8 @@ export default {
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
                
-               <Button icon="pi pi-file-excel"   class="p-button-success  icon-button"  label="Excel" @click="exportToExcel" />
-               <Button icon="pi pi-file-pdf"     class="p-button-danger icon-button"  label="PDF" @click="PDF" />
+               <Button icon="pi pi-file-excel"   class="p-button-success  icon-button2"   @click="exportToExcel" />
+               <Button icon="pi pi-file-pdf"     class="p-button-danger icon-button"  @click="PDF" />
            </div>
                     <div class="flex gap-2">
                         <InputText v-model="filters.global.value" placeholder="Global search..." class="p-inputtext p-component" /> 
@@ -263,6 +263,22 @@ export default {
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
+}
+.icon-button {
+    background-color: white !important; /* Fondo blanco */
+    border: 1px solid red !important; /* Borde rojo */
+}
+
+.icon-button .p-button-icon {
+    color: red !important; /* Color del ícono rojo */
+}
+.icon-button2 {
+    background-color: white !important; /* Fondo blanco */
+    border: 1px solid rgb(10, 177, 10) !important; /* Borde rojo */
+}
+
+.icon-button2 .p-button-icon {
+    color: rgb(8, 168, 8) !important; /* Color del ícono rojo */
 }
 
 

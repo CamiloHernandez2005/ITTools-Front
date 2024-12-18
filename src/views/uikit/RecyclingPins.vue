@@ -11,6 +11,8 @@ import RadioButton from 'primevue/radiobutton';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref, watch } from 'vue';
 import * as XLSX from 'xlsx';
+import { getCurrentInstance } from 'vue';
+import HelpTooltip from '@/components/Alertas.vue'
 
 export default {
     components: {
@@ -21,7 +23,8 @@ export default {
         DataTable,
         Column,
         ProgressSpinner,
-        Breadcrumb
+        Breadcrumb,
+        HelpTooltip
     },
     setup() {
         const toast = useToast();
@@ -60,6 +63,9 @@ export default {
             selectedError.value = data.errors; // Asigna el error al ref
             modalVisibleError.value = true; // Muestra el modal
         }
+
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
 
         // Loading state for the spinner dialog
         const isLoading = ref(false);
@@ -499,7 +505,8 @@ export default {
             confirmVisible,
             uploadType,
             confirmationMessage,
-            fileUploadMessage
+            fileUploadMessage,
+            showHelp
         };
     }
 };
@@ -516,75 +523,94 @@ export default {
         </div>
 
         <div class="w-full flex gap-4">
-    <!-- Div para seleccionar región y servidor -->
-    <div class="card p-4 shadow-custom border flex-1 flex flex-col h-full">
-        <div class="font-semibold text-xl mb-4">Region details</div>
+            <!-- Div para seleccionar región y servidor -->
+            <div class="card p-4 shadow-custom border flex-1 flex flex-col h-full">
+                <div class="font-semibold text-xl mb-4">Region details</div>
 
-        <div class="flex gap-4 h-full">
-            <!-- Dropdown de región ocupando el 50% -->
-            <div class="flex flex-col w-1/2">
-                <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
-                    option-value="id" placeholder="Select region" class="w-full" filter
-                    filterPlaceholder="Search region" />
-            </div>
+                <div class="flex gap-4 h-full">
+                    <!-- Dropdown de región ocupando el 50% -->
+                    <div class="flex flex-col w-1/2">
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip
+                                :message="'Select the region where the server is located'"
+                                :visible="showHelp" />
+                            <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                        </div>
+                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                            option-value="id" placeholder="Select region" class="w-full" filter
+                            filterPlaceholder="Search region" />
+                    </div>
 
-            <!-- ServersDB ocupando el 50% restante a la derecha -->
-            <div class="flex flex-col w-1/2">
-                <label class="block text-sm font-medium mb-3">Servers DB</label>
-                <div class="flex flex-col gap-2">
-                    <div v-for="server in filteredDB" :key="server.idServer" class="flex items-center">
-                        <div class="flex items-center gap-2 radio-margin">
-                            <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server" />
-                            <span class="text-sm">{{ server.serverName }}</span>
-                            <span class="text-sm">||</span>
-                            <span class="text-sm">{{ server.ipServer }}</span>
-                            <span class="text-sm">||</span>
-                            <span class="text-sm">{{ server.description }}</span>
+                    <!-- ServersDB ocupando el 50% restante a la derecha -->
+                    <div class="flex flex-col w-1/2">
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the server where the database is located'"
+                                :visible="showHelp" />
+                            <label class="block text-sm font-medium mb-3">Servers DB</label>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <div v-for="server in filteredDB" :key="server.idServer" class="flex items-center">
+                                <div class="flex items-center gap-2 radio-margin">
+                                    <RadioButton v-model="selectedServerDB" :value="server.idServer" name="server" />
+                                    <span class="text-sm">{{ server.serverName }}</span>
+                                    <span class="text-sm">||</span>
+                                    <span class="text-sm">{{ server.ipServer }}</span>
+                                    <span class="text-sm">||</span>
+                                    <span class="text-sm">{{ server.description }}</span>
+                                </div>
+                            </div>
+                            <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for
+                                the selected region</div>
                         </div>
                     </div>
-                    <div v-if="filteredDB.length === 0" class="text-sm text-gray-500 ml-2">No servers found for
-                        the selected region</div>
+                </div>
+
+                <!-- Botones alineados abajo a la derecha -->
+                <div class="flex justify-end mt-auto">
+                    <div class="tooltip-wrapper">
+                        <HelpTooltip :message="'Recycle or quarantine pins using a file'" :visible="showHelp" />
+                        <Button label="Upload file" icon="pi pi-cloud-upload" id="Boton1" @click="openUploadModal"
+                            styleClass="p-button-sm mr-2" />
+                    </div>
+                    <div class="tooltip-wrapper1">
+                    
+                        <Button label="Selected pins" icon="pi pi-check" id="Boton2" @click="showRecycleModal"
+                            styleClass="p-button-sm" />
+                            <HelpTooltip :message="'Select pins in special cases'" :visible="showHelp" />
+                    </div>
                 </div>
             </div>
+
+            <!-- Tabla de pines fallidos (no actualizados) -->
+            <div class="card p-4 shadow-custom border flex-1 flex flex-col h-full">
+                <div class="tooltip-wrapper">
+                    <HelpTooltip :message="'This table shows the pins that failed recycling or quarantine'" :visible="showHelp" />
+                <div class="font-semibold text-xl mb-4">Failed pins</div>
+                </div>
+                <DataTable :value="nonUpdatedPins" class="p-datatable-sm" :paginator="true" rows="10"
+                    :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple" :rowHover="true">
+                    <template #empty> No failed pins found. </template>
+                    <template #loading> Loading failed pins data. Please wait. </template>
+
+                    <Column field="pinId" header="Pin ID" sortable />
+                    <Column header="Status">
+                        <template #body="slotProps">
+                            <span :class="{ 'text-red': slotProps.data.status === 'Failed' }">
+                                {{ slotProps.data.status }}
+                            </span>
+                        </template>
+                    </Column>
+
+                    <!-- Columna que contiene el botón para ver detalles -->
+                    <Column header="Details">
+                        <template #body="slotProps">
+                            <Button icon="pi pi-eye" class="p-button-rounded p-button-success p-button-text"
+                                @click="showErrorDetails(slotProps.data)" />
+                        </template>
+                    </Column>
+                </DataTable>
+            </div>
         </div>
-
-        <!-- Botones alineados abajo a la derecha -->
-        <div class="flex justify-end mt-auto">
-            <Button label="Upload file" icon="pi pi-cloud-upload" id="Boton1" @click="openUploadModal"
-                styleClass="p-button-sm mr-2" />
-            <Button label="Selected pins" icon="pi pi-check" id="Boton2" @click="showRecycleModal"
-                styleClass="p-button-sm" />
-        </div>
-    </div>
-
-    <!-- Tabla de pines fallidos (no actualizados) -->
-    <div class="card p-4 shadow-custom border flex-1 flex flex-col h-full">
-        <div class="font-semibold text-xl mb-4">Failed pins</div>
-        <DataTable :value="nonUpdatedPins" class="p-datatable-sm" :paginator="true" rows="10"
-            :rowsPerPageOptions="[5, 10, 20]" sortMode="multiple" :rowHover="true">
-            <template #empty> No failed pins found. </template>
-            <template #loading> Loading failed pins data. Please wait. </template>
-
-            <Column field="pinId" header="Pin ID" sortable />
-            <Column header="Status">
-                <template #body="slotProps">
-                    <span :class="{ 'text-red': slotProps.data.status === 'Failed' }">
-                        {{ slotProps.data.status }}
-                    </span>
-                </template>
-            </Column>
-
-            <!-- Columna que contiene el botón para ver detalles -->
-            <Column header="Details">
-                <template #body="slotProps">
-                    <Button icon="pi pi-eye" class="p-button-rounded p-button-success p-button-text"
-                        @click="showErrorDetails(slotProps.data)" />
-                </template>
-            </Column>
-        </DataTable>
-    </div>
-</div>
 
 
         <Dialog v-model:visible="modalVisibleError" modal header="Error details">
@@ -785,4 +811,9 @@ body.dark-mode .quarantine {
     color: salmon;
     /* Color más claro para modo oscuro */
 }
+.tooltip-wrapper HelpTooltip {
+   
+    margin-top: 5%;
+}
+
 </style>

@@ -7,10 +7,13 @@ import DataTable from 'primevue/datatable';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import Breadcrumb from 'primevue/breadcrumb';
+import HelpTooltip from '@/components/Alertas.vue'
 import { useToast } from 'primevue/usetoast';
+import { getCurrentInstance } from 'vue';
 
 export default {
     components: {
+        HelpTooltip,
         InputText,
         Button,
         DataTable,
@@ -20,6 +23,9 @@ export default {
     },
     setup() {
         const toast = useToast();
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
+       
 
         const showSuccess = (detail) => {
             toast.add({ severity: 'success', summary: 'Success', detail, life: 3000 });
@@ -29,11 +35,18 @@ export default {
             toast.add({ severity: 'error', summary: 'Error', detail, life: 3000 });
         };
 
+       
+
+        
+
         return {
             toast,
             showSuccess,
-            showError
+            showError,
+            showHelp
+
         };
+
     },
     data() {
         return {
@@ -237,7 +250,7 @@ export default {
         toggleFilter() {
             this.filterActiveOnly = !this.filterActiveOnly;
             this.applyFilter();
-        }
+        },
     },
     watch: {
         searchQuery() {
@@ -250,6 +263,7 @@ export default {
 
 <template>
     <div class="flex flex-col h-screen p-4">
+       
         <div class="flex-2">
             <div class="card p-6 flex flex-col  h-full shadow-custom border">
                 <!-- Agrupar los dos elementos: titulo y breadcrumb -->
@@ -257,30 +271,42 @@ export default {
                     <div class="title font-semibold text-xl">Regions</div>
                     <Breadcrumb :home="home" :model="items" />
                 </div>
-               
+              
                 <div class="table-container">
-                    <DataTable
-                        :value="filteredRegions"
-                        class="p-datatable-sm"
-                        :paginator="true"
-                        :rows="10"
-                        :rowsPerPageOptions="[5, 10, 20]"
-                        :totalRecords="regions.length"
-                        dataKey="id"
-                        :rowHover="true"
-                        v-model:filters="filters"
-                        filterDisplay="menu"
-                        :globalFilterFields="['nameRegion', 'description']"
-                    >
+                    <DataTable :value="filteredRegions" class="p-datatable-sm" :paginator="true" :rows="10"
+                        :rowsPerPageOptions="[5, 10, 20]" :totalRecords="regions.length" dataKey="id" :rowHover="true"
+                        v-model:filters="filters" filterDisplay="menu"
+                        :globalFilterFields="['nameRegion', 'description']">
 
-                    
-                    <template #header>
+
+                        <template #header>
+                            
                             <div class="flex justify-between">
                                 <div class="flex gap-2">
-                                    <Button label="Create region" icon="pi pi-plus" id="create-button" @click="openCreateRegionDialog" />
-                                    <Button label="Filter all" icon="pi pi-filter" id="close-button" @click="toggleFilter" />
+                                    
+                                    <Button label="Create region" icon="pi pi-plus" id="create-button"
+                                        @click="openCreateRegionDialog" />
+                                       
+                                        <div class="tooltip-wrapper">
+                                        <HelpTooltip :message="'filter inactive regions'"
+                                            :visible="showHelp" />
+                                    <Button label="Filter all" icon="pi pi-filter" id="close-button"
+                                        @click="toggleFilter" />
+                                        </div>
                                 </div>
-                                <div class="flex gap-2"><InputText v-model="filters['global'].value" placeholder="Global search" /> <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" /></div>
+                                <div class="flex gap-2">
+                                   
+                                       
+                                    <InputText v-model="filters['global'].value" placeholder="Global search" /> 
+                                   
+                                    <div class="tooltip-wrapper">
+                                        <HelpTooltip :message="'Close all filters'"
+                                            :visible="showHelp" />
+                                    <Button
+                                        type="button" icon="pi pi-filter-slash" label="Clear" outlined
+                                        @click="clearFilter()" />
+                                    </div>
+                                </div>
                             </div>
                         </template>
 
@@ -297,10 +323,11 @@ export default {
                         </Column>
                         <Column field="description" header="Description" :showFilterMatchModes="false" sortable>
                             <template #body="{ data }">
-                                {{ data.description}}
+                                {{ data.description }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by description" />
+                                <InputText v-model="filterModel.value" type="text"
+                                    placeholder="Search by description" />
                             </template>
                         </Column>
                         <Column field="status" header="Status" sortable>
@@ -310,22 +337,29 @@ export default {
                                 </span>
                             </template>
                         </Column>
-                        <Column header="Actions">
+                        <Column >
+                            <template #header>
+                                <div class="tooltip-wrapper1">
+                                    Actions
+                                    <HelpTooltip :message="'Edit section, disable and delete region'"
+                                        :visible="showHelp" />
+                                </div>
+                            </template>
                             <template #body="{ data }">
-                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text" @click="editRegion(data)" />
-                                <Button
-                                    :icon="data.status ? 'pi pi-power-off' : 'pi pi-power-off'"
+                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text"
+                                    @click="editRegion(data)" />
+                                <Button :icon="data.status ? 'pi pi-power-off' : 'pi pi-power-off'"
                                     :class="data.status ? 'p-button-rounded p-button-danger p-button-text' : 'p-button-rounded p-button-success p-button-text'"
-                                    @click="openConfirmation(data, !data.status)"
-                                />
-                                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text" @click="openDeleteConfirmation(data)" />
+                                    @click="openConfirmation(data, !data.status)" />
+                                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text"
+                                    @click="openDeleteConfirmation(data)" />
                             </template>
                         </Column>
                     </DataTable>
                 </div>
             </div>
         </div>
-
+        
         <!-- Diálogo de creación de región -->
         <Dialog v-model:visible="isRegionDialogVisible" modal header="Create region">
             <form @submit.prevent="registerRegion">
@@ -333,11 +367,13 @@ export default {
                     <div class="flex flex-wrap gap-4">
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="nameCreate">Name</label>
-                            <InputText id="nameCreate" type="text" v-model="region.nameRegion" class="p-inputtext-sm input-with-line" placeholder="Enter name" required />
+                            <InputText id="nameCreate" type="text" v-model="region.nameRegion"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter name" required />
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="descriptionCreate">Description</label>
-                            <InputText id="descriptionCreate" type="text" v-model="region.description" class="p-inputtext-sm input-with-line" placeholder="Enter description" required />
+                            <InputText id="descriptionCreate" type="text" v-model="region.description"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter description" required />
                         </div>
                     </div>
                 </div>
@@ -356,11 +392,13 @@ export default {
                     <div class="flex flex-wrap gap-4">
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="nameEdit">Name</label>
-                            <InputText id="nameEdit" type="text" v-model="editRegionData.nameRegion" class="p-inputtext-sm input-with-line" placeholder="Enter name" required />
+                            <InputText id="nameEdit" type="text" v-model="editRegionData.nameRegion"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter name" required />
                         </div>
                         <div class="flex flex-col grow basis-0 gap-2">
                             <label for="descriptionEdit">Description</label>
-                            <InputText id="descriptionEdit" type="text" v-model="editRegionData.description" class="p-inputtext-sm input-with-line" placeholder="Enter description" required />
+                            <InputText id="descriptionEdit" type="text" v-model="editRegionData.description"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter description" required />
                         </div>
                     </div>
                 </div>
@@ -376,8 +414,10 @@ export default {
             <p>Are you sure you want to delete this region?</p>
             <template #footer>
                 <div class="flex justify-end gap-2">
-                    <Button label="No" icon="pi pi-times" @click="closeDeleteConfirmation" class="p-button-text p-button-secondary" />
-                    <Button label="Yes" icon="pi pi-check" @click="deleteRegion" class="p-button-text p-button-danger" />
+                    <Button label="No" icon="pi pi-times" @click="closeDeleteConfirmation"
+                        class="p-button-text p-button-secondary" />
+                    <Button label="Yes" icon="pi pi-check" @click="deleteRegion"
+                        class="p-button-text p-button-danger" />
                 </div>
             </template>
         </Dialog>
@@ -387,8 +427,10 @@ export default {
             <p>Are you sure you want to proceed with this action?</p>
             <template #footer>
                 <div class="flex justify-end gap-2">
-                    <Button label="No" icon="pi pi-times" @click="closeConfirmation" class="p-button-text p-button-secondary" />
-                    <Button label="Yes" icon="pi pi-check" @click="changeRegionStatus" class="p-button-text p-button-danger" />
+                    <Button label="No" icon="pi pi-times" @click="closeConfirmation"
+                        class="p-button-text p-button-secondary" />
+                    <Button label="Yes" icon="pi pi-check" @click="changeRegionStatus"
+                        class="p-button-text p-button-danger" />
                 </div>
             </template>
         </Dialog>
@@ -398,16 +440,22 @@ export default {
 <style scoped>
 .input-with-line {
     border: none;
-    border-bottom: 1px solid #d1d5db; /* Línea de color gris claro */
-    padding: 0.5rem 0.4rem; /* Ajustar el padding vertical */
-    background: transparent; /* Fondo transparente */
-    outline: none; /* Eliminar el borde de enfoque predeterminado */
-    box-shadow: none; /* Eliminar la sombra del campo de entrada */
+    border-bottom: 1px solid #d1d5db;
+    /* Línea de color gris claro */
+    padding: 0.5rem 0.4rem;
+    /* Ajustar el padding vertical */
+    background: transparent;
+    /* Fondo transparente */
+    outline: none;
+    /* Eliminar el borde de enfoque predeterminado */
+    box-shadow: none;
+    /* Eliminar la sombra del campo de entrada */
 }
 
 /* Opcional: para añadir algo de espacio debajo del input */
 .input-with-line {
-    margin-bottom: 0.5rem; /* Espacio debajo del campo de entrada */
+    margin-bottom: 0.5rem;
+    /* Espacio debajo del campo de entrada */
 }
 
 #close-button {
@@ -443,6 +491,7 @@ export default {
 
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Opcional: redondear bordes */
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
 }
 </style>

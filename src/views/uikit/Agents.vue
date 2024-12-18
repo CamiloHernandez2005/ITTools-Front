@@ -10,7 +10,10 @@ import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import Breadcrumb from 'primevue/breadcrumb';
 import { useToast } from 'primevue/usetoast';
-import { ref } from 'vue';
+import HelpTooltip from '@/components/Alertas.vue'
+import { ref, inject } from 'vue';
+import { getCurrentInstance } from 'vue';
+
 
 export default {
     components: {
@@ -20,11 +23,13 @@ export default {
         DataTable,
         Column,
         Dialog,
-        Breadcrumb
+        Breadcrumb,
+        HelpTooltip
     },
     setup() {
         const toast = useToast();
         const error = ref('');
+
 
         const showSuccess = (detail) => {
             toast.add({ severity: 'success', summary: 'Success', detail, life: 3000 });
@@ -33,12 +38,19 @@ export default {
         const showError = (detail) => {
             toast.add({ severity: 'error', summary: 'Error', detail, life: 3000 });
         };
+        const { proxy } = getCurrentInstance();
+        const showHelp = proxy.$help.showHelp;
+
+
+
 
         return {
             toast,
             showSuccess,
             showError,
-            error
+            error,
+            showHelp
+
         };
     },
     data() {
@@ -57,6 +69,7 @@ export default {
             displayDeleteConfirmation: false,
             showAll: false,
             serverToDelete: null,
+
             server: {
                 agentName: '',
                 ipagent: '',
@@ -66,13 +79,13 @@ export default {
                 regionId: null
             },
             filters: {
-            global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-            agentName: { value: null, matchMode: FilterMatchMode.CONTAINS },
-            ipagent: { value: null, matchMode: FilterMatchMode.CONTAINS },
-            pathLog: { value: null, matchMode: FilterMatchMode.CONTAINS },
-            pathArchive: { value: null, matchMode: FilterMatchMode.CONTAINS },
-            region: { value: null, matchMode: FilterMatchMode.CONTAINS }
-        },
+                global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                agentName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                ipagent: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                pathLog: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                pathArchive: { value: null, matchMode: FilterMatchMode.CONTAINS },
+                region: { value: null, matchMode: FilterMatchMode.CONTAINS }
+            },
             newServer: {
                 agentName: '',
                 ipagent: '',
@@ -138,6 +151,7 @@ export default {
             this.applyFilters();
         }
     },
+
     methods: {
         async loadRegions() {
             try {
@@ -257,20 +271,20 @@ export default {
         },
 
         applyFilters() {
-        this.filteredServers = this.servers.filter(server => {
-            const matchesGlobal = !this.filters.global.value || Object.values(server).some(value => {
-                return value?.toString().toLowerCase().includes(this.filters.global.value.toLowerCase());
+            this.filteredServers = this.servers.filter(server => {
+                const matchesGlobal = !this.filters.global.value || Object.values(server).some(value => {
+                    return value?.toString().toLowerCase().includes(this.filters.global.value.toLowerCase());
+                });
+
+                const matchesAgentName = !this.filters.agentName.value || server.agentName.toLowerCase().includes(this.filters.agentName.value.toLowerCase());
+                const matchesIpAgent = !this.filters.ipagent.value || server.ipagent.toLowerCase().includes(this.filters.ipagent.value.toLowerCase());
+                const matchesPathLog = !this.filters.pathLog.value || server.pathLog.toLowerCase().includes(this.filters.pathLog.value.toLowerCase());
+                const matchesPathArchive = !this.filters.pathArchive.value || server.pathArchive.toLowerCase().includes(this.filters.pathArchive.value.toLowerCase());
+                const matchesRegion = !this.filters.region.value || server.region.toLowerCase().includes(this.filters.region.value.toLowerCase());
+
+                return matchesGlobal && matchesAgentName && matchesIpAgent && matchesPathLog && matchesPathArchive && matchesRegion;
             });
-
-            const matchesAgentName = !this.filters.agentName.value || server.agentName.toLowerCase().includes(this.filters.agentName.value.toLowerCase());
-            const matchesIpAgent = !this.filters.ipagent.value || server.ipagent.toLowerCase().includes(this.filters.ipagent.value.toLowerCase());
-            const matchesPathLog = !this.filters.pathLog.value || server.pathLog.toLowerCase().includes(this.filters.pathLog.value.toLowerCase());
-            const matchesPathArchive = !this.filters.pathArchive.value || server.pathArchive.toLowerCase().includes(this.filters.pathArchive.value.toLowerCase());
-            const matchesRegion = !this.filters.region.value || server.region.toLowerCase().includes(this.filters.region.value.toLowerCase());
-
-            return matchesGlobal && matchesAgentName && matchesIpAgent && matchesPathLog && matchesPathArchive && matchesRegion;
-        });
-    },
+        },
         toggleFilter() {
             this.showAll = !this.showAll;
             this.applyFilters();
@@ -338,30 +352,44 @@ export default {
                 <!-- Agrupar los dos elementos: titulo y breadcrumb -->
                 <div class="header-container">
                     <div class="title font-semibold text-xl">Agents</div>
+
                     <Breadcrumb :home="home" :model="items" />
+
                 </div>
 
+
                 <div class="overflow-x-auto">
-                    <DataTable
-                        :value="filteredServers"
-                        class="p-datatable-sm"
-                        :paginator="true"
-                        :rows="10"
-                        :rowsPerPageOptions="[5, 10, 20]"
-                        :totalRecords="servers.length"
-                        dataKey="id"
-                        :rowHover="true"
-                       v-model:filters="filters"
-                        filterDisplay="menu"
-                        :globalFilterFields="['agentName', 'ipagent', 'pathLog', 'pathArchive', 'region']"
-                    >
+                    <DataTable :value="filteredServers" class="p-datatable-sm" :paginator="true" :rows="10"
+                        :rowsPerPageOptions="[5, 10, 20]" :totalRecords="servers.length" dataKey="id" :rowHover="true"
+                        v-model:filters="filters" filterDisplay="menu"
+                        :globalFilterFields="['agentName', 'ipagent', 'pathLog', 'pathArchive', 'region']">
                         <template #header>
+
+
+
                             <div class="flex justify-between">
                                 <div class="flex gap-2">
-                                    <Button label="Create agents" icon="pi pi-plus" id="create-button" @click="openCreateServerDialog" />
-                                    <Button label="Filter all" icon="pi pi-filter" id="close-button" @click="toggleFilter" />
+                                    
+                                        <Button label="Create agents" icon="pi pi-plus" id="create-button"
+                                            @click="openCreateServerDialog" />
+                                    
+                                    <div class="tooltip-wrapper">
+                                        <HelpTooltip :message="'filter inactive agents'"
+                                            :visible="showHelp" />
+                                        <Button label="Filter all" icon="pi pi-filter" id="close-button"
+                                            @click="toggleFilter" />
+                                    </div>
                                 </div>
-                                <div class="flex gap-2"><InputText v-model="filters.global.value" placeholder="Global search" /> <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" /></div>
+                                <div class="flex gap-2">
+                                  
+                                        <InputText v-model="filters.global.value" placeholder="Global search" />
+                                   
+                                    <div class="tooltip-wrapper">
+                                        <HelpTooltip :message="'close all filters'" :visible="showHelp" />
+                                        <Button type="button" icon="pi pi-filter-slash" label="Clear" outlined
+                                            @click="clearFilter()" />
+                                    </div>
+                                </div>
                             </div>
                         </template>
 
@@ -397,7 +425,8 @@ export default {
                                 {{ data.pathArchive }}
                             </template>
                             <template #filter="{ filterModel }">
-                                <InputText v-model="filterModel.value" type="text" placeholder="Search by path archive" />
+                                <InputText v-model="filterModel.value" type="text"
+                                    placeholder="Search by path archive" />
                             </template>
                         </Column>
 
@@ -413,19 +442,28 @@ export default {
 
                         <Column field="status" header="Status" sortable>
                             <template #body="{ data }">
-                                <span :class="data.status ? 'text-green-500' : 'text-red-500'">{{ data.status ? 'Active' : 'Inactive' }}</span>
+                                <span :class="data.status ? 'text-green-500' : 'text-red-500'">{{ data.status ? 'Active'
+                                    : 'Inactive' }}</span>
                             </template>
                         </Column>
-                        <Column header="Actions">
+                        <Column >
+                            <template #header>
+                                <div class="tooltip-wrapper1">
+                                    Actions
+                                    <HelpTooltip :message="'Edit section, disable and delete Agent'"
+                                        :visible="showHelp" />
+                                </div>
+                            </template>
                             <template #body="{ data }">
-                                <Button icon="pi pi-eye" class="p-button-rounded p-button-success p-button-text" @click="showServerDetails(data)" />
-                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text" @click="editServer(data)" />
-                                <Button
-                                    :icon="data.status ? 'pi pi-power-off' : 'pi pi-power-off'"
+                                <Button icon="pi pi-eye" class="p-button-rounded p-button-success p-button-text"
+                                    @click="showServerDetails(data)" />
+                                <Button icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text"
+                                    @click="editServer(data)" />
+                                <Button :icon="data.status ? 'pi pi-power-off' : 'pi pi-power-off'"
                                     :class="data.status ? 'p-button-rounded p-button-danger p-button-text' : 'p-button-rounded p-button-success p-button-text'"
-                                    @click="openConfirmation(data, !data.status)"
-                                />
-                                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text" @click="confirmDeleteServer(data.idAgent)" />
+                                    @click="openConfirmation(data, !data.status)" />
+                                <Button icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text"
+                                    @click="confirmDeleteServer(data.idAgent)" />
                             </template>
                         </Column>
                     </DataTable>
@@ -434,37 +472,46 @@ export default {
         </div>
 
         <!-- Diálogo de creación de servidor -->
-        <Dialog header="Create agent" v-model:visible="isCreateServerDialogVisible" modal :style="{ 'max-width': '30vw', width: '30vw' }">
+        <Dialog header="Create agent" v-model:visible="isCreateServerDialogVisible" modal
+            :style="{ 'max-width': '30vw', width: '30vw' }">
+          
             <form @submit.prevent="createServer">
                 <div class="flex gap-4">
                     <!-- Inputs columna izquierda -->
                     <div class="flex flex-col w-1/2 gap-4">
                         <div class="flex flex-col gap-2">
                             <label for="create_serverName">Agent name</label>
-                            <InputText id="create_serverName" v-model="newServer.agentName" class="p-inputtext-sm input-with-line" placeholder="Enter agent name" />
+                            <InputText id="create_serverName" v-model="newServer.agentName"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter agent name" />
                         </div>
                         <div class="flex flex-col gap-2">
                             <label for="create_ipagent">IP address</label>
-                            <InputText id="create_ipagent" v-model="newServer.ipagent" class="p-inputtext-sm input-with-line" placeholder="Enter ip address" />
+                            <InputText id="create_ipagent" v-model="newServer.ipagent"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter ip address" />
                         </div>
                         <div class="flex flex-col gap-2">
                             <label for="create_webServiceUrl">Web service url</label>
-                            <InputText id="create_webServiceUrl" v-model="newServer.webServiceUrl" class="p-inputtext-sm input-with-line" placeholder="Enter web service url" />
+                            <InputText id="create_webServiceUrl" v-model="newServer.webServiceUrl"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter web service url" />
                         </div>
                     </div>
                     <!-- Inputs columna derecha -->
                     <div class="flex flex-col w-1/2 gap-4">
                         <div class="flex flex-col gap-2">
                             <label for="create_pathArchive">Path log</label>
-                            <InputText id="create_pathArchive" v-model="newServer.pathLog" class="p-inputtext-sm input-with-line" placeholder="Enter path log" />
+                            <InputText id="create_pathArchive" v-model="newServer.pathLog"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter path log" />
                         </div>
                         <div class="flex flex-col gap-2">
                             <label for="create_pathArchive">Path archive log</label>
-                            <InputText id="create_pathArchive" v-model="newServer.pathArchive" class="p-inputtext-sm input-with-line" placeholder="Enter path archive log" />
+                            <InputText id="create_pathArchive" v-model="newServer.pathArchive"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter path archive log" />
                         </div>
                         <div class="flex flex-col gap-2">
                             <label for="create_regionId">Region</label>
-                            <Dropdown id="create_regionId" v-model="newServer.regionId" :options="regions" optionLabel="nameRegion" optionValue="idRegion" filter filterPlaceholder="Search..." class="custom-dropdown p-dropdown-sm" />
+                            <Dropdown id="create_regionId" v-model="newServer.regionId" :options="regions"
+                                optionLabel="nameRegion" optionValue="idRegion" filter filterPlaceholder="Search..."
+                                class="custom-dropdown p-dropdown-sm" />
                         </div>
                     </div>
                 </div>
@@ -477,22 +524,26 @@ export default {
 
         <!-- Modal de edición de servidor -->
 
-        <Dialog header="Edit agent" v-model:visible="isEditDialogVisible" modal :style="{ 'max-width': '30vw', width: '30vw' }">
+        <Dialog header="Edit agent" v-model:visible="isEditDialogVisible" modal
+            :style="{ 'max-width': '30vw', width: '30vw' }">
             <form @submit.prevent="updateServer">
                 <div class="flex gap-4">
                     <!-- Sección de Inputs (columna izquierda) -->
                     <div class="flex flex-col w-1/2 gap-4">
                         <div class="flex flex-col gap-2">
                             <label for="edit_serverName">Server name</label>
-                            <InputText id="edit_serverName" type="text" v-model="editServerData.agentName" class="p-inputtext-sm input-with-line" placeholder="Enter server name" />
+                            <InputText id="edit_serverName" type="text" v-model="editServerData.agentName"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter server name" />
                         </div>
                         <div class="flex flex-col gap-2">
                             <label for="edit_ipagent">IP address</label>
-                            <InputText id="edit_ipagent" type="text" v-model="editServerData.ipagent" class="p-inputtext-sm input-with-line" placeholder="Enter ip address" />
+                            <InputText id="edit_ipagent" type="text" v-model="editServerData.ipagent"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter ip address" />
                         </div>
                         <div class="flex flex-col gap-2">
                             <label for="edit_webServiceUrl">Web service url</label>
-                            <InputText id="edit_webServiceUrl" type="text" v-model="editServerData.webServiceUrl" class="p-inputtext-sm input-with-line" placeholder="Enter web service url" />
+                            <InputText id="edit_webServiceUrl" type="text" v-model="editServerData.webServiceUrl"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter web service url" />
                         </div>
                     </div>
 
@@ -500,16 +551,20 @@ export default {
                     <div class="flex flex-col w-1/2 gap-4">
                         <div class="flex flex-col gap-2">
                             <label for="edit_pathArchive">Path log</label>
-                            <InputText id="edit_pathArchive" type="text" v-model="editServerData.pathLog" class="p-inputtext-sm input-with-line" placeholder="Enter path log" />
+                            <InputText id="edit_pathArchive" type="text" v-model="editServerData.pathLog"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter path log" />
                         </div>
                         <div class="flex flex-col gap-2">
                             <label for="edit_pathArchive">Path archive log</label>
-                            <InputText id="edit_pathArchive" type="text" v-model="editServerData.pathArchive" class="p-inputtext-sm input-with-line" placeholder="Enter path archive log" />
+                            <InputText id="edit_pathArchive" type="text" v-model="editServerData.pathArchive"
+                                class="p-inputtext-sm input-with-line" placeholder="Enter path archive log" />
                         </div>
 
                         <div class="flex flex-col gap-2">
                             <label for="edit_regionId">Region</label>
-                            <Dropdown id="edit_regionId" v-model="editServerData.regionId" :options="regions" optionLabel="nameRegion" optionValue="idRegion" filter filterPlaceholder="Search..." class="custom-dropdown p-dropdown-sm" />
+                            <Dropdown id="edit_regionId" v-model="editServerData.regionId" :options="regions"
+                                optionLabel="nameRegion" optionValue="idRegion" filter filterPlaceholder="Search..."
+                                class="custom-dropdown p-dropdown-sm" />
                         </div>
                     </div>
                 </div>
@@ -523,7 +578,8 @@ export default {
         </Dialog>
 
         <!-- Diálogo de detalle de agent -->
-        <Dialog v-model:visible="isShowDialogVisible" header="Agent details" modal :style="{ 'max-width': '30vw', width: '30vw' }">
+        <Dialog v-model:visible="isShowDialogVisible" header="Agent details" modal
+            :style="{ 'max-width': '30vw', width: '30vw' }">
             <div class="flex flex-col gap-4">
                 <div><strong>Server name:</strong> {{ detailServerData.agentName }}</div>
                 <div><strong>IP address:</strong> {{ detailServerData.ipagent }}</div>
@@ -545,7 +601,8 @@ export default {
             <p>Are you sure you want to delete this agent?</p>
             <template #footer>
                 <div class="flex justify-end gap-2">
-                    <Button label="No" icon="pi pi-times" @click="closeDeleteConfirmation" class="p-button-text p-button-secondary" />
+                    <Button label="No" icon="pi pi-times" @click="closeDeleteConfirmation"
+                        class="p-button-text p-button-secondary" />
                     <Button label="Yes" icon="pi pi-check" @click="deleteAgent" class="p-button-text p-button-danger" />
                 </div>
             </template>
@@ -558,8 +615,10 @@ export default {
             <template #footer>
                 <div class="flex justify-end gap-2">
                     <!-- Ajusta la disposición de los botones -->
-                    <Button label="No" icon="pi pi-times" @click="closeConfirmation" class="p-button-text p-button-secondary" />
-                    <Button label="Yes" icon="pi pi-check" @click="changeServerStatus" class="p-button-text p-button-danger" />
+                    <Button label="No" icon="pi pi-times" @click="closeConfirmation"
+                        class="p-button-text p-button-secondary" />
+                    <Button label="Yes" icon="pi pi-check" @click="changeServerStatus"
+                        class="p-button-text p-button-danger" />
                 </div>
             </template>
         </Dialog>
@@ -569,41 +628,57 @@ export default {
 <style scoped>
 .input-with-line {
     border: none;
-    border-bottom: 1px solid #d1d5db; /* Línea gris clara */
+    border-bottom: 1px solid #d1d5db;
+    /* Línea gris clara */
     padding: 0.5rem 0.4rem;
-    background: transparent; /* Fondo transparente */
+    background: transparent;
+    /* Fondo transparente */
     outline: none;
     box-shadow: none;
     margin-bottom: 0.5rem;
 }
 
 .w-full {
-    width: 100%; /* Ancho completo */
+    width: 100%;
+    /* Ancho completo */
 }
 
 .custom-dropdown {
-    height: calc(2rem + 2.5px); /* Altura total del Dropdown */
-    line-height: 2rem; /* Altura de la línea del Dropdown */
-    padding: 0 0.5rem; /* Padding ajustado para alinear el texto verticalmente */
-    font-size: 0.875rem; /* Tamaño de fuente del texto dentro del Dropdown */
-    border: 0.5px solid #ccc; /* Borde del Dropdown */
-    border-radius: 6px; /* Radio del borde del Dropdown */
-    display: flex; /* Usa flexbox para alinear el contenido */
-    align-items: center; /* Alinea el contenido verticalmente en el centro */
+    height: calc(2rem + 2.5px);
+    /* Altura total del Dropdown */
+    line-height: 2rem;
+    /* Altura de la línea del Dropdown */
+    padding: 0 0.5rem;
+    /* Padding ajustado para alinear el texto verticalmente */
+    font-size: 0.875rem;
+    /* Tamaño de fuente del texto dentro del Dropdown */
+    border: 0.5px solid #ccc;
+    /* Borde del Dropdown */
+    border-radius: 6px;
+    /* Radio del borde del Dropdown */
+    display: flex;
+    /* Usa flexbox para alinear el contenido */
+    align-items: center;
+    /* Alinea el contenido verticalmente en el centro */
 }
 
 .p-dropdown {
-    height: 100%; /* Usa el 100% de la altura definida */
-    line-height: 2rem; /* Alinea la altura de línea para el contenido del Dropdown */
+    height: 100%;
+    /* Usa el 100% de la altura definida */
+    line-height: 2rem;
+    /* Alinea la altura de línea para el contenido del Dropdown */
 }
 
 .p-dropdown .p-dropdown-label {
-    height: 100%; /* Usa toda la altura disponible */
-    line-height: 2rem; /* Alinea el texto dentro de la etiqueta */
+    height: 100%;
+    /* Usa toda la altura disponible */
+    line-height: 2rem;
+    /* Alinea el texto dentro de la etiqueta */
 }
 
 .p-dropdown .p-dropdown-items {
-    font-size: 0.875rem; /* Tamaño de fuente de las opciones */
+    font-size: 0.875rem;
+    /* Tamaño de fuente de las opciones */
 }
 
 #close-button {
@@ -639,6 +714,31 @@ export default {
 
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Opcional: redondear bordes */
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
 }
+
+.tooltip-wrapper {
+    position: relative;
+    /* Establishes a positioning context */
+}
+
+.tooltip-wrapper .help-tooltip {
+    position: absolute;
+    /* Positioning the tooltip absolutely */
+    
+    /* Adjust this value to move it above the button */
+    left: 50%;
+    /* Center horizontally */
+    transform: translateX(-50%);
+    /* Center the tooltip */
+    z-index: 10;
+    /* Ensure it appears above other elements */
+}
+
+
+
+
+
+
 </style>

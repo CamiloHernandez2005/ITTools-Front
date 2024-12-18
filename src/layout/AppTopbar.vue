@@ -6,9 +6,26 @@ import ActuatorService from '@/services/ActuatorService';
 import { authService } from '@/services/AuthService';
 import logo from '@/assets/emida-logo-square.png';
 import logo2 from '@/assets/emida-logo-white.png';
+import { getCurrentInstance } from 'vue';
+
+
+const { proxy } = getCurrentInstance();
+
+const toggleHelp = () => {
+  if (!proxy.$help) {
+    console.error("El objeto $help no está definido.");
+    return;
+  }
+  proxy.$help.showHelp.value = !proxy.$help.showHelp.value; // Cambiar el estado global
+  console.log("Estado actualizado de showHelp desde NavTop:", proxy.$help.showHelp.value);
+};
+
 
 const { toggleDarkMode, isDarkTheme } = useLayout();
+
 const router = useRouter();
+
+
 
 const logout = () => {
   localStorage.removeItem('token');
@@ -36,6 +53,8 @@ const updateTime = () => {
   currentTime.value = `${hours}:${minutes}:${seconds} ${period}`;
 };
 
+
+
 const fetchAuditData = async () => {
   try {
     const response = await ActuatorService.getAuditData();
@@ -62,6 +81,7 @@ const filteredAudits = computed(() => {
 });
 
 const isAdmin = ref(false);
+
 const checkUserRole = async () => {
   const userEmail = localStorage.getItem('userEmail');
   if (!userEmail) {
@@ -140,8 +160,8 @@ const goToAuditPage = () => {
   <div class="layout-topbar border">
     <div class="layout-topbar-logo-container">
       <router-link :to="isAdmin ? '/home' : '/homeusers'" class="layout-topbar-logo mr-4">
-    <img :src="currentLogo" :width="logoWidth" :style="logoStyle" alt="Logo" />
-  </router-link>
+        <img :src="currentLogo" :width="logoWidth" :style="logoStyle" alt="Logo" />
+      </router-link>
       <div class="external-logos">
         <a href="https://www.atlassian.com/software/jira" target="_blank" class="external-logo">
           <img src="../assets/jira.png" alt="Jira Logo" width="100" />
@@ -155,7 +175,7 @@ const goToAuditPage = () => {
         <a href="https://intrnet.emida.com" target="_blank" class="external-logo">
           <img src="../assets/IT.jpg" alt="chat Logo" width="60" />
         </a>
-     
+
       </div>
     </div>
 
@@ -212,6 +232,7 @@ const goToAuditPage = () => {
             <button v-if="isAdmin" @click="goToAuditPage" class="p-button p-button-sm mt-2" id="create-button">
               See all activities
             </button>
+            
           </footer>
 
         </div>
@@ -223,13 +244,9 @@ const goToAuditPage = () => {
         v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }">
         <i class="pi pi-ellipsis-v"></i>
       </button>
+      <button @click="toggleHelp" class="layout-topbar-action" > <i class="pi pi-question-circle"></i></button>
 
-      <button type="button" class="layout-topbar-action" @click="openAbout">
-        <i class="pi pi-info-circle"></i>
-        <span>About</span>
-      </button>
-
-      <button type="button" class="layout-topbar-action" @click="logout">
+      <button  type="button" class="layout-topbar-action" @click="logout">
         <i class="pi pi-sign-out"></i>
         <span>Logout</span>
       </button>

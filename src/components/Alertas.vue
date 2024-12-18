@@ -1,25 +1,39 @@
 <template>
-    <Toast ref="toast"></Toast>
-  </template>
-  
-  <script>
-  import Toast from 'primevue/toast';
-  
-  export default {
-    name: 'Alertas',
-    methods: {
-      showHelpMessage(message) {
-        this.$refs.toast.add({
-          severity: 'info',
-          summary: 'Ayuda',
-          detail: message,
-          life: 3000
-        });
-      }
+  <div v-if="visible" class="help-tooltip" :style="style">
+    {{ message }}
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    message: {
+      type: String,
+      required: true
     },
-    components: {
-      Toast
+    visible: {
+      type: Boolean,
+      required: true
     }
-  };
-  </script>
-  
+  },
+  watch: {
+    visible(newValue) {
+      console.log('Tooltip visible:', newValue);
+    }
+  }
+};
+</script>
+
+
+<style scoped>
+.help-tooltip {
+  position: absolute;
+  color: white;
+  background: blue;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+</style>
