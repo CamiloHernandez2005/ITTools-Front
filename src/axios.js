@@ -24,6 +24,8 @@ axios.interceptors.response.use(
   error => {
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       localStorage.removeItem('token');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
       window.location.href = '/';
     }    
   

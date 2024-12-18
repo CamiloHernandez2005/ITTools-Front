@@ -14,7 +14,6 @@ import { serverService } from '@/services/AgentService';
 import { useToast } from 'primevue/usetoast'; // Importar useToast para las notificacionesmport SnakeGame from '@/components/SnakeGame.vue';
 import SnakeGame from '@/views/uikit/snakeGame.vue';
 
-
 export default {
     components: {
         Dropdown,
@@ -45,6 +44,7 @@ export default {
         const transactionId = ref('');
         const errorMessage = ref('');
         const isLoading = ref(false);
+        const isLoading1 = ref(false);
         const isDowload = ref(false);
         const showAdditionalMessage = ref(false);
         const showAdditionalMessage2 = ref(false);
@@ -54,7 +54,6 @@ export default {
         const showResultsModal = ref(false); // Modal visibility
         const searchResults = ref([]); // Store search results
         const visibleLogs = ref([]);
-
 
         const showSuccess = (message) => {
             toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
@@ -67,6 +66,7 @@ export default {
         // Cargar logs según los parámetros seleccionados
         async function loadLogs() {
             if (selectedAgent.value && date.value && selectedRegion.value) {
+                isLoading1.value = true;
                 // Verificar que los tres campos estén seleccionados
                 try {
                     const formattedDate = date.value.toISOString().split('T')[0].split('-').reverse().join('-');
@@ -84,6 +84,8 @@ export default {
                     }
                 } catch (error) {
                     handleError(error);
+                } finally {
+                    isLoading1.value = false;
                 }
             }
         }
@@ -100,8 +102,6 @@ export default {
                 showAdditionalMessage3.value = false;
                 showAdditionalMessage4.value = false;
                 showAdditionalMessage5.value = false;
-
-
 
                 const additionalMessageTimeout = setTimeout(() => {
                     showAdditionalMessage.value = true;
@@ -169,7 +169,6 @@ export default {
             showAdditionalMessage3.value = false;
             showAdditionalMessage4.value = false;
             showAdditionalMessage5.value = false;
-
 
             const additionalMessageTimeout = setTimeout(() => {
                 showAdditionalMessage.value = true;
@@ -349,6 +348,7 @@ export default {
             transactionId,
             errorMessage,
             isLoading,
+            isLoading1,
             isDowload,
             showResultsModal, // Modal visibility
             showAdditionalMessage,
@@ -363,8 +363,7 @@ export default {
             visibleLogs,
             toggleLogVisibility,
             isLogVisible,
-            downloadSingleLog,
-
+            downloadSingleLog
         };
     }
 };
@@ -383,16 +382,13 @@ export default {
         <div class="flex gap-6">
             <!-- First Half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-
-                <div class="font-semibold text-xl ">Region details</div>
+                <div class="font-semibold text-xl">Region details</div>
 
                 <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
                 <div class="flex flex-col md:flex-row gap-4">
                     <div class="flex-1">
                         <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
-                            option-value="id" placeholder="Select region" class="w-full" filter
-                            filterPlaceholder="Search region" />
+                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search region" />
 
                         <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transation date</label>
                         <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
@@ -409,38 +405,36 @@ export default {
                                     <span class="text-sm">{{ agent.ipagent }}</span>
                                 </div>
                             </div>
-                            <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500">No agents found for
-                                the selected region</div>
+                            <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500">No agents found for the selected region</div>
                         </div>
                     </div>
                 </div>
-
             </div>
-
-
 
             <!-- Second Half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
                 <div class="font-semibold text-xl">Log files</div>
 
                 <div v-if="logs.length > 0" class="mb-2 ml-2">
-                    <table class="w-full table-auto border-collapse border border-gray-200">
-                        <thead>
-                            <tr class="text-white" style="background-color: #614d56">
-                                <th class="text-left p-2">Log files</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="log in logs" :key="log" class="border-b border-gray-200">
-                                <td class="p-2">
-                                    <div class="flex items-center">
-                                        <Checkbox v-model="selectedLogFiles" :value="log" name="log" />
-                                        <span class="ml-2">{{ log }}</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-container" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd">
+                        <table class="w-full table-auto border-collapse border border-gray-200">
+                            <thead>
+                                <tr class="text-white" style="background-color: #614d56">
+                                    <th class="text-left p-2">Log files</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="log in logs" :key="log" class="border-b border-gray-200">
+                                    <td class="p-2">
+                                        <div class="flex items-center">
+                                            <Checkbox v-model="selectedLogFiles" :value="log" name="log" />
+                                            <span class="ml-2">{{ log }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div v-else class="text-sm text-gray-500 ml-2">No logs available.</div>
@@ -448,9 +442,7 @@ export default {
                 <div class="mb-4 flex justify-end items-center">
                     <div class="flex items-center">
                         <label for="transaction-id" class="block text-sm font-medium mb-0 mr-4">Transaction ID</label>
-                        <InputText id="transaction-id" v-model="transactionId" type="text"
-                            class="border input-with-line "
-                            placeholder="Enter transaction ID" />
+                        <InputText id="transaction-id" v-model="transactionId" type="text" class="border input-with-line" placeholder="Enter transaction ID" />
                     </div>
                 </div>
 
@@ -462,8 +454,7 @@ export default {
 
         <div v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</div>
 
-        <Dialog v-model:visible="showResultsModal" header="Transaction logs" modal
-            :style="{ 'max-width': '80vw', width: 'auto' }">
+        <Dialog v-model:visible="showResultsModal" header="Transaction logs" modal :style="{ 'max-width': '90vw', width: 'auto' }">
             <template #footer>
                 <div class="flex mt-2 justify-between items-center w-full">
                     <div class="flex items-center">
@@ -471,8 +462,7 @@ export default {
                         <span>For more information, please download the logs.</span>
                     </div>
                     <div class="flex">
-                        <Button id="create-button" @click="downloadSelectedLogs" label="Download logs"
-                            icon="pi pi-download" :loading="isDowload" class="mr-2 ml-4" />
+                        <Button id="create-button" @click="downloadSelectedLogs" label="Download logs" icon="pi pi-download" :loading="isDowload" class="mr-2 ml-4" />
                         <Button label="Close" id="close-button" @click="showResultsModal = false" />
                     </div>
                 </div>
@@ -489,8 +479,7 @@ export default {
                             {{ result.filename }}
                         </span>
                         <!-- Botón de descarga para cada log -->
-                        <Button label="Download" icon="pi pi-download" @click="downloadSingleLog(result.filename)"
-                            class="p-button-sm" id="create-button" />
+                        <Button label="Download" icon="pi pi-download" @click="downloadSingleLog(result.filename)" class="p-button-sm" id="create-button" />
                     </div>
 
                     <div v-if="isLogVisible(index)">
@@ -503,33 +492,30 @@ export default {
                 </div>
             </div>
 
-
-
             <div v-else>
                 <p>No results found.</p>
             </div>
         </Dialog>
 
-        <!-- Modal que contiene el juego -->
+        <!-- Modal de carga -->
+        <Dialog v-model:visible="isLoading1" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
+            <div class="flex flex-col items-center justify-center">
+                <ProgressSpinner />
+                <p class="mt-4">Searching server logs...</p>
+            </div>
+        </Dialog>
 
         <!-- Modal de carga -->
-        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false"
-            style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
+        <Dialog v-model:visible="isLoading" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
             <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
                 <p class="mt-4">Searching for transaction...</p>
             </div>
         </Dialog>
 
-        <!-- Modal que contiene el juego -->
-
-
         <!-- Modal de carga -->
-        <Dialog v-model:visible="isDowload" header="Dowloading..." modal :dismissableMask="false" :closable="false"
-            :style="{ 'max-width': '80vw', width: '40vw' }">
-
+        <Dialog v-model:visible="isDowload" header="We are working on your logs..." modal :dismissableMask="false" :closable="false" :style="{ 'max-width': '80vw', width: '40vw' }">
             <div class="flex w-full h-full justify-center items-center">
-
                 <!-- Sección izquierda para el juego Snake -->
                 <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
                     <SnakeGame />
@@ -541,21 +527,11 @@ export default {
                     <p class="mt-4">Downloading logs...</p>
 
                     <!-- Mensajes adicionales que aparecen en intervalos -->
-                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your
-                        download is
-                        being processed...</p>
-                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some
-                        water, your
-                        body will thank you!</p>
-                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working
-                        on your
-                        file...</p>
-                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only
-                        take a
-                        moment longer.</p>
-                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you
-                        for
-                        your patience.</p>
+                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
+                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
+                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
+                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
+                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
                 </div>
             </div>
         </Dialog>

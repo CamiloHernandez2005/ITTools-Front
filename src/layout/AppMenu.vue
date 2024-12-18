@@ -174,7 +174,7 @@ const model = computed(() => {
         ? menu
         : menu.filter(
               (item) =>
-                  !['Admin home', 'Tools', 'Servers', 'Audit'].includes(item.label)
+                  !['Admin home', 'Tools', 'Servers', 'DataBase', 'Audit'].includes(item.label)
           );
 });
 </script>

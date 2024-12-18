@@ -353,44 +353,42 @@ export default {
         </div>
         <div class="flex gap-6">
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-              
-                    <div class="font-semibold text-xl">Region details</div>
+                <div class="font-semibold text-xl">Region details</div>
 
-                    <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <div class="flex-1">
-                            <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search region" />
+                <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <label for="region" class="block text-sm font-medium mb-2">Region</label>
+                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search region" />
 
-                            <label for="transaction-date" class="block text-sm font-medium mb-2 mt-4">Transaction date</label>
-                            <Calendar id="transaction-date" v-model="transactionDate" dateFormat="mm/dd/yy" placeholder="Select date" class="w-full" />
-                        </div>
+                        <label for="transaction-date" class="block text-sm font-medium mb-2 mt-4">Transaction date</label>
+                        <Calendar id="transaction-date" v-model="transactionDate" dateFormat="mm/dd/yy" placeholder="Select date" class="w-full" />
+                    </div>
 
-                        <div class="flex-1">
-                            <label class="block text-sm font-medium mb-2">Agents</label>
-                            <div class="flex flex-col gap-2 ml-2">
-                                <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
-                                    <div class="flex items-center gap-2 checkbox-margin">
-                                        <Checkbox v-model="selectedAgents" :value="agent.idAgent" />
-                                        <span class="text-sm">{{ agent.agentName }}</span>
-                                        <span class="text-sm">||</span>
-                                        <span class="text-sm">{{ agent.ipagent }}</span>
-                                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium mb-2">Agents</label>
+                        <div class="flex flex-col gap-2 ml-2">
+                            <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
+                                <div class="flex items-center gap-2 checkbox-margin">
+                                    <Checkbox v-model="selectedAgents" :value="agent.idAgent" />
+                                    <span class="text-sm">{{ agent.agentName }}</span>
+                                    <span class="text-sm">||</span>
+                                    <span class="text-sm">{{ agent.ipagent }}</span>
                                 </div>
-                                <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500 mt-1 ml-2">No agents found for the selected region</div>
                             </div>
+                            <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500 mt-1 ml-2">No agents found for the selected region</div>
                         </div>
                     </div>
-              
+                </div>
             </div>
 
-            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border"  >
-                <div class="font-semibold text-xl  ">Transaction details</div>
+            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
+                <div class="font-semibold text-xl">Transaction details</div>
 
                 <div class="flex items-center">
                     <!-- Contenedor para el input y label -->
                     <label for="transaction-id" class="block text-sm font-medium mb-0 mr-4">Transaction ID</label>
-                    <InputText id="transaction-id" v-model="transactionId" type="text" class="border input-with-line " placeholder="Enter transaction ID" />
+                    <InputText id="transaction-id" v-model="transactionId" type="text" class="border input-with-line" placeholder="Enter transaction ID" />
                     <!-- Ajuste del tamaño -->
                 </div>
 
@@ -456,33 +454,28 @@ export default {
             </div>
         </Dialog>
 
-      
-       <!-- Modal de carga -->
- <Dialog v-model:visible="isDowload" header="Dowloading..." modal :dismissableMask="false" :closable="false"  :style="{ 'max-width': '80vw', width: '40vw' }"  >
-        
-        <div class="flex w-full h-full justify-center items-center">
-            
-            <!-- Sección izquierda para el juego Snake -->
-            <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
-                <SnakeGame />
+        <!-- Modal de carga -->
+        <Dialog v-model:visible="isDowload" header="We are working on your logs..." modal :dismissableMask="false" :closable="false" :style="{ 'max-width': '90vw', width: '40vw' }">
+            <div class="flex w-full h-full justify-center items-center">
+                <!-- Sección izquierda para el juego Snake -->
+                <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
+                    <SnakeGame />
+                </div>
+
+                <!-- Sección derecha para el Progress Spinner y mensajes -->
+                <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
+                    <ProgressSpinner />
+                    <p class="mt-4">Downloading logs...</p>
+
+                    <!-- Mensajes adicionales que aparecen en intervalos -->
+                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
+                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
+                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
+                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
+                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
+                </div>
             </div>
-
-            <!-- Sección derecha para el Progress Spinner y mensajes -->
-            <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
-                <ProgressSpinner />
-                <p class="mt-4">Downloading logs...</p>
-
-                <!-- Mensajes adicionales que aparecen en intervalos -->
-                <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
-                <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
-                <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
-                <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
-                <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
-            </div>
-        </div>
-    </Dialog>
-
-
+        </Dialog>
 
         <div class="mt-4 ml-4">
             <div class="flex items-center">

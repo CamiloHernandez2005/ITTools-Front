@@ -15,7 +15,7 @@ import '@/assets/tailwind.css';
 const app = createApp(App);
 
 app.use(vue3GoogleLogin, {
-    clientId: '45560386020-p8mrmnc39q2v6v6e55ddmmb8gmffvmih.apps.googleusercontent.com'
+    clientId: '61203141647-nkplv8ir43l2b25h1iamodvdoh59r5k4.apps.googleusercontent.com'
 });
 
 app.use(router);
