@@ -43,6 +43,7 @@ export default {
         const selectedLogs = ref([]); // Cambia a un array para seleccionar múltiples logs
         const errorMessage = ref('');
         const isLoading = ref(false); // Variable para el estado de carga
+        const isLoading1 = ref(false);
         const showAdditionalMessage = ref(false);
         const showAdditionalMessage2 = ref(false);
         const showAdditionalMessage3 = ref(false);
@@ -62,6 +63,7 @@ export default {
 
         async function loadLogs() {
             if (selectedAgent.value && date.value && selectedRegion.value) {
+                isLoading1.value = true;
                 // Verificar que los tres campos estén seleccionados
                 try {
                     const formattedDate = date.value.toISOString().split('T')[0].split('-').reverse().join('-');
@@ -79,6 +81,8 @@ export default {
                     }
                 } catch (error) {
                     handleError(error);
+                } finally {
+                    isLoading1.value = false;
                 }
             }
         }
@@ -140,11 +144,11 @@ export default {
                 }, 50000);
                 try {
                     // Encontrar la IP del agente seleccionado
-                    const agent = agents.value.find(a => a.idAgent === selectedAgent.value);
+                    const agent = agents.value.find((a) => a.idAgent === selectedAgent.value);
                     const agentIp = agent?.ipagent || 'UnknownIP'; // Usar un valor por defecto si la IP no existe
 
                     // Obtener el nombre de la región
-                    const regionName = regions.value.find(region => region.id === selectedRegion.value)?.name || 'UnknownRegion'; // Obtener el nombre de la región
+                    const regionName = regions.value.find((region) => region.id === selectedRegion.value)?.name || 'UnknownRegion'; // Obtener el nombre de la región
 
                     // Llamar al servicio pasándole la región y la IP como parámetros
                     await LogService.zipLogFile(selectedAgent.value, selectedLogs.value, regionName, agentIp);
@@ -169,7 +173,6 @@ export default {
                 showError('Please select at least one log to download.');
             }
         }
-
 
         onMounted(() => {
             loadRegions();
@@ -199,6 +202,7 @@ export default {
             downloadSelectedLogs,
             errorMessage,
             isLoading,
+            isLoading1,
             breadcrumbItems,
             showAdditionalMessage,
             showAdditionalMessage2,
@@ -215,7 +219,7 @@ export default {
     <div class="flex flex-col grid p-4">
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
-                <div class="title font-semibold text-xl ml-4 ">Logs</div>
+                <div class="title font-semibold text-xl ml-4">Logs</div>
                 <div class="breadcrumb-section mr-2">
                     <Breadcrumb :model="breadcrumbItems" class="breadcrumb-item" />
                 </div>
@@ -269,12 +273,12 @@ export default {
 
             </div>
 
-
             <!-- Div for the second half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
                 <div class="font-semibold text-xl">Log files</div>
 
                 <div v-if="logs.length > 0" class="mb-2 ml-2">
+                    <div class="table-container" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd">
                     <table class="w-full table-auto border-collapse border border-gray-200">
                         <thead>
                             <tr class="text-white" style="background-color: #614d56">
@@ -292,22 +296,26 @@ export default {
                             </tr>
                         </tbody>
                     </table>
-                    <div class="flex justify-end mt-4">
-                        <Button label="Download logs" icon="pi pi-download" id="create-button"
-                            @click="downloadSelectedLogs" />
-                    </div>
+                </div>
                 </div>
                 <div v-else class="text-sm text-gray-500 ml-2">No logs available.</div>
+                <div class="flex justify-end">
+                    <Button label="Download logs" icon="pi pi-download" id="create-button" @click="downloadSelectedLogs" />
+                </div>
             </div>
         </div>
 
-        <!-- Loading Modal -->
         <!-- Modal de carga -->
-        <Dialog v-model:visible="isLoading" header="Dowloading..." modal :dismissableMask="false" :closable="false"
-            :style="{ 'max-width': '80vw', width: '40vw' }">
+        <Dialog v-model:visible="isLoading1" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
+            <div class="flex flex-col items-center justify-center">
+                <ProgressSpinner />
+                <p class="mt-4">Searching server logs...</p>
+            </div>
+        </Dialog>
 
+        <!-- Modal de carga -->
+        <Dialog v-model:visible="isLoading" header="We are working on your logs..." modal :dismissableMask="false" :closable="false" :style="{ 'max-width': '80vw', width: '40vw' }">
             <div class="flex w-full h-full justify-center items-center">
-
                 <!-- Sección izquierda para el juego Snake -->
                 <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
                     <SnakeGame />
@@ -319,16 +327,11 @@ export default {
                     <p class="mt-4">Downloading logs...</p>
 
                     <!-- Mensajes adicionales que aparecen en intervalos -->
-                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your
-                        download is being processed...</p>
-                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some
-                        water, your body will thank you!</p>
-                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working
-                        on your file...</p>
-                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only
-                        take a moment longer.</p>
-                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you
-                        for your patience.</p>
+                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
+                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
+                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
+                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
+                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
                 </div>
             </div>
         </Dialog>
@@ -337,8 +340,7 @@ export default {
         <div v-else class="mt-4 ml-4">
             <div class="flex items-center">
                 <i class="pi pi-info-circle mr-2"></i>
-                <span>If you don't find the log, remember that after 7 days, logs are moved to the archive
-                    module.</span>
+                <span>If you don't find the log, remember that after 7 days, logs are moved to the archive module.</span>
             </div>
         </div>
     </div>

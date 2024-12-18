@@ -485,13 +485,9 @@ export default {
             </div>
         </Dialog>
 
-
         <!-- Modal de carga -->
-        <Dialog v-model:visible="isDowload" header="Dowloading..." modal :dismissableMask="false" :closable="false"
-            :style="{ 'max-width': '80vw', width: '40vw' }">
-
+        <Dialog v-model:visible="isDowload" header="We are working on your logs..." modal :dismissableMask="false" :closable="false" :style="{ 'max-width': '90vw', width: '40vw' }">
             <div class="flex w-full h-full justify-center items-center">
-
                 <!-- Sección izquierda para el juego Snake -->
                 <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
                     <SnakeGame />
@@ -503,26 +499,14 @@ export default {
                     <p class="mt-4">Downloading logs...</p>
 
                     <!-- Mensajes adicionales que aparecen en intervalos -->
-                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your
-                        download is
-                        being processed...</p>
-                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some
-                        water, your
-                        body will thank you!</p>
-                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working
-                        on your
-                        file...</p>
-                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only
-                        take a
-                        moment longer.</p>
-                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you
-                        for
-                        your patience.</p>
+                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
+                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
+                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
+                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
+                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
                 </div>
             </div>
         </Dialog>
-
-
 
         <div class="mt-4 ml-4">
             <div class="flex items-center">

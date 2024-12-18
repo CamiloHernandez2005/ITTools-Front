@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configure Axios
-axios.defaults.baseURL = 'http://localhost:5000'; // Change according to your baseURL
+axios.defaults.baseURL = 'http://192.168.2.204:5000'; // Change according to your baseURL
 
 // Request interceptor to include the JWT token
 axios.interceptors.request.use(
@@ -24,6 +24,8 @@ axios.interceptors.response.use(
   error => {
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       localStorage.removeItem('token');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userName');
       window.location.href = '/';
     }    
   

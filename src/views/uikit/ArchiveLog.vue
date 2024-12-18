@@ -49,12 +49,12 @@ export default {
         const selectedLogs = ref([]); // Cambia a un array para seleccionar múltiples logs
         const errorMessage = ref('');
         const isLoading = ref(false); // Variable para el estado de carga
+        const isLoading1 = ref(false);
         const showAdditionalMessage = ref(false);
         const showAdditionalMessage2 = ref(false);
         const showAdditionalMessage3 = ref(false);
         const showAdditionalMessage4 = ref(false);
         const showAdditionalMessage5 = ref(false);
-
 
         const showSuccess = (message) => {
             toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
@@ -66,6 +66,7 @@ export default {
 
         async function loadLogs() {
             if (selectedAgent.value && date.value && selectedRegion.value) {
+                isLoading1.value = true;
                 // Verificar que los tres campos estén seleccionados
                 try {
                     const formattedDate = date.value.toISOString().split('T')[0].split('-').reverse().join('-');
@@ -83,6 +84,8 @@ export default {
                     }
                 } catch (error) {
                     handleError(error);
+                } finally {
+                    isLoading1.value = false;
                 }
             }
         }
@@ -208,7 +211,8 @@ export default {
             errorMessage,
             isLoading,
             breadcrumbItems,
-            showHelp
+            showHelp,
+            isLoading1,
         };
     }
 };
@@ -227,8 +231,7 @@ export default {
         <div class="flex gap-6">
             <!-- Div para la primera mitad -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-               
-                    <div class="font-semibold text-xl ">Region details</div>
+                <div class="font-semibold text-xl">Region details</div>
 
                     <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
                     <div class="flex flex-col md:flex-row gap-4">
@@ -261,22 +264,23 @@ export default {
                                         <span class="text-sm">{{ agent.ipagent }}</span>
                                     </div>
                                 </div>
-                                <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500">No agents found for the selected region</div>
                             </div>
+                            <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500">No agents found for the selected region</div>
                         </div>
                     </div>
-      
+                </div>
             </div>
 
             <!-- Div para la segunda mitad -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-                <div class="font-semibold text-xl">Log files</div>
+                <div class="font-semibold text-xl">Archive log files</div>
 
                 <div v-if="logs.length > 0" class="mb-2 ml-2">
+                    <div class="table-container" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd">
                     <table class="w-full table-auto border-collapse border border-gray-200">
                         <thead>
                             <tr class="text-white" style="background-color: #614d56">
-                                <th class="text-left p-2">Log files</th>
+                                <th class="text-left p-2">Archive log files</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -290,38 +294,46 @@ export default {
                             </tr>
                         </tbody>
                     </table>
-                    <div class="flex justify-end mt-4">
-                        <Button label="Download logs" icon="pi pi-download" id="create-button" @click="downloadSelectedLogs" />
-                    </div>
+                </div>
+                  
                 </div>
                 <div v-else class="text-sm text-gray-500 ml-2">No logs available.</div>
+                <div class="flex justify-end">
+                        <Button label="Download logs" icon="pi pi-download" id="create-button" @click="downloadSelectedLogs" />
+                    </div>
             </div>
         </div>
 
-              <!-- Modal de carga -->
- <Dialog v-model:visible="isLoading" header="Dowloading..." modal :dismissableMask="false" :closable="false"  :style="{ 'max-width': '80vw', width: '40vw' }"  >
-        
-        <div class="flex w-full h-full justify-center items-center">
-            
-            <!-- Sección izquierda para el juego Snake -->
-            <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
-                <SnakeGame />
-            </div>
-
-            <!-- Sección derecha para el Progress Spinner y mensajes -->
-            <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
+         <!-- Modal de carga -->
+         <Dialog v-model:visible="isLoading1" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
+            <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
-                <p class="mt-4">Downloading logs...</p>
-
-                <!-- Mensajes adicionales que aparecen en intervalos -->
-                <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
-                <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
-                <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
-                <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
-                <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
+                <p class="mt-4">Searching server logs...</p>
             </div>
-        </div>
-    </Dialog>
+        </Dialog>
+
+        <!-- Modal de carga -->
+        <Dialog v-model:visible="isLoading" header="We are working on your logs..." modal :dismissableMask="false" :closable="false" :style="{ 'max-width': '80vw', width: '40vw' }">
+            <div class="flex w-full h-full justify-center items-center">
+                <!-- Sección izquierda para el juego Snake -->
+                <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
+                    <SnakeGame />
+                </div>
+
+                <!-- Sección derecha para el Progress Spinner y mensajes -->
+                <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
+                    <ProgressSpinner />
+                    <p class="mt-4">Downloading logs...</p>
+
+                    <!-- Mensajes adicionales que aparecen en intervalos -->
+                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
+                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
+                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
+                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
+                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
+                </div>
+            </div>
+        </Dialog>
 
         <div v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</div>
         <div v-else class="mt-4 ml-4">

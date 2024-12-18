@@ -232,15 +232,16 @@ export default {
             snakeGame.intervalId = setInterval(snakeGameLoop, snakeGame.gameSpeed);
         }
 
+       
         function updateGameSpeed() {
-            let speed = 400; // Velocidad inicial en ms
+            let speed = 300; // Velocidad inicial en ms
             if (snakeGame.score >= 30)
-                speed = 150; // Velocidad a partir de 30 puntos
+                speed = 100; // Velocidad a partir de 30 puntos
             else if (snakeGame.score >= 20)
-                speed = 200; // Velocidad a partir de 20 puntos
+                speed = 150; // Velocidad a partir de 20 puntos
             else if (snakeGame.score >= 10)
-                speed = 300; // Velocidad a partir de 10 puntos
-            else if (snakeGame.score >= 5) speed = 350; // Velocidad a partir de 5 puntos
+                speed = 200; // Velocidad a partir de 10 puntos
+            else if (snakeGame.score >= 5) speed = 250; // Velocidad a partir de 5 puntos
 
             // Si la velocidad cambió, reiniciamos el intervalo
             if (speed !== snakeGame.gameSpeed) {
