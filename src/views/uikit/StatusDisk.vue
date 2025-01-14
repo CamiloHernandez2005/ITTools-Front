@@ -7,20 +7,26 @@ import Button from 'primevue/button'; // Importamos el componente Button
 import { FilterMatchMode } from '@primevue/core/api';
 import pdfMake from 'pdfmake/build/pdfmake';
 import 'pdfmake/build/vfs_fonts'; // Asegúrate de que esta línea esté presente
+import Dialog from 'primevue/dialog';
+import dayjs from 'dayjs';
 
 
 export default {
     components: {
         DataTable,
         Column,
-        Button // Registramos el componente Button
+        Button, // Registramos el componente Button
+        Dialog
     },
     data() {
         return {
             backups: [], // Almacena la información de respaldo
+            backupsError: [],
+            isErrorModalVisible: false,
             searchQuery: '', // Búsqueda global
             sortOrder: 'desc', // Orden descendente
             sortColumn: 'lastBackupDate',// Columna de ordenación
+
             home: {
                 label: 'Home',
                 icon: 'pi pi-home',
@@ -37,6 +43,7 @@ export default {
                 status: { value: null, matchMode: FilterMatchMode.CONTAINS },
                 global: { value: null, matchMode: FilterMatchMode.CONTAINS },
             },
+
             items: [
                 {
                     icon: 'pi pi-database',
@@ -75,6 +82,22 @@ export default {
     methods: {
 
 
+        rowClass(data) {
+            // Aplica la clase "row-failed" si el status es "failed"
+            // Aplica la clase "row-check" si el status es "check"
+            return {
+                'row-failed': data.status === 'Failed',
+                'row-check': data.status === 'Check',
+            };
+        },
+        highlightRow() {
+            // Aplica la clase 'highlight-error' a todas las filas
+            return 'highlight-error';
+        }, 
+        formatDateTime(value) {
+            return value ? dayjs(value).format('DD/MMM/YYYY HH:mm:ss') : '';
+        },
+
         clearFilter() {
             this.searchQuery = '';  // Limpia la búsqueda global
             Object.keys(this.filters).forEach((key) => {
@@ -86,6 +109,16 @@ export default {
                 const response = await axios.get('/statusDisk/status');
                 this.backups = response.data;
                 console.log("Datos de estado del disco obtenidos:", this.backups);
+            } catch (error) {
+                console.error("Error fetching disk status:", error);
+            }
+        },
+        async fetchErrorStatusDisk() {
+            try {
+                const response = await axios.get('/statusDisk/StatusDisk');
+                this.backupsError = response.data;
+                this.isErrorModalVisible = true;
+
             } catch (error) {
                 console.error("Error fetching disk status:", error);
             }
@@ -163,7 +196,9 @@ export default {
     },
 
     mounted() {
+
         this.fetchStatusDisk();
+
     }
 };
 </script>
@@ -175,21 +210,20 @@ export default {
             <div class="header-container">
                 <div class="title font-semibold text-xl">Status Disk</div>
                 <Breadcrumb :home="home" :model="items" />
+
             </div>
 
             <!-- Tabla de datos -->
             <DataTable :value="filteredBackups" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 20]"
                 dataKey="id" :rowHover="true" class="p-datatable-sm" v-model:filters="filters" filterDisplay="menu"
-                id="pdf">
+                :rowClass="rowClass" id="pdf">
 
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
                         <!-- Botón para descargar en Excel -->
-                        <Button class="p-button-success  icon-button2" @click="exportToExcel" 
-                            icon="pi pi-file-excel"  />
-                        <!-- Botón para descargar en PDF -->
-                        <Button class="p-button-danger icon-button" @click="PDF" 
-                            icon="pi pi-file-pdf"  />
+                        <Button class="p-button-success  icon-button2" @click="exportToExcel" icon="pi pi-file-excel" />
+                        <Button class="p-button-danger icon-button" @click="PDF" icon="pi pi-file-pdf" />
+                        <Button class="p-button-danger icon-button" @click="fetchErrorStatusDisk" icon="pi pi-trash" />
                     </div>
 
 
@@ -243,10 +277,24 @@ export default {
                     </template>
                 </Column>
             </DataTable>
-
-            <!-- Botones de exportación -->
-
         </div>
+        <Dialog v-model:visible="isErrorModalVisible" modal header="Error Logs" style="width: 800px">
+            <!-- Tabla de errores -->
+            <DataTable :value="backupsError" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]" dataKey="id"
+                :rowClass="highlightRow" 
+                scrollable 
+                 scrollHeight="5%">
+                <!-- Columnas de la tabla -->
+
+                <Column field="serverName" header="Server Name" ></Column>
+                <Column field="sp" header="Stored Procedure"></Column>
+                <Column field="description" header="Error Description"></Column>
+                <Column field="timestamp" header="Timestamp">
+                    <template #body="slotProps">
+                        {{ formatDateTime(slotProps.data.timestamp) }}
+                    </template></Column>
+            </DataTable>
+        </Dialog>
     </div>
 </template>
 
@@ -264,20 +312,43 @@ export default {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
 }
+
 .icon-button {
-    background-color: white !important; /* Fondo blanco */
-    border: 1px solid red !important; /* Borde rojo */
+    background-color: white !important;
+    /* Fondo blanco */
+    border: 1px solid red !important;
+    /* Borde rojo */
 }
 
 .icon-button .p-button-icon {
-    color: red !important; /* Color del ícono rojo */
+    color: red !important;
+    /* Color del ícono rojo */
 }
+
 .icon-button2 {
-    background-color: white !important; /* Fondo blanco */
-    border: 1px solid rgb(10, 177, 10) !important; /* Borde rojo */
+    background-color: white !important;
+    /* Fondo blanco */
+    border: 1px solid rgb(10, 177, 10) !important;
+    /* Borde rojo */
 }
 
 .icon-button2 .p-button-icon {
-    color: rgb(8, 168, 8) !important; /* Color del ícono rojo */
+    color: rgb(8, 168, 8) !important;
+    /* Color del ícono rojo */
+}
+
+.row-failed {
+    background-color: #ffcccc !important;
+}
+
+.highlight-error {
+    background-color: #ffcccc !important;
+}
+
+
+
+/* Clase para filas con estado "check" */
+.row-check {
+    background-color: rgb(255, 52, 52) !important;
 }
 </style>

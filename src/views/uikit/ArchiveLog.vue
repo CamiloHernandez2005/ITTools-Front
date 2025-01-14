@@ -255,7 +255,7 @@ export default {
     <div class="flex flex-col grid p-4">
         <div class="w-full card p-1 mb-4 shadow-custom border">
             <div class="header-container">
-                <div class="title font-semibold text-xl ml-4">Archive logs</div>
+                <div class="title font-semibold text-xl ml-4">Logs</div>
                 <div class="breadcrumb-section mr-2">
                     <Breadcrumb :model="breadcrumbItems" class="breadcrumb-item" />
                 </div>
@@ -264,6 +264,7 @@ export default {
         <div class="flex gap-6">
             <!-- Div for the first half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col h-full shadow-custom border">
+
                 <div class="font-semibold text-xl mb-4">Region details</div>
 
                 <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
@@ -306,11 +307,12 @@ export default {
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <!-- Div for the second half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-                <div class="font-semibold text-xl">Archive log files</div>
+                <div class="font-semibold text-xl">Log archive files</div>
 
                 <div v-if="logs.length > 0" class="mb-2 ml-2">
                     <div class="table-container" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd">
@@ -333,7 +335,7 @@ export default {
                         </table>
                     </div>
                 </div>
-                <div v-else class="text-sm text-gray-500 ml-2">No logs available.</div>
+                <div v-else class="text-sm text-gray-500 ml-2">No logs archive available.</div>
                 <div class="flex justify-end">
                     <Button label="Download logs" icon="pi pi-download" id="create-button"
                         @click="downloadSelectedLogs" />
@@ -391,7 +393,7 @@ export default {
         <div v-else class="mt-4 ml-4">
             <div class="flex items-center">
                 <i class="pi pi-info-circle mr-2"></i>
-                <span>Remember that here you will not find recent logs and when you download them the logs will be compressed.</span>
+                <span>If you don't find the log, remember that after 7 days, logs are moved to the archive module.</span>
             </div>
         </div>
     </div>

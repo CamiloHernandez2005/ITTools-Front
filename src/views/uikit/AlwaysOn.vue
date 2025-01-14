@@ -8,18 +8,23 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import 'pdfmake/build/vfs_fonts';
 import { FilterMatchMode } from '@primevue/core/api';
 import * as XLSX from "xlsx";
+import Dialog from 'primevue/dialog';
 
 
 export default {
     components: {
         DataTable,
-        Column
+        Column,
+        Dialog
+
     },
     data() {
         return {
             backups: [], // Almacena la información de AlwaysOn
             searchQuery: '', // Búsqueda global
             sortOrder: 'desc', // Orden descendente
+            backupsError: [],
+            isErrorModalVisible: false,
             sortColumn: 'lastBackupDate', // Columna de ordenación
             home: {
                 label: 'Home',
@@ -73,6 +78,26 @@ export default {
         }
     },
     methods: {
+        highlightRow() {
+            // Aplica la clase 'highlight-error' a todas las filas
+            return 'highlight-error';
+        }, 
+        rowClass(data) {
+      // Aplica la clase "row-failed" si el status es "failed"
+      // Aplica la clase "row-check" si el status es "check"
+      return {
+        'row': data.availabilityGroupName === 'Failed',
+        'row': data.availabilityReplicaServerName === 'Failed',
+        'row': data.availabilityDatabaseName === 'Failed',
+        'row': data.availabilityMode === 'Failed',
+        'row': data.suspendReason === 'Failed',
+        'row': data.synchronizationState === 'Failed',
+
+
+
+      
+      };
+    },
 
         clearFilter() {
             this.searchQuery = '';  // Limpia la búsqueda global
@@ -86,6 +111,17 @@ export default {
                 // Almacena los datos en la propiedad de estado correcta
                 this.backups = response.data; // Cambiado a backups
                 console.log("Datos de AlwaysOn obtenidos:", this.backups);
+            } catch (error) {
+                console.error("Error fetching AlwaysOn status:", error);
+            }
+        },
+        async fetchErrorAlwaysOn() {
+            try {
+                const response = await axios.get('/statusAlways/StatusAlways');
+                // Almacena los datos en la propiedad de estado correcta
+                this.backupsError = response.data; // Cambiado a backups
+                this.isErrorModalVisible=true;
+              
             } catch (error) {
                 console.error("Error fetching AlwaysOn status:", error);
             }
@@ -210,13 +246,15 @@ export default {
                 <!-- Botón eliminado -->
             </div>
             <DataTable :value="filteredBackups" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 20]"
-                dataKey="id" :rowHover="true" v-model:filters="filters" filterDisplay="menu">
+                dataKey="id" :rowHover="true" v-model:filters="filters" filterDisplay="menu"
+                :rowClass="rowClass">
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
 
                         <Button icon="pi pi-file-excel" class="p-button-success  icon-button2" 
                             @click="exportToExcel" />
                         <Button icon="pi pi-file-pdf" class="p-button-danger icon-button"  @click="PDF" />
+                        <Button class="p-button-danger icon-button" @click="fetchErrorAlwaysOn" icon="pi pi-trash" />
                     </div>
                     <div class="flex gap-2">
                         <InputText v-model="filters.global.value" placeholder="Global search..."
@@ -293,6 +331,24 @@ export default {
             <!-- El modal de carga ha sido eliminado -->
         </div>
 
+        <Dialog v-model:visible="isErrorModalVisible" modal header="Error Logs" style="width: 800px">
+            <!-- Tabla de errores -->
+            <DataTable :value="backupsError" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]" dataKey="id"
+                :rowClass="highlightRow" 
+                scrollable 
+                 scrollHeight="5%">
+                <!-- Columnas de la tabla -->
+
+                <Column field="serverName" header="Server Name" ></Column>
+                <Column field="sp" header="Stored Procedure"></Column>
+                <Column field="description" header="Error Description"></Column>
+                <Column field="timestamp" header="Timestamp">
+                    <template #body="slotProps">
+                        {{ formatDateTime(slotProps.data.timestamp) }}
+                    </template></Column>
+            </DataTable>
+        </Dialog>
+
     </div>
 </template>
 
@@ -324,6 +380,16 @@ export default {
 .icon-button2 .p-button-icon {
     color: rgb(8, 168, 8) !important; /* Color del ícono rojo */
 }
+.highlight-error {
+    background-color: #ffcccc !important;
+}
+
+
+.row {
+  background-color: #ffcccc !important;
+}
+
+
 
 
 
