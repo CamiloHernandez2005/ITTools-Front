@@ -1,0 +1,14 @@
+{
+  "https": {
+    "key": "/home/debisys/scripts/emida-private.key",
+    "cert": "/home/debisys/scripts/emida-certificate.crt"
+  },
+  "host": "0.0.0.0",
+  "frontendPort": 5173,
+  "baseURL": "http://localhost:5000",
+  "jira": {
+    "clientId": "WqIezgIRXTVMWie5sQpl0PZh1WcLxR9R",
+    "redirectUri": "http://localhost:5173/uikit/Support"
+  },
+  "googleClientId": "61203141647-nkplv8ir43l2b25h1iamodvdoh59r5k4.apps.googleusercontent.com"
+}

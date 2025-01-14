@@ -4,9 +4,13 @@ import vue from '@vitejs/plugin-vue';
 import Components from 'unplugin-vue-components/vite';
 import { PrimeVueResolver } from '@primevue/auto-import-resolver';
 import vueJsx from '@vitejs/plugin-vue-jsx';
-import fs from 'fs'; // Asegúrate de importar fs para leer los archivos
+import fs from 'fs'; // Importar fs para leer archivos
+import path from 'path'; // Para manejar rutas absolutas
 
-// https://vitejs.dev/config/
+// Cargar configuración desde un archivo config.json
+const configPath = path.resolve('./config.json');
+const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf8')) : {};
+
 export default defineConfig({
     plugins: [
         vue(),
@@ -22,12 +26,16 @@ export default defineConfig({
         },
     },
 
+    build: {
+        target: 'esnext', // Esto habilita características más modernas como top-level await
+    },
+
     server: {
-        https: {
-            key: fs.readFileSync('./src/components/unnametool.emida.net-key.pem'),
-            cert: fs.readFileSync('./src/components/unnametool.emida.net.pem'),
-        },
-        host: '0.0.0.0', // Escuchar en todas las interfaces de red
-        port: 5173, // Cambia el puerto si es necesario
+        https: config.https ? {
+            key: fs.readFileSync(config.https.key), // Ruta dinámica al archivo de clave privada
+            cert: fs.readFileSync(config.https.cert), // Ruta dinámica al archivo del certificado
+        } : false,
+        host: config.host || '0.0.0.0', // Configuración dinámica del host
+        port: config.frontendPort || 5173, // Puerto dinámico desde config.json
     },
 });

@@ -1,12 +1,13 @@
 <script>
 import { ref, onMounted } from 'vue';
 import axios from '../../axios';
-import { authService } from '@/services/AuthService';  // Importar correctamente el objeto authService
+import { authService } from '@/services/AuthService';  // Correctly import the authService object
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import Dropdown from 'primevue/dropdown';
 import logo1 from '@/assets/emida-image.png';
+import { useToast } from 'primevue/usetoast'; // Import useToast to use toasts
 
 export default {
   components: {
@@ -16,6 +17,7 @@ export default {
     Dropdown
   },
   setup() {
+    const toast = useToast(); // Initialize the toast instance
     const breadcrumbItems = ref([
       { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
       { label: 'Support', icon: 'pi pi-user', route: { name: 'Support' } }
@@ -33,24 +35,31 @@ export default {
 
     const accessToken = ref(localStorage.getItem('jiraAccessToken'));
 
-    // Función para verificar y refrescar el token si es necesario
+    // Function to check and refresh the token if necessary
     const checkAndRefreshToken = async () => {
       if (!accessToken.value) {
         return;
       }
 
-      // Si existe el token, verifica si es necesario refrescarlo
+      // If the token exists, check if it needs refreshing
       await authService.refreshAccessToken();
 
-      // Después de refrescar el token, actualizamos el valor
+      // After refreshing the token, update the value
       accessToken.value = localStorage.getItem('jiraAccessToken');
     };
 
-
-    // Llamar a la función al montar el componente
+    // Call the function when the component is mounted
     onMounted(async () => {
-      await checkAndRefreshToken(); // Verificar y refrescar el token al ingresar a la página
+      await checkAndRefreshToken(); // Check and refresh the token on page load
     });
+
+    const showSuccess = (detail) => {
+      toast.add({ severity: 'success', summary: 'Success', detail, life: 3000 });
+    };
+
+    const showError = (detail) => {
+      toast.add({ severity: 'error', summary: 'Error', detail, life: 3000 });
+    };
 
     const createIssue = async () => {
       try {
@@ -64,10 +73,15 @@ export default {
 
         const response = await axios.post('/jira/createIssue', issueDetails);
         console.log('Issue created successfully:', response.data);
-        alert('Issue created successfully!');
+
+        // Show the success alert with the ticket number
+        const ticketKey = response.data.key; // Access the ticket key
+        showSuccess(`Your ticket #${ticketKey} has been successfully created.`); 
       } catch (error) {
         console.error('Error creating issue:', error.response ? error.response.data : error.message);
-        alert('Error creating issue');
+
+        // Show the error alert
+        showError('An error occurred while creating the ticket. Please try again.');
       }
     };
 

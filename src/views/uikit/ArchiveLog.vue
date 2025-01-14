@@ -1,19 +1,19 @@
 <script>
-import { ref, onMounted, watch } from 'vue';
-import Dropdown from 'primevue/dropdown';
-import RadioButton from 'primevue/radiobutton';
-import Button from 'primevue/button';
-import Calendar from 'primevue/calendar';
-import ProgressSpinner from 'primevue/progressspinner';
-import LogService from '@/services/LogService';
-import Dialog from 'primevue/dialog';
-import { regionService } from '@/services/RegionService';
-import { serverService } from '@/services/AgentService';
-import Checkbox from 'primevue/checkbox'; // Asegúrate de importar Checkbox
-import { useToast } from 'primevue/usetoast'; // Importar useToast para las notificaciones
-import SnakeGame from '@/views/uikit/snakeGame.vue';
-import HelpTooltip from '@/components/Alertas.vue'
-import { getCurrentInstance } from 'vue';
+import { ref, onMounted, watch } from "vue";
+import Dropdown from "primevue/dropdown";
+import RadioButton from "primevue/radiobutton";
+import Button from "primevue/button";
+import Calendar from "primevue/calendar";
+import ProgressSpinner from "primevue/progressspinner";
+import LogService from "@/services/LogService";
+import Dialog from "primevue/dialog";
+import { regionService } from "@/services/RegionService";
+import { serverService } from "@/services/AgentService";
+import Checkbox from "primevue/checkbox"; // Asegúrate de importar Checkbox
+import { useToast } from "primevue/usetoast"; // Importar useToast para las notificaciones
+import SnakeGame from "@/views/uikit/snakeGame.vue";
+import HelpTooltip from "@/components/Alertas.vue";
+import { getCurrentInstance } from "vue";
 
 export default {
     components: {
@@ -23,21 +23,23 @@ export default {
         Calendar,
         ProgressSpinner,
         Dialog,
-        Checkbox ,// Registra el componente Checkbox
+        Checkbox, // Registra el componente Checkbox
         SnakeGame,
-        HelpTooltip
-
+        HelpTooltip,
     },
     setup() {
-
         const { proxy } = getCurrentInstance();
         const showHelp = proxy.$help.showHelp;
 
         const toast = useToast(); // Inicializar el sistema de notificaciones toast
         const breadcrumbItems = ref([
-            { label: 'Home', icon: 'pi pi-home', url: '/homeusers' },
-            { label: 'Logs', icon: 'pi pi-folder' },
-            { label: 'Archive logs', icon: 'pi pi-clock', route: { name: 'ArchiveLog' } }
+            { label: "Home", icon: "pi pi-home", url: "/homeusers" },
+            { label: "Logs", icon: "pi pi-folder" },
+            {
+                label: "Archive logs",
+                icon: "pi pi-clock",
+                route: { name: "ArchiveLog" },
+            },
         ]);
         const regions = ref([]);
         const agents = ref([]);
@@ -47,7 +49,7 @@ export default {
         const date = ref(null); // Esta es la fecha seleccionada
         const logs = ref([]);
         const selectedLogs = ref([]); // Cambia a un array para seleccionar múltiples logs
-        const errorMessage = ref('');
+        const errorMessage = ref("");
         const isLoading = ref(false); // Variable para el estado de carga
         const isLoading1 = ref(false);
         const showAdditionalMessage = ref(false);
@@ -57,11 +59,21 @@ export default {
         const showAdditionalMessage5 = ref(false);
 
         const showSuccess = (message) => {
-            toast.add({ severity: 'success', summary: 'Success', detail: message, life: 3000 });
+            toast.add({
+                severity: "success",
+                summary: "Success",
+                detail: message,
+                life: 3000,
+            });
         };
 
         const showError = (message) => {
-            toast.add({ severity: 'error', summary: 'Error', detail: message, life: 3000 });
+            toast.add({
+                severity: "error",
+                summary: "Error",
+                detail: message,
+                life: 3000,
+            });
         };
 
         async function loadLogs() {
@@ -69,7 +81,12 @@ export default {
                 isLoading1.value = true;
                 // Verificar que los tres campos estén seleccionados
                 try {
-                    const formattedDate = date.value.toISOString().split('T')[0].split('-').reverse().join('-');
+                    const formattedDate = date.value
+                        .toISOString()
+                        .split("T")[0]
+                        .split("-")
+                        .reverse()
+                        .join("-");
                     const data = await LogService.filterLogsArchiveByDate(
                         selectedAgent.value,
                         formattedDate,
@@ -77,10 +94,10 @@ export default {
                     );
                     if (Array.isArray(data) && data.length > 0) {
                         logs.value = data;
-                        showSuccess('Logs loaded successfully');
+                        showSuccess("Logs loaded successfully");
                     } else {
                         logs.value = [];
-                        showError('No logs found for the selected date and region.');
+                        showError("No logs found for the selected date and region.");
                     }
                 } catch (error) {
                     handleError(error);
@@ -93,9 +110,12 @@ export default {
         async function loadRegions() {
             try {
                 const data = await regionService.getAllRegions();
-                regions.value = data.map((region) => ({ name: region.nameRegion, id: region.idRegion }));
+                regions.value = data.map((region) => ({
+                    name: region.nameRegion,
+                    id: region.idRegion,
+                }));
             } catch (error) {
-                showError('Error fetching regions: ' + error.message);
+                showError("Error fetching regions: " + error.message);
             }
         }
 
@@ -104,12 +124,16 @@ export default {
                 const data = await serverService.getAllServers();
                 agents.value = data.filter((agent) => agent.status === 1);
             } catch (error) {
-                showError('Error fetching agents: ' + error.message);
+                showError("Error fetching agents: " + error.message);
             }
         }
 
         function filterAgentsByRegion() {
-            filteredAgents.value = selectedRegion.value ? agents.value.filter((agent) => agent.regionId === selectedRegion.value) : [];
+            filteredAgents.value = selectedRegion.value
+                ? agents.value.filter(
+                    (agent) => agent.regionId === selectedRegion.value
+                )
+                : [];
         }
 
         async function downloadSelectedLogs() {
@@ -147,18 +171,27 @@ export default {
                 }, 50000);
                 try {
                     // Encontrar la IP del agente seleccionado
-                    const agent = agents.value.find((a) => a.idAgent === selectedAgent.value);
-                    const agentIp = agent?.ipagent || 'UnknownIP'; // Usar un valor por defecto si la IP no existe
+                    const agent = agents.value.find(
+                        (a) => a.idAgent === selectedAgent.value
+                    );
+                    const agentIp = agent?.ipagent || "UnknownIP"; // Usar un valor por defecto si la IP no existe
 
                     // Obtener el nombre de la región
-                    const regionName = regions.value.find((region) => region.id === selectedRegion.value)?.name || 'UnknownRegion'; // Obtener el nombre de la región
+                    const regionName =
+                        regions.value.find((region) => region.id === selectedRegion.value)
+                            ?.name || "UnknownRegion"; // Obtener el nombre de la región
 
                     // Llamar al servicio pasándole la región y la IP como parámetros
-                    await LogService.zipLogFile(selectedAgent.value, selectedLogs.value, regionName, agentIp);
+                    await LogService.zipLogFile(
+                        selectedAgent.value,
+                        selectedLogs.value,
+                        regionName,
+                        agentIp
+                    );
 
-                    showSuccess('Logs downloaded successfully');
+                    showSuccess("Logs downloaded successfully");
                 } catch (error) {
-                    showError('Error downloading log file: ' + error.message);
+                    showError("Error downloading log file: " + error.message);
                 } finally {
                     isLoading.value = false; // Cerrar el modal de carga
                     clearTimeout(additionalMessageTimeout);
@@ -173,7 +206,7 @@ export default {
                     showAdditionalMessage5.value = false;
                 }
             } else {
-                showError('Please select at least one log to download.');
+                showError("Please select at least one log to download.");
             }
         }
 
@@ -214,7 +247,7 @@ export default {
             showHelp,
             isLoading1,
         };
-    }
+    },
 };
 </script>
 
@@ -229,83 +262,93 @@ export default {
             </div>
         </div>
         <div class="flex gap-6">
-            <!-- Div para la primera mitad -->
-            <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
-                <div class="font-semibold text-xl">Region details</div>
+            <!-- Div for the first half -->
+            <div class="w-full md:w-1/2 card p-4 flex flex-col h-full shadow-custom border">
+                <div class="font-semibold text-xl mb-4">Region details</div>
 
-                    <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <div class="flex-1">
-                            <div class="tooltip-wrapper">
+                <!-- Agrupamos el Dropdown y el Calendar en un div flex -->
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <div class="tooltip-wrapper">
                             <HelpTooltip :message="'Select the region where the server is located'"
                                 :visible="showHelp" />
                             <label for="region" class="block text-sm font-medium mb-2">Region</label>
-                            </div>
-                            <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name" option-value="id" placeholder="Select region" class="w-full" filter filterPlaceholder="Search region" />
-                            <div class="tooltip-wrapper">
-                                <HelpTooltip :message="'Select the date corresponding to the logs'" :visible="showHelp" />
-                            <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transaction date</label>
-                            </div>
-                            <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
                         </div>
+                        <Dropdown id="region" v-model="selectedRegion" :options="regions" option-label="name"
+                            option-value="id" placeholder="Select region" class="w-full" filter
+                            filterPlaceholder="Search region" />
+                        <div class="tooltip-wrapper">
+                            <HelpTooltip :message="'Select the date corresponding to the logs'" :visible="showHelp" />
+                            <label for="last-modified" class="block text-sm font-medium mb-2 mt-4">Transaction
+                                date</label>
+                        </div>
+                        <Calendar id="last-modified" v-model="date" class="w-full" placeholder="Select date" />
+                    </div>
 
-                        <div class="flex-1">
-                            <div class="tooltip-wrapper">
+                    <div class="flex-1">
+                        <div class="tooltip-wrapper">
                             <HelpTooltip :message="'Select the server where the logs are located'"
                                 :visible="showHelp" />
                             <label class="block text-sm font-medium mb-3">Agents</label>
-                            </div>
-                            <div class="flex flex-col gap-2 ml-4">
-                                <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
-                                    <div class="flex items-center gap-2 radio-margin">
-                                        <RadioButton v-model="selectedAgent" :value="agent.idAgent" name="agent" />
-                                        <span class="text-sm">{{ agent.agentName }}</span>
-                                        <span class="text-sm">||</span>
-                                        <span class="text-sm">{{ agent.ipagent }}</span>
-                                    </div>
+                        </div>
+                        <div class="flex flex-col gap-2 ml-4">
+                            <div v-for="agent in filteredAgents" :key="agent.idAgent" class="flex items-center">
+                                <div class="flex items-center gap-2 radio-margin">
+                                    <RadioButton v-model="selectedAgent" :value="agent.idAgent" name="agent" />
+                                    <span class="text-sm">{{ agent.agentName }}</span>
+                                    <span class="text-sm">||</span>
+                                    <span class="text-sm">{{ agent.ipagent }}</span>
                                 </div>
                             </div>
-                            <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500">No agents found for the selected region</div>
+                            <div v-if="filteredAgents.length === 0" class="text-sm text-gray-500">
+                                No agents found for the selected region
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Div para la segunda mitad -->
+            <!-- Div for the second half -->
             <div class="w-full md:w-1/2 card p-4 flex flex-col gap-4 h-full shadow-custom border">
                 <div class="font-semibold text-xl">Archive log files</div>
 
                 <div v-if="logs.length > 0" class="mb-2 ml-2">
                     <div class="table-container" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd">
-                    <table class="w-full table-auto border-collapse border border-gray-200">
-                        <thead>
-                            <tr class="text-white" style="background-color: #614d56">
-                                <th class="text-left p-2">Archive log files</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="log in logs" :key="log" class="border-b border-gray-200">
-                                <td class="p-2">
-                                    <div class="flex items-center">
-                                        <Checkbox v-model="selectedLogs" :value="log" name="log" />
-                                        <span class="ml-2">{{ log }}</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                  
+                        <table class="w-full table-auto border-collapse border border-gray-200">
+                            <thead>
+                                <tr class="text-white" style="background-color: #614d56">
+                                    <th class="text-left p-2">Archive log files</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="log in logs" :key="log" class="border-b border-gray-200">
+                                    <td class="p-2">
+                                        <div class="flex items-center">
+                                            <Checkbox v-model="selectedLogs" :value="log" name="log" />
+                                            <span class="ml-2">{{ log }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div v-else class="text-sm text-gray-500 ml-2">No logs available.</div>
                 <div class="flex justify-end">
-                        <Button label="Download logs" icon="pi pi-download" id="create-button" @click="downloadSelectedLogs" />
-                    </div>
+                    <Button label="Download logs" icon="pi pi-download" id="create-button"
+                        @click="downloadSelectedLogs" />
+                </div>
             </div>
         </div>
 
-         <!-- Modal de carga -->
-         <Dialog v-model:visible="isLoading1" modal :dismissableMask="false" :showHeader="false" :closable="false" style="width: 20%; height: 30%; display: flex; align-items: center; justify-content: center">
+        <!-- Modal de carga -->
+        <Dialog v-model:visible="isLoading1" modal :dismissableMask="false" :showHeader="false" :closable="false" style="
+        width: 20%;
+        height: 30%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
             <div class="flex flex-col items-center justify-center">
                 <ProgressSpinner />
                 <p class="mt-4">Searching server logs...</p>
@@ -313,7 +356,8 @@ export default {
         </Dialog>
 
         <!-- Modal de carga -->
-        <Dialog v-model:visible="isLoading" header="We are working on your logs..." modal :dismissableMask="false" :closable="false" :style="{ 'max-width': '80vw', width: '40vw' }">
+        <Dialog v-model:visible="isLoading" header="We are working on your logs..." modal :dismissableMask="false"
+            :closable="false" :style="{ 'max-width': '80vw', width: '40vw' }">
             <div class="flex w-full h-full justify-center items-center">
                 <!-- Sección izquierda para el juego Snake -->
                 <div class="w-1/2 h-full flex items-center justify-center border-right border-gray-300">
@@ -323,14 +367,22 @@ export default {
                 <!-- Sección derecha para el Progress Spinner y mensajes -->
                 <div class="w-1/2 h-full flex flex-col items-center justify-center p-4 overflow-hidden">
                     <ProgressSpinner />
-                    <p class="mt-4">Downloading logs...</p>
-
-                    <!-- Mensajes adicionales que aparecen en intervalos -->
-                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">Please don't go away, your download is being processed...</p>
-                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">Don't forget to drink some water, your body will thank you!</p>
-                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">One more moment, we are working on your file...</p>
-                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">We're on it... This will only take a moment longer.</p>
-                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">We're about to finish, thank you for your patience.</p>
+                    <p class="mt-4">Downloading archive logs...</p>
+                    <p v-if="showAdditionalMessage" class="mt-2 text-sm text-gray-500">
+                        Please don't go away, your download is being processed...
+                    </p>
+                    <p v-if="showAdditionalMessage2" class="mt-2 text-sm text-gray-500">
+                        Don't forget to drink some water, your body will thank you!
+                    </p>
+                    <p v-if="showAdditionalMessage3" class="mt-2 text-sm text-gray-500">
+                        One more moment, we are working on your file...
+                    </p>
+                    <p v-if="showAdditionalMessage4" class="mt-2 text-sm text-gray-500">
+                        We're on it... This will only take a moment longer.
+                    </p>
+                    <p v-if="showAdditionalMessage5" class="mt-2 text-sm text-gray-500">
+                        We're about to finish, thank you for your patience.
+                    </p>
                 </div>
             </div>
         </Dialog>
@@ -357,6 +409,7 @@ export default {
     color: #64c4ac;
     border-color: #64c4ac;
 }
+
 /* Estilo para el encabezado de la tabla */
 .header-row {
     background-color: #614d56;
@@ -377,7 +430,8 @@ td {
 
 th {
     text-align: left;
-    color: white; /* Asegura que el texto del encabezado sea blanco */
+    color: white;
+    /* Asegura que el texto del encabezado sea blanco */
 }
 
 td {
@@ -386,12 +440,15 @@ td {
 
 /* Margen adicional para radio buttons */
 .radio-margin {
-    margin-left: 1rem; /* Ajusta el margen según sea necesario */
+    margin-left: 1rem;
+    /* Ajusta el margen según sea necesario */
 }
 
 .p-calendar {
-    width: 100%; /* Asegura que el calendario ocupe el 100% del ancho del contenedor */
-    border-radius: 0.25rem; /* Ajusta el borde del calendario */
+    width: 100%;
+    /* Asegura que el calendario ocupe el 100% del ancho del contenedor */
+    border-radius: 0.25rem;
+    /* Ajusta el borde del calendario */
 }
 
 .header-container {
@@ -402,6 +459,7 @@ td {
 
 .shadow-custom {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 8px; /* Opcional: redondear bordes */
+    border-radius: 8px;
+    /* Opcional: redondear bordes */
 }
 </style>

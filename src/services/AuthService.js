@@ -1,8 +1,31 @@
 // authService.js
 import axios from '../axios';
 
+let isConfigLoaded = false;
+
+// Función para cargar configuración de Axios
+async function loadAxiosConfig() {
+  if (!isConfigLoaded) {
+    try {
+      const response = await fetch('/config.json'); // Carga el archivo config.json
+      const config = await response.json();
+
+      // Configura Axios dinámicamente con baseURL
+      axios.defaults.baseURL = config.baseURL;
+
+      console.log('Axios configurado con baseURL:', config.baseURL);
+
+      isConfigLoaded = true; // Evita recargar configuración innecesariamente
+    } catch (error) {
+      console.error('Error cargando config.json:', error);
+    }
+  }
+}
+
 export const authService = {
     inactivityTimeout: null,
+
+    
 
     async login(email, password) {
         try {
@@ -67,31 +90,31 @@ export const authService = {
   },
   
   async sendAuthCodeToBackend(code) {
-    const existingAccessToken = localStorage.getItem('jiraAccessToken'); // Verifica si ya existe un token de acceso
+    const existingAccessToken = localStorage.getItem('jiraAccessToken');
     if (existingAccessToken) {
         console.log('Access token already exists. Skipping request to /jira/token.');
         return; // No haces nada si ya existe un token
     }
 
-    const codeVerifier = localStorage.getItem('codeVerifier'); // Recupera el code_verifier de localStorage
+    const codeVerifier = localStorage.getItem('codeVerifier');
     if (!codeVerifier) {
         console.error('Code verifier is missing.');
         return;
     }
 
+    // Asegurarse de que la configuración de axios esté cargada antes de realizar la solicitud
+    await loadAxiosConfig(); // Esperar que la configuración se cargue
+
     try {
-        // Enviar el código de autorización y el code_verifier al backend para obtener los tokens
         const response = await axios.post('/jira/token', {
             code: code,
             code_verifier: codeVerifier
         });
 
-        // Asegúrate de que la respuesta contenga tanto el access_token como el refresh_token
         if (response.data && response.data.access_token && response.data.refresh_token) {
             const accessToken = response.data.access_token;
             const refreshToken = response.data.refresh_token;
 
-            // Guardar ambos tokens en localStorage
             localStorage.setItem('jiraAccessToken', accessToken);
             localStorage.setItem('jiraRefreshToken', refreshToken);
 
@@ -102,7 +125,8 @@ export const authService = {
     } catch (error) {
         console.error('Error fetching access token:', error.response ? error.response.data : error.message);
     }
-},
+}
+,
 
 
 

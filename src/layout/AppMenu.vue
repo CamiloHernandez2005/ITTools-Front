@@ -20,14 +20,16 @@
 
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { authService } from '@/services/AuthService';
 import AppMenuItem from './AppMenuItem.vue';
 
 const { onMenuToggle } = useLayout();
 
 const isAdmin = ref(false); // Para verificar si el usuario es admin
+const config = ref(null); // Para cargar la configuración dinámica
 
+// Función para manejar el clic en el menú
 const handleMenuClick = (id) => {
     if (id === 'support') {
         if (!jiraAccessTokenExists.value) {
@@ -41,6 +43,7 @@ const jiraAccessTokenExists = computed(() => {
     return !!localStorage.getItem('jiraAccessToken');
 });
 
+// Generar un Code Verifier
 const generateCodeVerifier = () => {
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
     let codeVerifier = '';
@@ -50,27 +53,44 @@ const generateCodeVerifier = () => {
     return codeVerifier;
 };
 
+// Manejar el inicio de sesión de Jira
 const handleJiraLogin = async () => {
+    if (!config.value || !config.value.jira) {
+        console.error('JIRA configuration is missing');
+        return;
+    }
+
+    const { clientId, redirectUri } = config.value.jira;
+
     const codeVerifier = generateCodeVerifier();
     localStorage.setItem('codeVerifier', codeVerifier);
 
-    const clientId = 'WqIezgIRXTVMWie5sQpl0PZh1WcLxR9R';
-    const redirectUri = encodeURIComponent('http://localhost:5173/uikit/Support');
     const state = 'randomState123';
-    const scope = 'read:jira-user write:jira-work read:me offline_access'; // Agregamos el scope read:me
-    const encodedScope = encodeURIComponent(scope); // Codificamos correctamente los scopes
-    const authUrl = `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=${state}&scope=${encodedScope}&prompt=consent`;
+    const scope = 'read:jira-user write:jira-work read:me offline_access';
+    const encodedScope = encodeURIComponent(scope);
+
+    const authUrl = `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}&scope=${encodedScope}&prompt=consent`;
 
     window.location.href = authUrl;
 };
 
+// Cargar la configuración desde config.json
+const loadConfig = async () => {
+    try {
+        const response = await fetch('/config.json');
+        if (!response.ok) {
+            throw new Error('Error loading config.json');
+        }
+        config.value = await response.json();
+    } catch (error) {
+        console.error('Error loading configuration:', error);
+    }
+};
 
 // Función para verificar y cargar el rol del usuario
 const loadUserRole = async () => {
-    // Eliminar roles almacenados en localStorage si existen
     localStorage.removeItem('roles');
 
-    // Obtener el email del usuario del localStorage
     const userEmail = localStorage.getItem('userEmail');
     if (!userEmail) {
         console.error('No se encontró userEmail en el localStorage');
@@ -78,13 +98,10 @@ const loadUserRole = async () => {
     }
 
     try {
-        // Llamar a getUsers para obtener los datos del usuario
         const users = await authService.getUsers();
         const user = users.find((u) => u.email === userEmail);
 
         if (user && user.roles) {
-            // Guardar el rol en localStorage
-            // Verificar si el usuario es ADMIN
             isAdmin.value = user.roles.includes('ADMIN');
         } else {
             console.error('No se encontró el usuario o los roles no están definidos');
@@ -94,8 +111,11 @@ const loadUserRole = async () => {
     }
 };
 
-// Llamar a la función loadUserRole al montar el componente
-loadUserRole();
+// Ejecutar funciones necesarias al montar el componente
+onMounted(() => {
+    loadConfig();
+    loadUserRole();
+});
 
 // Modelo del menú, con lógica basada en los roles del usuario
 const model = computed(() => {
