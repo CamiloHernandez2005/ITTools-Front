@@ -111,7 +111,7 @@ const callback = async (response) => {
             <!-- Imagen con logo dinámico y tamaño ajustado -->
             <img :src="currentLogo" alt="Logo" :width="logoSize" class="logo-image" :style="logoMargins" />
             <!-- Título -->
-            <div class="text-surface-900 dark:text-surface-0 text-3xl mb-8 font-medium">Welcome to ITTools</div>
+            <div class="text-surface-900 dark:text-surface-0 text-3xl mb-8 font-medium">Welcome</div>
           </div>
 
           <!-- Formulario de inicio de sesión -->
