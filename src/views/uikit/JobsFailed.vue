@@ -7,17 +7,21 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import 'pdfmake/build/vfs_fonts';
 import { FilterMatchMode } from '@primevue/core/api';
 import * as XLSX from "xlsx";
+import Dialog from 'primevue/dialog';
 
 export default {
     components: {
         DataTable,
-        Column
+        Column,
+        Dialog
     },
     data() {
         return {
-            backups: [], // Almacena la información de respaldo
+            backupError: [], // Almacena la información de respaldo
+            isErrorModalVisible: false,
             searchQuery: '', // Búsqueda global
             sortOrder: 'desc', // Orden descendente
+            backupsError: [],
             sortColumn: 'runDate', // Columna de ordenación
             failedJobs: [], // Almacena trabajos fallidos
             home: {
@@ -73,6 +77,18 @@ export default {
         }
     },
     methods: {
+        highlightRow() {
+            // Aplica la clase 'highlight-error' a todas las filas
+            return 'highlight-error';
+        }, 
+        rowClass(data) {
+      // Aplica la clase "row-failed" si el status es "failed"
+      // Aplica la clase "row-check" si el status es "check"
+      return {
+        'row-failed': data.runStatus === 'Failed',
+        'row-check': data.runStatus === 'check',
+      };
+    },
         PDF() {
 
 
@@ -158,6 +174,17 @@ export default {
             try {
                 const response = await axios.get('/jobsFailed/status');
                 this.failedJobs = response.data; // Asegúrate de tener 'failedJobs' en tu data
+               
+                
+            } catch (error) {
+                console.error("Error fetching jobs failed:", error);
+            }
+        },
+        async fetchErrorJobsFailed() {
+            try {
+                const response = await axios.get('/jobsFailed/SP_Check_Jobs_Failed');
+                this.backupsError = response.data; // Asegúrate de tener 'failedJobs' en tu data
+                this.isErrorModalVisible=true;
                 console.log("Datos de trabajos fallidos obtenidos:", this.failedJobs);
             } catch (error) {
                 console.error("Error fetching jobs failed:", error);
@@ -185,13 +212,16 @@ export default {
                 <!-- Botón eliminado -->
             </div>
             <DataTable :value="filteredFailedJobs" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 20]"
-                dataKey="id" :rowHover="true" v-model:filters="filters" filterDisplay="menu">
+                dataKey="id" :rowHover="true" v-model:filters="filters" filterDisplay="menu"
+                  :rowClass="rowClass"
+                >
 
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
 
                         <Button icon="pi pi-file-excel" class="p-button-success  icon-button2" @click="exportToExcel" />
                         <Button icon="pi pi-file-pdf" class="p-button-danger icon-button" @click="PDF" />
+                        <Button class="p-button-danger icon-button" @click="fetchErrorJobsFailed" icon="pi pi-trash" />
                     </div>
                     <div class="flex gap-2">
                         <InputText v-model="filters.global.value" placeholder="Global search..."
@@ -249,6 +279,23 @@ export default {
 
             <!-- El modal de carga ha sido eliminado -->
         </div>
+        <Dialog v-model:visible="isErrorModalVisible" modal header="Error Logs" style="width: 800px">
+            <!-- Tabla de errores -->
+            <DataTable :value="backupsError" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]" dataKey="id"
+                :rowClass="highlightRow" 
+                scrollable 
+                 scrollHeight="5%">
+                <!-- Columnas de la tabla -->
+
+                <Column field="serverName" header="Server Name" ></Column>
+                <Column field="sp" header="Stored Procedure"></Column>
+                <Column field="description" header="Error Description"></Column>
+                <Column field="timestamp" header="Timestamp">
+                    <template #body="slotProps">
+                        {{ formatDateTime(slotProps.data.timestamp) }}
+                    </template></Column>
+            </DataTable>
+        </Dialog>
     </div>
 </template>
 
@@ -288,4 +335,19 @@ export default {
     color: rgb(8, 168, 8) !important;
     /* Color del ícono rojo */
 }
+.row-failed {
+  background-color: #ffcccc !important;
+}
+
+/* Clase para filas con estado "check" */
+.row-check {
+  background-color:rgb(255, 52, 52) !important;
+  
+}
+
+.highlight-error {
+    background-color: #ffcccc !important;
+}
+
+
 </style>

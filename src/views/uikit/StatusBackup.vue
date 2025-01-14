@@ -7,15 +7,19 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import 'pdfmake/build/vfs_fonts'; 
 import { FilterMatchMode } from '@primevue/core/api';
 import * as XLSX from "xlsx";
+import Dialog from 'primevue/dialog';
 
 export default {
     components: {
         DataTable,
-        Column
+        Column,
+        Dialog
     },
     data() {
         return {
             backups: [], // Almacena la información de respaldo
+            backupsError: [],
+            isErrorModalVisible: false,
             searchQuery: '', // Búsqueda global
             sortOrder: 'desc', // Orden descendente
             sortColumn: 'backupFinishDate', // Columna de ordenación
@@ -68,6 +72,16 @@ export default {
         }
     },
     methods: {
+        rowClass(backup) {
+      
+      return {
+        'row': backup.status === 'Failed',
+        'row': backup.status === 'Check',
+      };
+    }, highlightRow() {
+            // Aplica la clase 'highlight-error' a todas las filas
+            return 'highlight-error';
+        }, 
         clearFilter() {
             this.searchQuery = '';  // Limpia la búsqueda global
             Object.keys(this.filters).forEach((key) => {
@@ -80,6 +94,15 @@ export default {
                 const response = await axios.get('/statusBackup/status');
                 this.backups = response.data; // Cambiado a backups
                 console.log("Datos de estado de respaldo obtenidos:", this.backups);
+            } catch (error) {
+                console.error("Error fetching backup status:", error);
+            }
+        },
+        async fetchErrorStatusBackup() {
+            try {
+                const response = await axios.get('/statusBackup/StatusBackupDatabase');
+                this.backupsError = response.data; // Cambiado a backups
+                this.isErrorModalVisible = true;
             } catch (error) {
                 console.error("Error fetching backup status:", error);
             }
@@ -190,13 +213,15 @@ export default {
                 dataKey="id" 
                 :rowHover="true"
                 v-model:filters="filters"
-                filterDisplay="menu">
+                filterDisplay="menu"
+                :rowClass="rowClass">
                 
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
                
                <Button icon="pi pi-file-excel"   class="p-button-success  icon-button2"   @click="exportToExcel" />
                <Button icon="pi pi-file-pdf"     class="p-button-danger icon-button"  @click="PDF" />
+               <Button class="p-button-danger icon-button" @click="fetchErrorStatusBackup" icon="pi pi-trash" />
            </div>
                     <div class="flex gap-2">
                         <InputText v-model="filters.global.value" placeholder="Global search..." class="p-inputtext p-component" /> 
@@ -244,7 +269,23 @@ export default {
                 </Column>
 
             </DataTable>
+            <Dialog v-model:visible="isErrorModalVisible" modal header="Error Logs" style="width: 800px">
+            <!-- Tabla de errores -->
+            <DataTable :value="backupsError" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]" dataKey="id"
+                :rowClass="highlightRow" 
+                scrollable 
+                 scrollHeight="5%">
+                <!-- Columnas de la tabla -->
 
+                <Column field="serverName" header="Server Name" ></Column>
+                <Column field="sp" header="Stored Procedure"></Column>
+                <Column field="description" header="Error Description"></Column>
+                <Column field="timestamp" header="Timestamp">
+                    <template #body="slotProps">
+                        {{ formatDateTime(slotProps.data.timestamp) }}
+                    </template></Column>
+            </DataTable>
+        </Dialog>
            
         </div>
     </div>
@@ -280,6 +321,16 @@ export default {
 .icon-button2 .p-button-icon {
     color: rgb(8, 168, 8) !important; /* Color del ícono rojo */
 }
+
+.row {
+  background-color: #ffcccc !important;
+}
+.highlight-error {
+    background-color: #ffcccc !important;
+}
+
+
+/* Clase para filas con estado "check" */
 
 
 </style>

@@ -21,12 +21,9 @@ export default defineConfig({
             '@': fileURLToPath(new URL('./src', import.meta.url)),
         },
     },
-
+    base: '/', 
     server: {
-        https: {
-            key: fs.readFileSync('./src/components/unnametool.emida.net-key.pem'),
-            cert: fs.readFileSync('./src/components/unnametool.emida.net.pem'),
-        },
+       
         host: '0.0.0.0', // Escuchar en todas las interfaces de red
         port: 5173, // Cambia el puerto si es necesario
     },

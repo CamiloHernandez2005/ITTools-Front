@@ -7,18 +7,24 @@ import { FilterMatchMode } from '@primevue/core/api';
 import pdfMake from 'pdfmake/build/pdfmake';
 import 'pdfmake/build/vfs_fonts';
 import * as XLSX from "xlsx";
+import Dialog from 'primevue/dialog';
+import axios from 'axios';
+
 
 export default {
     components: {
         DataTable,
-        Column
+        Column,
+        Dialog
     },
     data() {
         return {
             backups: [], // Almacena la información de respaldo
+            backupsError:[],
             searchQuery: '', // Búsqueda global
             sortOrder: 'desc', // Orden descendente
             sortColumn: 'lastBackupDate', // Columna de ordenación
+            isErrorModalVisible: false,
             home: {
                 label: 'Home',
                 icon: 'pi pi-home',
@@ -74,17 +80,44 @@ export default {
 
     },
     methods: {
+       
+
+        highlightRow() {
+            // Aplica la clase 'highlight-error' a todas las filas
+            return 'highlight-error';
+        }, 
+        row(data) {
+      // Aplica la clase "row-failed" si el status es "failed"
+      // Aplica la clase "row-check" si el status es "check"
+      return {
+        'row': data.status === 'Failed',
+        'row': data.status === 'Check',
+      };
+    },
         clearFilter() {
             this.searchQuery = '';  // Limpia la búsqueda global
             Object.keys(this.filters).forEach((key) => {
                 this.filters[key].value = null;  // Limpia los filtros individuales
             });
         },
+        formatDateTime(value) {
+            return value ? dayjs(value).format('DD/MMM/YYYY HH:mm:ss') : '';
+        },
         async fetchBackupInfo() {
             try {
                 this.backups = await LogShipping.getAllBackupInfo();
             } catch (error) {
                 console.error("Error fetching backup info:", error);
+            }
+        },
+        async fetchErrorBackupInfo() {
+            try {
+                const response = await axios.get('/log-shipping/checkLogShippingStatus');
+                this.backupsError = response.data;
+                this.isErrorModalVisible = true;
+
+            } catch (error) {
+                console.error("Error LogShipping status:", error);
             }
         },
         clearFilter() {
@@ -198,7 +231,7 @@ export default {
                 <!-- Botón eliminado -->
             </div>
             <DataTable :value="filteredBackups" :paginator="true" :rows="10" :rowsPerPageOptions="[5, 10, 20]"
-                dataKey="id" :rowHover="true" v-model:filters="filters" filterDisplay="menu">
+                dataKey="id" :rowHover="true" v-model:filters="filters" filterDisplay="menu" :rowClass="row">
                 <div class="flex justify-between items-center flex-wrap gap-2">
                     <div class="flex gap-2">
                         <!-- Botón para descargar en Excel -->
@@ -207,6 +240,7 @@ export default {
                         <!-- Botón para descargar en PDF -->
                         <Button class="p-button-danger icon-button" @click="PDF"
                             icon="pi pi-file-pdf"  />
+                            <Button class="p-button-danger icon-button" @click="fetchErrorBackupInfo" icon="pi pi-trash" />
                     </div>
 
 
@@ -275,6 +309,23 @@ export default {
 
             <!-- El modal de carga ha sido eliminado -->
         </div>
+        <Dialog v-model:visible="isErrorModalVisible" modal header="Error Logs" style="width: 800px">
+            <!-- Tabla de errores -->
+            <DataTable :value="backupsError" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 20]" dataKey="id"
+                :rowClass="highlightRow" 
+                scrollable 
+                 scrollHeight="5%">
+                <!-- Columnas de la tabla -->
+
+                <Column field="serverName" header="Server Name" ></Column>
+                <Column field="sp" header="Stored Procedure"></Column>
+                <Column field="description" header="Error Description"></Column>
+                <Column field="timestamp" header="Timestamp">
+                    <template #body="slotProps">
+                        {{ formatDateTime(slotProps.data.timestamp) }}
+                    </template></Column>
+            </DataTable>
+        </Dialog>
 
     </div>
 </template>
@@ -309,6 +360,13 @@ export default {
     color: rgb(8, 168, 8) !important; /* Color del ícono rojo */
 }
 
+/* Clase para filas con estado "check" */
+.row {
+    background-color: #ffcccc !important;
+}
+.highlight-error {
+    background-color: #ffcccc !important;
+}
 
 
 </style>
